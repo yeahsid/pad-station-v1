@@ -13,10 +13,10 @@ Pin Configuration:
 """
 
 LABJACK_PINS = {
-    "engine_input": ("FIO2", "FIO3"),
-    "engine_output": ("FIO0", "FIO1"),
-    "relief_input": ("FIO6", "FIO7"),
-    "relief_output": ("FIO4", "FIO5"),
+    "engine_input": ("FIO3", "FIO2"),
+    "engine_output": ("FIO1", "FIO0"),
+    "relief_input": ("FIO7", "FIO6"),
+    "relief_output": ("FIO5", "FIO4"),
     "d1_servo_pwm": "FIO0",
     "d1_servo_feedback": "AIN3",
     "pressure_transducer_supply": "AIN13",
