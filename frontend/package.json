@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "lint": "eslint .",
-    "prod": "vite build && serve dist"
+    "prod": "vite build && serve -l tcp://0.0.0.0:3000 dist"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^3.0.2",
