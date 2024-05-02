@@ -1,3 +1,4 @@
+from collections import deque
 from dataclasses import dataclass
 import asyncio
 
@@ -25,7 +26,7 @@ class PressureTransducerSensor:
         labjack (LabJackConnection): An instance of the LabJackConnection class used to communicate with the LabJack device.
     """
 
-    def __init__(self, labjack: LabJackConnection):
+    def __init__(self, labjack: LabJackConnection, filter_size: int = 10):
         """
         Initializes a PressureTransducerSensor object.
 
@@ -33,12 +34,14 @@ class PressureTransducerSensor:
             labjack (LabJackConnection): An instance of the LabJackConnection class used to communicate with the LabJack device.
         """
         self.pressure_transducers = {
-            # Assuming max pressure is 100
             "supply": PressureTransducer(LABJACK_PINS["pressure_transducer_supply"], 200),
-            # Assuming max pressure is 100
             "engine": PressureTransducer(LABJACK_PINS["pressure_transducer_engine"], 200),
         }
         self.labjack = labjack
+        self.filter_size = filter_size
+        self.pressure_readings = {name: deque(
+            maxlen=filter_size) for name in self.pressure_transducers}
+        self.pressure_sums = {name: 0 for name in self.pressure_transducers}
 
     def _get_pressure_transducer(self, pressure_transducer_name: str) -> PressureTransducer:
         """
@@ -60,20 +63,18 @@ class PressureTransducerSensor:
             raise PressureSensorError("Pressure Transducer not found")
 
     def get_pressure_transducer_feedback(self, pressure_transducer_name: str) -> float:
-        """
-        Gets the pressure transducer feedback for the specified pressure transducer.
-
-        Args:
-            pressure_transducer_name (str): The name of the pressure transducer.
-
-        Returns:
-            float: The pressure transducer feedback in units of pressure.
-
-        """
         pressure_transducer = self._get_pressure_transducer(
             pressure_transducer_name)
         voltage = self.labjack.read(pressure_transducer.pressure_signal)
-        return (voltage - 0.5) / 4 * pressure_transducer.max_pressure
+        # Calculate pressure from voltage
+        pressure = (voltage - 0.5) / 4 * pressure_transducer.max_pressure
+        #pressure_bar = pressure_psi * 0.0689476  # Convert pressure from PSI to bar
+        readings = self.pressure_readings[pressure_transducer_name]
+        if len(readings) == self.filter_size:
+            self.pressure_sums[pressure_transducer_name] -= readings[0]
+        self.pressure_sums[pressure_transducer_name] += pressure
+        readings.append(pressure)
+        return round(self.pressure_sums[pressure_transducer_name] / max(len(readings), 1), 2)
 
     async def pressure_transducer_datastream(self, pressure_transducer_name: str):
         """
@@ -87,4 +88,3 @@ class PressureTransducerSensor:
         """
         while True:
             yield self.get_pressure_transducer_feedback(pressure_transducer_name)
-            await asyncio.sleep(0)  # Yield control to the event loop

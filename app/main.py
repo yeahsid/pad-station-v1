@@ -8,6 +8,8 @@ from app.valve import ValveController, ValveState
 from app.servo import ServoController
 from app.models import ValveResponse, ServoResponse
 from app.pressure_transducer import PressureTransducerSensor
+from fastapi.middleware.cors import CORSMiddleware
+import asyncio
 import logging
 
 logger = logging.getLogger(__name__)
@@ -24,8 +26,6 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-app.mount("/", StaticFiles(directory="static"), name="static")
-
 
 @app.exception_handler(DeviceNotOpenError)
 @app.exception_handler(ValveNotFoundError)
@@ -35,6 +35,18 @@ app.mount("/", StaticFiles(directory="static"), name="static")
 async def handle_custom_exceptions(request, exc):
     return JSONResponse(status_code=500, content={"message": str(exc)})
 
+origins = [
+    '*'
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
@@ -42,6 +54,11 @@ async def log_requests(request: Request, call_next):
     response = await call_next(request)
     logger.info(f"Sent response: {response.status_code}")
     return response
+
+
+@app.get("/")
+async def read_root():
+    return {"Hello": "World"}
 
 
 @app.get("/valve/{valve_name}", response_model=ValveResponse)
@@ -72,21 +89,25 @@ async def get_servo_feedback(servo_name: str = Path(...)):
 async def get_pressure_transducer_feedback(pressure_transducer_name: str = Path(...)):
     feedback = app.state.pressure_transducer_sensor.get_pressure_transducer_feedback(
         pressure_transducer_name)
-    return {"pressure_transducer_name": pressure_transducer_name, "feedback": feedback}
+    return {"pressure_transducer_name": pressure_transducer_name, "pressure": feedback}
+
+
+@app.get("/valve/{valve_name}/datastream")
+async def valve_datastream(valve_name: str):
+    async def event_generator():
+        while True:
+            feedback = app.state.valve_controller.get_valve_state(valve_name)
+            yield f"data: {feedback}\n\n"
+            # sleep for 1 second before sending the next update
+            await asyncio.sleep(1)
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 
 @app.get("/pressure/{pressure_transducer_name}/datastream")
 async def pressure_transducer_datastream(pressure_transducer_name: str):
-    """
-    Retrieves the datastream from a pressure transducer.
-
-    Args:
-        pressure_transducer_name (str): The name of the pressure transducer.
-
-    Returns:
-        StreamingResponse: A streaming response object containing the datastream.
-    """
     async def event_generator():
         async for data in app.state.pressure_transducer_sensor.pressure_transducer_datastream(pressure_transducer_name):
-            yield f"{data}\n"
-    return StreamingResponse(event_generator(), media_type="text/plain")
+            yield f"data: {data}\n\n"
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
