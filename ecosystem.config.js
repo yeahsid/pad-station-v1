@@ -1,9 +1,7 @@
 module.exports = {
     apps: [{
         name: "padstation-backend",
-        script: "poetry run gunicorn",
-        args: "-w 4 -k uvicorn.workers.UvicornWorker app.main:app",
-        interpreter: "none",
+        script: "poetry run gunicorn -w 4 -k uvicorn.workers.UvicornWorker app.main:app",
         env: {
             NODE_ENV: "production",
         },
@@ -12,9 +10,7 @@ module.exports = {
     },
     {
         name: "padstation-frontend",
-        script: "npm",
-        args: "run prod",
-        interpreter: "none",
+        script: "npm run prod",
         cwd: "./frontend",
         env: {
             NODE_ENV: "production",
