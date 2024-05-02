@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.json",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "start": "vite build && serve dist"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^3.0.2",
