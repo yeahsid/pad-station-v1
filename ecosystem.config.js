@@ -1,9 +1,8 @@
 module.exports = {
     apps: [{
         name: "padstation-backend",
-        script: "run.py",
-        args: "poetry run python run.py",
-        interpreter: "none",
+        script: "poetry run python run.py",
+        interpreter: "bash",
         env: {
             NODE_ENV: "production",
         },
