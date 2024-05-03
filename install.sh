@@ -42,15 +42,14 @@ install_packages() {
 update_packages
 
 # Install Python, pip, Node.js
-install_packages python3 python3-pip node  python3-virtualenv
+install_packages python3 python3-pip python3-virtualenv , pipx
 
-# Install pipx
-if ! command -v pipx &> /dev/null; then
-    python3 -m pip install --user pipx
-    python3 -m pipx ensurepath
-    # Refresh the PATH
-    export PATH="$HOME/.local/bin:$PATH"
-fi
+
+# Install nodejs with NVM.
+
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+
+nvm install node
 
 # Install Poetry with pipx
 if ! command -v poetry &> /dev/null; then
