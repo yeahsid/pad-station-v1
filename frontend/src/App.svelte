@@ -90,6 +90,17 @@
     // Return a cleanup function that will be called when the component is unmounted
   });
 
+  const mapToValveState = (value: string): TValveState => {
+    switch (value) {
+      case 'open':
+        return 'Open';
+      case 'closed':
+        return 'Close';
+      default:
+        return 'Unknown';
+    }
+  };
+
   const actuateEngineSensor = async () => {
     if (!selectedEngineOption || selectedEngineOption === "") return;
 
@@ -97,13 +108,11 @@
       method: "GET",
     }).then((response) => {
       if (response.ok) {
-        engineState = selectedEngineOption as TValveState;
+        engineState = mapToValveState(selectedEngineOption);
       } else {
-        engineState = "Error" as TValveState;
+        engineState = "Error";
       }
     });
-
-    // Set TValeState to the selected option
   };
 
   const actuateSupplySensor = async () => {
@@ -113,21 +122,17 @@
       method: "GET",
     }).then((response) => {
       if (response.ok) {
-        supplyState = selectedSupplyOption as TValveState;
+        supplyState = mapToValveState(selectedSupplyOption);
       } else {
-        supplyState = "Error" as TValveState;
+        supplyState = "Error";
       }
     });
-
-    //supplyState = selectedSupplyOption as TValveState;
   };
 </script>
 
 <!-- ... (rest of the code) -->
 
-<div
-  class="w-full min-h-screen flex flex-col container mx-auto p-4 justify-evenly max-w-screen-md"
->
+<div class="w-full min-h-screen flex flex-col container mx-auto p-4 justify-evenly max-w-screen-md">
   <Heading
     tag="h1"
     class="font-bold"
@@ -143,37 +148,6 @@
     <Badge color={colorMap[supplySseStatus]} rounded class="px-2.5 py-0.5"
       >Supply Pressure SSE: {supplySseStatus}</Badge
     >
-  </div>
-
-  <!-- Top Row -->
-  <div class="grid grid-cols-2 gap-4">
-    <div class="flex flex-col gap-8">
-      <div class="flex gap-2 lg:gap-4">
-        <P class="text-lg lg:text-xl">Dump Valve</P>
-
-        <span>
-          <Badge color={colorMap[supplyState]} rounded class="px-2.5 py-0.5">
-            <Indicator size="sm" color={colorMap[supplyState]} class="me-1.5" />
-            <span>{supplyState}</span>
-          </Badge>
-        </span>
-      </div>
-
-      <div class="flex gap-4">
-        <Select items={actions} bind:value={selectedSupplyOption} />
-        <Button on:click={actuateSupplySensor}>Execute</Button>
-      </div>
-    </div>
-
-    <div class="flex flex-col gap-4 place-self-end">
-      <P class="text-lg lg:text-xl text-end">Supply Pressure</P>
-
-      {#key supplyPt}
-        <P class="font-bold text-2xl lg:text-4xl text-end">
-          {supplyPt} Bar
-        </P>
-      {/key}
-    </div>
   </div>
 
   <!-- Bottom Row -->
@@ -202,6 +176,37 @@
       {#key enginePt}
         <P class="font-bold text-2xl lg:text-4xl text-end">
           {enginePt} Bar
+        </P>
+      {/key}
+    </div>
+  </div>
+
+  <!-- Top Row -->
+  <div class="grid grid-cols-2 gap-4">
+    <div class="flex flex-col gap-8">
+      <div class="flex gap-2 lg:gap-4">
+        <P class="text-lg lg:text-xl">Dump Valve</P>
+
+        <span>
+          <Badge color={colorMap[supplyState]} rounded class="px-2.5 py-0.5">
+            <Indicator size="sm" color={colorMap[supplyState]} class="me-1.5" />
+            <span>{supplyState}</span>
+          </Badge>
+        </span>
+      </div>
+
+      <div class="flex gap-4">
+        <Select items={actions} bind:value={selectedSupplyOption} />
+        <Button on:click={actuateSupplySensor}>Execute</Button>
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-4 place-self-end">
+      <P class="text-lg lg:text-xl text-end">Supply Pressure</P>
+
+      {#key supplyPt}
+        <P class="font-bold text-2xl lg:text-4xl text-end">
+          {supplyPt} Bar
         </P>
       {/key}
     </div>
