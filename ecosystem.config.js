@@ -19,4 +19,5 @@ module.exports = {
         watch: false,
         restart_delay: 3000
     }]
+    
 }

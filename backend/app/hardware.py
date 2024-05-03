@@ -7,7 +7,6 @@ import logging
 from typing import Optional, Callable
 from labjack import ljm
 from app.exceptions import DeviceNotOpenError, LabJackError
-from app.config import LABJACK_PINS
 
 # Set up a logger for the module
 logger = logging.getLogger(__name__)
@@ -88,39 +87,6 @@ class LabJackConnection:
         """
         self._access_pin(pin, ljm.eWriteName, value)
 
-    def servo_pwm_write(self, pin: str, duty_cycle: float):
-        """
-        Writes a PWM value to a pin on the LabJack device.
-
-        Args:
-            pin: The name of the pin to write to.
-            duty_cycle: The duty cycle for the PWM signal (0-1).
-        """
-        # Disable clock source
-        self._access_pin(f"{pin}EF_CLOCK0_ENABLE", ljm.eWriteName, 0)
-
-        # Configure Clock0's divisor and roll value to configure frequency: 80MHz/1/80000 = 1kHz
-        self._access_pin(f"{pin}F_CLOCK0_DIVISOR", ljm.eWriteName, 1)
-        self._access_pin(f"{pin}EF_CLOCK0_ROLL_VALUE", ljm.eWriteName, 1600000)
-
-        # Enable the clock source
-        self._access_pin(f"{pin}_EF_CLOCK0_ENABLE", ljm.eWriteName, 1)
-
-        # Disable the EF system for initial configuration
-        self._access_pin(f"{pin}_EF_ENABLE", ljm.eWriteName, 0)
-
-        # Configure EF system for PWM
-        self._access_pin(f"{pin}_EF_INDEX", ljm.eWriteName, 0)
-
-        # Configure what clock source to use: Clock0
-        self._access_pin(f"{pin}_EF_OPTIONS", ljm.eWriteName, 0)
-
-        # Configure duty cycle to be: 50%
-        self._access_pin(f"{pin}_EF_CONFIG_A", ljm.eWriteName,
-                         int(duty_cycle * 800000))
-
-        # Enable the EF system, PWM wave is now being outputted
-        self._access_pin(f"{pin}_EF_ENABLE", ljm.eWriteName, 1)
 
     def read(self, pin: str) -> int:
         """

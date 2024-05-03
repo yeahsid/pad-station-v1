@@ -24,17 +24,6 @@ class ValveResponse(BaseModel):
     feedback: Optional[str]
 
 
-class ServoResponse(BaseModel):
-    """
-    Represents the response from a servo operation.
-
-    Attributes:
-        servo_name (str): The name of the servo.
-        feedback (Optional[float]): The feedback from the servo operation, can be None.
-    """
-    servo_name: str
-    feedback: Optional[float]
-
 
 class PressureResponse(BaseModel):
     """
@@ -48,13 +37,3 @@ class PressureResponse(BaseModel):
     pressure: float
 
 
-class LoadCellResponse(BaseModel):
-    """
-    Represents the response from a load cell reading.
-
-    Attributes:
-        sensor_name (str): The name of the load cell.
-        weight (float): The weight reading from the load cell.
-    """
-    sensor_name: str
-    weight: float
