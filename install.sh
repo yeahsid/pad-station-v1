@@ -66,8 +66,8 @@ fi
 # Navigate to the backend directory and install Python dependencies with Poetry
 cd ./backend && poetry install
 
+npm install -g pm2
+
 # Navigate to the frontend directory and install Node.js dependencies with npm
 cd ../frontend && ( [ -f package-lock.json ] && npm ci || npm install )
 
-# Use npx to install PM2
-npx pm2
