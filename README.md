@@ -1,25 +1,29 @@
-# Pad Station API Documentation
+# Pad Station Documentation
 
-This document provides an overview of the Pad Station API, a FastAPI application designed to control and monitor the status of valves and sensors connected to a LabJack device.
+This document provides an overview of the Pad Station API, a FastAPI application designed to control and monitor the status of valves, sensors, and servos connected to a LabJack device.
 
 ## Setting Up
 
 Follow these steps to install the application:
 
 1. Clone the repository to your local machine.
-2. Use the `poetry install` command to install the necessary dependencies.
+2. Depending on your operating system, run the appropriate installation script:
+   - For Unix/macOS: `./install.sh`
+   - For Windows: `.\install.ps1`
+
+These scripts will install the necessary dependencies for the application.
 
 ## How to Use
 
 To start the server, use the following command:
 
 ```bash
-poetry run python run.py
+pm2 start ecosystem.config.js
 ```
 
 The API provides several endpoints:
 
-- `GET /valve/{valve_name}`: Controls a valve. The desired state of the valve (either open or closed) should be provided as a query parameter.
+- `GET /valve/{valve_name}`: Controls a valve. The desired state of the valve (either open or closed) should be provided in the request body.
 - `GET /valve/{valve_name}/state`: Retrieves the current state of a specific valve.
 - `GET /pressure/{pressure_transducer_name}/feedback`: Retrieves the raw feedback from a specific pressure transducer.
 - `GET /pressure/{pressure_transducer_name}/datastream`: Retrieves a stream of processed data from a specific pressure transducer.
@@ -42,12 +46,12 @@ The application's codebase is organized as follows:
 - `models.py`: This file defines Pydantic models for the data used in requests and responses.
 - `exceptions.py`: This file defines custom exceptions for the application.
 - `config.py`: This file contains the application's configuration variables.
-- `servo.py` : This file includes classes for controlling servos and read their feedback.
+- `servo.py` : This file includes classes for controlling servos and retrieving their feedback.
 
 ## Handling Errors
 
-The application has custom exception handlers for `DeviceNotOpenError`, `ValveNotFoundError`, and `LabJackError`. If these exceptions are raised, the application responds with a 500 status code and a message that describes the error.
+The application has custom exception handlers for `DeviceNotOpenError`, `ValveNotFoundError`, `ServoNotFoundError`, and `LabJackError`. If these exceptions are raised, the application responds with a 500 status code and a message that describes the error.
 
 ## Logging
 
-The application logs all request and response details, as well as any errors that occur. These logs are displayed in the console.
+The application logs all request and response details, as well as any errors that occur. These logs are displayed in the console and can be configured to be saved in a log file.
