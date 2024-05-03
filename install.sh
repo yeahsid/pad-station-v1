@@ -57,11 +57,14 @@ export NVM_DIR="$HOME/.nvm"
 
 nvm install node
 
+source ~/.bashrc
 
 # Install Poetry with pipx
 if ! command -v poetry &> /dev/null; then
     pipx install poetry
 fi
+
+
 
 # Navigate to the backend directory and install Python dependencies with Poetry
 cd ./backend && poetry install
