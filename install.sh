@@ -42,7 +42,7 @@ install_packages() {
 update_packages
 
 # Install Python, pip, Node.js
-install_packages python3 python3-pip node python3.10-venv
+install_packages python3 python3-pip node  python3-virtualenv
 
 # Install pipx
 if ! command -v pipx &> /dev/null; then
