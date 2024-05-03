@@ -44,6 +44,8 @@ update_packages
 # Install Python, pip, Node.js
 install_packages python3 python3-pip python3-virtualenv , pipx
 
+pipx ensurepath
+
 
 # Install nodejs with NVM.
 
