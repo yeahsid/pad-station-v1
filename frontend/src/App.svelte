@@ -35,7 +35,7 @@
     | "primary"
     | undefined;
 
-  const BASE_URL = "http://192.168.0.3:8000";
+  const BASE_URL = "http://padstation.local:8000";
 
   const colorMap: Record<TConnectionStatus | TValveState, TColorType> = {
     Connected: "green",
