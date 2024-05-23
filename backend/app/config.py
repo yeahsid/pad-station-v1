@@ -21,5 +21,6 @@ LABJACK_PINS = {
     # "d1_servo_feedback": "AIN3",
     "pressure_transducer_supply": "AIN13",
     "pressure_transducer_engine": "AIN12",
+    "thermocouple_engine": "AIN3",
     # "load_cell": ("AIN9", "AIN9")
 }
