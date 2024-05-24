@@ -36,6 +36,8 @@ class PressureTransducerSensor:
         self.pressure_transducers = {
             "supply": PressureTransducer(LABJACK_PINS["pressure_transducer_supply"], 200),
             "engine": PressureTransducer(LABJACK_PINS["pressure_transducer_engine"], 200),
+            "tank": PressureTransducer(LABJACK_PINS["pressure_transducer_tank"], 200),
+            "chamber": PressureTransducer(LABJACK_PINS["pressure_transducer_chamber"], 200),
         }
         self.labjack = labjack
         self.filter_size = filter_size

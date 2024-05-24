@@ -21,5 +21,13 @@ LABJACK_PINS = {
     # "d1_servo_feedback": "AIN3",
     "pressure_transducer_supply": "AIN13",
     "pressure_transducer_engine": "AIN12",
+    "pressure_transducer_tank": "AIN11", #change
+    "pressure_transducer_chamber": "AIN10", #change
     # "load_cell": ("AIN9", "AIN9")
+    "PV_motor_enable": "EIO0",
+    "PV_motor_in_1": "FIO2",
+    "PV_motor_in_2": "FIO3",
+    "PV_limit_switch_base": "FIO0",
+    "PV_limit_switch_work": "FIO1",
+
 }
