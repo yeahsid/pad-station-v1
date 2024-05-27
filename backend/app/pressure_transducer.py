@@ -1,11 +1,13 @@
 from collections import deque
 from dataclasses import dataclass
 import asyncio
+import time
 
 import logging
 from app.hardware import LabJackConnection
 from app.exceptions import PressureSensorError
 from app.config import LABJACK_PINS
+import csv
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +38,9 @@ class PressureTransducerSensor:
         self.pressure_transducers = {
             "supply": PressureTransducer(LABJACK_PINS["pressure_transducer_supply"], 200),
             "engine": PressureTransducer(LABJACK_PINS["pressure_transducer_engine"], 200),
+            "tank": PressureTransducer(LABJACK_PINS["pressure_transducer_tank"], 200),
+            "chamber": PressureTransducer(LABJACK_PINS["pressure_transducer_chamber"], 200),
+
         }
         self.labjack = labjack
         self.filter_size = filter_size
@@ -68,13 +73,8 @@ class PressureTransducerSensor:
         voltage = self.labjack.read(pressure_transducer.pressure_signal)
         # Calculate pressure from voltage
         pressure = (voltage - 0.5) / 4 * pressure_transducer.max_pressure
-        #pressure_bar = pressure_psi * 0.0689476  # Convert pressure from PSI to bar
-        readings = self.pressure_readings[pressure_transducer_name]
-        if len(readings) == self.filter_size:
-            self.pressure_sums[pressure_transducer_name] -= readings[0]
-        self.pressure_sums[pressure_transducer_name] += pressure
-        readings.append(pressure)
-        return round(self.pressure_sums[pressure_transducer_name] / max(len(readings), 1), 2)
+        # pressure_bar = pressure_psi * 0.0689476  # Convert pressure from PSI to bar
+        return round(pressure, 2), voltage
 
     async def pressure_transducer_datastream(self, pressure_transducer_name: str):
         """
@@ -85,6 +85,14 @@ class PressureTransducerSensor:
 
         Yields:
             float: The next pressure reading from the specified pressure transducer.
+
         """
-        while True:
-            yield self.get_pressure_transducer_feedback(pressure_transducer_name)
+        with open(f'.././logs/pressure/{pressure_transducer_name}.csv', 'a', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(["Pressure Reading"] + ["Voltage"] + ["Time"])
+            while True:
+                pressure_reading, voltage = self.get_pressure_transducer_feedback(
+                    pressure_transducer_name)
+                writer.writerow([pressure_reading] +
+                                [voltage] + [time.time()])
+                yield pressure_reading

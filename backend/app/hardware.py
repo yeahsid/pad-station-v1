@@ -7,6 +7,7 @@ import logging
 from typing import Optional, Callable
 from labjack import ljm
 from app.exceptions import DeviceNotOpenError, LabJackError
+import time
 
 # Set up a logger for the module
 logger = logging.getLogger(__name__)
@@ -37,7 +38,9 @@ class LabJackConnection:
             DeviceNotOpenError: If the connection to the LabJack device fails.
         """
         try:
-            self.handle = ljm.openS("ANY", "ANY", "470033913")
+            self.handle = ljm.openS("T7", "TCP", "192.168.0.5")
+            # self.handle = ljm.openS("T7", "USB", "ANY")
+
         except:
             logger.error("Failed to open device")
             raise DeviceNotOpenError("Failed to open device")
@@ -87,7 +90,6 @@ class LabJackConnection:
         """
         self._access_pin(pin, ljm.eWriteName, value)
 
-
     def read(self, pin: str) -> int:
         """
         Reads a value from a pin on the LabJack device.
@@ -98,4 +100,6 @@ class LabJackConnection:
         Returns:
             The value read from the pin.
         """
-        return self._access_pin(pin, ljm.eReadName)
+        val = self._access_pin(pin, ljm.eReadName)
+        time.sleep(0.005)
+        return val
