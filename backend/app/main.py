@@ -1,23 +1,40 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Path, Query, Request
+from fastapi import FastAPI, Path, Query, Request, BackgroundTasks
 from fastapi.responses import JSONResponse, StreamingResponse
 from app.hardware import LabJackConnection
 from app.exceptions import DeviceNotOpenError, ValveNotFoundError, ServoNotFoundError, LabJackError, PressureSensorError
 from app.valve import ValveController, ValveState
 from app.models import ValveResponse
 from app.pressure_transducer import PressureTransducerSensor
+from app.pilot_valve import PilotValveController
+from app.thermocouple import ThermocoupleSensor
 from fastapi.middleware.cors import CORSMiddleware
 import logging
+import asyncio
+import csv
+import time
 
 logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    """
+    Context manager for the lifespan of the FastAPI application.
+
+    Args:
+        app (FastAPI): The FastAPI application.
+
+    Yields:
+        None: This context manager does not return any value.
+
+    """
     app.state = type('', (), {})()
     connection = LabJackConnection()
     app.state.valve_controller = ValveController(connection)
     app.state.pressure_transducer_sensor = PressureTransducerSensor(connection)
+    app.state.thermocouple_sensor = ThermocoupleSensor(connection)
+    app.state.pilot_valve_controller = PilotValveController(connection)
     yield
 
 app = FastAPI(lifespan=lifespan)
@@ -58,9 +75,17 @@ async def read_root():
 
 
 @app.get("/valve/{valve_name}", response_model=ValveResponse)
-async def actuate_valve(valve_name: str = Path(...), state: ValveState = Query(...)):
+async def actuate_main_valve(valve_name: str = Path(...), state: ValveState = Query(...)):
     app.state.valve_controller.actuate_valve(valve_name, state)
     return {"valve_name": valve_name, "feedback": None}
+
+
+@app.get("/pilot_valve/{valve_name}", response_model=ValveResponse)
+async def actuate_pilot_valve(background_tasks: BackgroundTasks, valve_name: str = Path(...), state: ValveState = Query(...)):
+    background_tasks.add_task(
+        app.state.pilot_valve_controller.actuate_valve, valve_name, state)
+
+    return {"valve_name": valve_name, "feedback": state}
 
 
 @app.get("/valve/{valve_name}/state", response_model=ValveResponse)
@@ -83,3 +108,26 @@ async def pressure_transducer_datastream(pressure_transducer_name: str):
             yield f"data: {data}\n\n"
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+
+@app.get("/thermocouple/{thermocouple_name}/feedback")
+async def get_thermocouple_feedback(thermocouple_name: str = Path(...)):
+    feedback = app.state.thermocouple_sensor.get_thermocouple_temperature(
+        thermocouple_name)
+    return {"thermocouple_name": thermocouple_name, "temperature": feedback}
+
+
+@app.get("/thermocouple/{thermocouple_name}/datastream")
+async def thermocouple_datastream(thermocouple_name: str):
+    async def event_generator():
+        async for data in app.state.thermocouple_sensor.thermocouple_datastream(thermocouple_name):
+            yield f"data: {data}\n\n"
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+
+@app.get("/ignition")
+async def ignition(background_tasks: BackgroundTasks, delay: int = Query(4)):
+    background_tasks.add_task(
+        app.state.pilot_valve_controller.actuate_ignitor, delay)
+
+    return {"message": "Ignition successful"}

@@ -36,3 +36,10 @@ class PressureSensorError(Exception):
 
 class LoadCellError(Exception):
     pass
+
+
+class MotorError(Exception):
+    pass
+
+class ThermocoupleSensorError(Exception):
+    pass
