@@ -1,3 +1,7 @@
+
+//importing various components and functions from flowbite-svelte and svelte
+//these are used to create the user interface. 
+//'onmount' is a lifecycle function that runs after the component is first rendered 
 <script lang="ts">
   import {
     Heading,
@@ -9,6 +13,7 @@
   } from "flowbite-svelte";
   import { onMount } from "svelte";
 
+//an array of objects representing possible valve actions 
   const actions: { value: string; name: string }[] = [
     {
       value: "open",
@@ -20,8 +25,10 @@
     },
   ];
 
+//typescript union types that define possible connection states and valve states
   type TConnectionStatus = "Connected" | "Error" | "Unknown";
   type TValveState = "Open" | "Close" | "Error" | "Unknown";
+//defines a set of possible colour values 
   type TColorType =
     | "green"
     | "red"
@@ -35,8 +42,10 @@
     | "primary"
     | undefined;
 
+//base url is for API calls to get the data from the backend 
   const BASE_URL = "http://localhost:8000";
 
+//maps valve states to colour types 
   const colorMap: Record<TConnectionStatus | TValveState, TColorType> = {
     Connected: "green",
     Error: "red",
@@ -45,6 +54,7 @@
     Close: "red",
   };
 
+//variables to store states and data points 
   let supplyPt: string;
   let enginePt: string;
   let engineState: TValveState = "Unknown";
@@ -54,23 +64,29 @@
   let engineSseStatus: TConnectionStatus = "Unknown";
   let supplySseStatus: TConnectionStatus = "Unknown";
 
+//The onMount function sets up EventSource connections to receive real-time updates
   onMount(() => {
+    //pressure data stream
     const enginePressureSse = new EventSource(
       `${BASE_URL}/pressure/engine/datastream`
     );
 
+    //pressure data stream
     const supplyPressureSse = new EventSource(
       `${BASE_URL}/pressure/supply/datastream`
     );
 
+    //stream receiving messages 
     supplyPressureSse.onmessage = (event) => {
       supplyPt = event.data.toString();
     };
 
+    //when the stream is opened, display connected 
     supplyPressureSse.onopen = () => {
       supplySseStatus = "Connected";
     };
 
+    //when the stream is error-ing out, display error
     supplyPressureSse.onerror = (_err) => {
       supplySseStatus = "Error";
     };
@@ -90,6 +106,7 @@
     // Return a cleanup function that will be called when the component is unmounted
   });
 
+//helper function map a string value to the Tvalvestate
   const mapToValveState = (value: string): TValveState => {
     switch (value) {
       case 'open':
@@ -101,6 +118,8 @@
     }
   };
 
+//send GET requests to the server to actuate the respective sensors
+// and update their states based on the response.
   const actuateEngineSensor = async () => {
     if (!selectedEngineOption || selectedEngineOption === "") return;
 
@@ -132,6 +151,8 @@
 
 <!-- ... (rest of the code) -->
 
+
+//HTML template to create user interface
 <div class="w-full min-h-screen flex flex-col container mx-auto p-4 justify-evenly max-w-screen-md">
   <Heading
     tag="h1"
