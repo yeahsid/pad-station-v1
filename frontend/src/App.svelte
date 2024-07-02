@@ -151,9 +151,8 @@ these are used to create the user interface.
   };
 </script>
 
-<!-- ... (rest of the code) -->
 /*HTML template to create user interface*/
-
+<!-- ... (rest of the code) -->
 
 <div class="w-full min-h-screen flex flex-col container mx-auto p-4 justify-evenly max-w-screen-md">
   <Heading
