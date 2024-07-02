@@ -154,6 +154,7 @@ these are used to create the user interface.
 /*HTML template to create user interface*/
 <!-- ... (rest of the code) -->
 
+/*
 <div class="w-full min-h-screen flex flex-col container mx-auto p-4 justify-evenly max-w-screen-md">
   <Heading
     tag="h1"
@@ -232,5 +233,92 @@ these are used to create the user interface.
         </P>
       {/key}
     </div>
+  </div>
+</div>
+*/
+
+
+<div class="w-full min-h-screen flex flex-col container mx-auto p-4 justify-evenly max-w-screen-md">
+  <Heading
+    tag="h1"
+    class="font-bold"
+    customSize="text-center text-4xl lg:text-5xl"
+  >
+    MHPR Nitrous Fill Box Control
+  </Heading>
+
+  <div class="flex gap-4">
+    <Badge color={colorMap[engineSseStatus]} rounded class="px-2.5 py-0.5">
+      Engine Pressure SSE: {engineSseStatus}
+    </Badge>
+    <Badge color={colorMap[supplySseStatus]} rounded class="px-2.5 py-0.5">
+      Supply Pressure SSE: {supplySseStatus}
+    </Badge>
+  </div>
+
+  <div class="grid grid-cols-2 gap-4">
+    <div class="flex flex-col gap-8">
+      <div class="flex gap-2 lg:gap-4">
+        <P class="text-lg lg:text-xl">Fill Valve</P>
+
+        <span>
+          <Badge color={colorMap[engineState]} rounded class="px-2.5 py-0.5">
+            <Indicator size="sm" color={colorMap[engineState]} class="me-1.5" />
+            <span>{engineState}</span>
+          </Badge>
+        </span>
+      </div>
+
+      <div class="flex gap-4">
+        <Select items={actions} bind:value={selectedEngineOption} />
+        <Button on:click={actuateEngineSensor}>Execute</Button>
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-4 place-self-end">
+      <P class="text-lg lg:text-xl text-end">Engine Pressure</P>
+
+      {#key enginePt}
+        <P class="font-bold text-2xl lg:text-4xl text-end">
+          {enginePt} Bar
+        </P>
+      {/key}
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2 gap-4">
+    <div class="flex flex-col gap-8">
+      <div class="flex gap-2 lg:gap-4">
+        <P class="text-lg lg:text-xl">Dump Valve</P>
+
+        <span>
+          <Badge color={colorMap[supplyState]} rounded class="px-2.5 py-0.5">
+            <Indicator size="sm" color={colorMap[supplyState]} class="me-1.5" />
+            <span>{supplyState}</span>
+          </Badge>
+        </span>
+      </div>
+
+      <div class="flex gap-4">
+        <Select items={actions} bind:value={selectedSupplyOption} />
+        <Button on:click={actuateSupplySensor}>Execute</Button>
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-4 place-self-end">
+      <P class="text-lg lg:text-xl text-end">Supply Pressure</P>
+
+      {#key supplyPt}
+        <P class="font-bold text-2xl lg:text-4xl text-end">
+          {supplyPt} Bar
+        </P>
+      {/key}
+    </div>
+  </div>
+
+  <div class="flex gap-4 mt-4">
+    <Button>Start Logging</Button>
+    <Button>PV Up</Button>
+    <Button>PV Down</Button>
   </div>
 </div>
