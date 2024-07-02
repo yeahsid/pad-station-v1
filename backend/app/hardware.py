@@ -38,8 +38,9 @@ class LabJackConnection:
             DeviceNotOpenError: If the connection to the LabJack device fails.
         """
         try:
-            self.handle = ljm.openS("T7", "TCP", "192.168.0.5")
+            # self.handle = ljm.openS("T7", "TCP", "192.168.0.5")
             # self.handle = ljm.openS("T7", "USB", "ANY")
+            self.handle = ljm.openS("T7", "ANY", "ANY")
 
         except:
             logger.error("Failed to open device")
