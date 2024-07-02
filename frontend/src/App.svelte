@@ -1,9 +1,3 @@
-/*
-importing various components and functions from flowbite-svelte and svelte
-these are used to create the user interface. 
-'onmount' is a lifecycle function that runs after the component is first rendered 
-*/
-
 <script lang="ts">
   import {
     Heading,
@@ -14,6 +8,12 @@ these are used to create the user interface.
     Select,
   } from "flowbite-svelte";
   import { onMount } from "svelte";
+
+/*
+importing various components and functions from flowbite-svelte and svelte
+these are used to create the user interface. 
+'onmount' is a lifecycle function that runs after the component is first rendered 
+*/
 
 //an array of objects representing possible valve actions 
   const actions: { value: string; name: string }[] = [
