@@ -1,7 +1,7 @@
-
 //importing various components and functions from flowbite-svelte and svelte
 //these are used to create the user interface. 
 //'onmount' is a lifecycle function that runs after the component is first rendered 
+
 <script lang="ts">
   import {
     Heading,
@@ -150,9 +150,9 @@
 </script>
 
 <!-- ... (rest of the code) -->
-
-
 //HTML template to create user interface
+
+
 <div class="w-full min-h-screen flex flex-col container mx-auto p-4 justify-evenly max-w-screen-md">
   <Heading
     tag="h1"
