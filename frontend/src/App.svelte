@@ -155,7 +155,15 @@ these are used to create the user interface.
 
 const startLogging = () => {
   isLogging = true;
+  ${BASE_URL}/pressure/engine/datastream
+  ${BASE_URL}/pressure/supply/datastream
+  ${BASE_URL}/pressure/tank/datastream
+  ${BASE_URL}/pressure/chamber/datastream
+  ${BASE_URL}/thermocouple/engine/datastream
+  ${BASE_URL}/load_cell/test_stand_load_cell/datastream
   };
+
+
 
 </script>
 
@@ -246,7 +254,11 @@ const startLogging = () => {
   <div class="flex gap-4 mt-4 items-center">
     <Button on:click={startLogging}>Start Logging</Button>
     <Indicator size="sm" color={isLogging ? "green" : "red"} class="me-1.5" />
-    <Button>PV Up</Button>
-    <Button>PV Down</Button>
+    
+    <Button on:click={pilotValveUp}>PV Up</Button>
+
+    <Button on:click={pilotValveDown}>PV Down</Button>
+
+    <Button color="red">Ignition</Button>
   </div>
 </div>
