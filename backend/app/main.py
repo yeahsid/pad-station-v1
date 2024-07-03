@@ -2,12 +2,13 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Path, Query, Request, BackgroundTasks
 from fastapi.responses import JSONResponse, StreamingResponse
 from app.hardware import LabJackConnection
-from app.exceptions import DeviceNotOpenError, ValveNotFoundError, ServoNotFoundError, LabJackError, PressureSensorError
+from app.exceptions import DeviceNotOpenError, ValveNotFoundError, ServoNotFoundError, LabJackError, PressureSensorError, LoadCellError
 from app.valve import ValveController, ValveState
 from app.models import ValveResponse
 from app.pressure_transducer import PressureTransducerSensor
 from app.pilot_valve import PilotValveController
 from app.thermocouple import ThermocoupleSensor
+from app.load_cell import LoadCellSensor
 from fastapi.middleware.cors import CORSMiddleware
 import logging
 import asyncio
@@ -35,6 +36,7 @@ async def lifespan(app: FastAPI):
     app.state.pressure_transducer_sensor = PressureTransducerSensor(connection)
     app.state.thermocouple_sensor = ThermocoupleSensor(connection)
     app.state.pilot_valve_controller = PilotValveController(connection)
+    app.state.load_cell_sensor = LoadCellSensor(connection)
     yield
 
 app = FastAPI(lifespan=lifespan)
@@ -45,6 +47,7 @@ app = FastAPI(lifespan=lifespan)
 @app.exception_handler(ServoNotFoundError)
 @app.exception_handler(LabJackError)
 @app.exception_handler(PressureSensorError)
+@app.exception_handler(LoadCellError)
 async def handle_custom_exceptions(request, exc):
     return JSONResponse(status_code=500, content={"message": str(exc)})
 
@@ -131,3 +134,16 @@ async def ignition(background_tasks: BackgroundTasks, delay: int = Query(4)):
         app.state.pilot_valve_controller.actuate_ignitor, delay)
 
     return {"message": "Ignition successful"}
+
+@app.get("/load_cell/{load_cell_name}/feedback")
+async def get_load_cell_mass(load_cell_name: str = Path(...)):
+    feedback = app.state.load_cell_controller.get_load_cell_mass(
+        load_cell_name)
+    return {"load_cell_name": load_cell_name, "mass": feedback}
+
+@app.get("/load_cell/{load_cell_name}/datastream")
+async def load_cell_datastream(load_cell_name: str):
+    async def event_generator():
+        async for data in app.state.load_cell_controller.load_cell_datastream(load_cell_name):
+            yield f"data: {data}\n\n"
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
