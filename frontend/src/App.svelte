@@ -66,6 +66,9 @@ these are used to create the user interface.
   let engineSseStatus: TConnectionStatus = "Unknown";
   let supplySseStatus: TConnectionStatus = "Unknown";
 
+  // New state variable for logging status
+  let isLogging = false;
+
 //The onMount function sets up EventSource connections to receive real-time updates
   onMount(() => {
     //pressure data stream
@@ -149,6 +152,11 @@ these are used to create the user interface.
       }
     });
   };
+
+const startLogging = () => {
+  isLogging = true;
+  };
+
 </script>
 
 <!-- ... (rest of the code) -->
@@ -232,5 +240,13 @@ these are used to create the user interface.
         </P>
       {/key}
     </div>
+  </div>
+
+  <!-- Added buttons and logging light indicator -->
+  <div class="flex gap-4 mt-4 items-center">
+    <Button on:click={startLogging}>Start Logging</Button>
+    <Indicator size="sm" color={isLogging ? "green" : "red"} class="me-1.5" />
+    <Button>PV Up</Button>
+    <Button>PV Down</Button>
   </div>
 </div>
