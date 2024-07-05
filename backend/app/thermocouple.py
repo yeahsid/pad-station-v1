@@ -129,8 +129,12 @@ class ThermocoupleSensor:
                 temperature_reading = self.get_thermocouple_temperature(thermocouple_name)
                 current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
+                print("Testing")
                 await file.write(f"{temperature_reading},{current_time}\n")
                 await asyncio.sleep(LOGGING_RATE)  # Adjust as needed
+            
+            print("done")
+        print("done done done")
 
     async def start_logging_all_sensors(self):
         self.logging_active = True
