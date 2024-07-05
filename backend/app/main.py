@@ -141,7 +141,7 @@ async def start_log_data(background_tasks: BackgroundTasks):
     background_tasks.add_task(app.state.thermocouple_sensor.start_logging_all_sensors)
 
 @app.get("/log_data/stop")
-async def start_log_data():
+async def stop_log_data():
     app.state.pressure_transducer_sensor.end_logging_all_sensors()
     app.state.thermocouple_sensor.end_logging_all_sensors()
 
