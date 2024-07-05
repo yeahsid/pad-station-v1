@@ -1,12 +1,12 @@
 from collections import deque
 from dataclasses import dataclass
 import asyncio
-import time
-
+from datetime import datetime
 import logging
 from app.hardware import LabJackConnection
 from app.exceptions import PressureSensorError
 from app.config import LABJACK_PINS
+import aiofiles
 import csv
 
 logger = logging.getLogger(__name__)
@@ -87,12 +87,25 @@ class PressureTransducerSensor:
             float: The next pressure reading from the specified pressure transducer.
 
         """
-        with open(f'.././logs/pressure/{pressure_transducer_name}.csv', 'a', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow(["Pressure Reading"] + ["Voltage"] + ["Time"])
+        while True:
+            pressure_reading, voltage = self.get_pressure_transducer_feedback(pressure_transducer_name)
+            yield pressure_reading
+            await asyncio.sleep(1)  # Adjust the sleep time as needed
+
+    async def pressure_transducer_logging(self, pressure_transducer_name: str):
+        filename = f'../logs/pressure/{pressure_transducer_name}_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.csv'
+        async with aiofiles.open(filename, 'w', newline='') as file:
+            writer = csv.writer(await file)
+            await file.write("Pressure Reading,Voltage,Time\n")
             while True:
-                pressure_reading, voltage = self.get_pressure_transducer_feedback(
-                    pressure_transducer_name)
-                writer.writerow([pressure_reading] +
-                                [voltage] + [time.time()])
-                yield pressure_reading
+                pressure_reading, voltage = self.get_pressure_transducer_feedback(pressure_transducer_name)
+                current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                await file.write(f"{pressure_reading},{voltage},{current_time}\n")
+                await asyncio.sleep(1)  # Adjust as needed
+
+    async def start_logging_all_sensors(self):
+        tasks = [self.pressure_transducer_logging(name) for name in self.pressure_transducers]
+        await asyncio.gather(*tasks)
+
+
+

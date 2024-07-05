@@ -45,7 +45,7 @@ these are used to create the user interface.
     | undefined;
 
 //base url is for API calls to get the data from the backend 
-  const BASE_URL = "http://localhost:8000";
+  const BASE_URL = "http://padstation-dev.local:8000";
 
 //maps valve states to colour types 
   const colorMap: Record<TConnectionStatus | TValveState, TColorType> = {
@@ -153,9 +153,30 @@ these are used to create the user interface.
     });
   };
 
-const startLogging = () => {
+const startLogging = async () => {
   isLogging = true;
-  };
+  await fetch(`${BASE_URL}/log_data/start`, {
+    method: "GET",
+  }).then((response) => {
+    if (!response.ok) {
+      console.error("Failed to start logging");
+      isLogging = false;
+    }
+  });
+};
+
+const stopLogging = async () => {
+  isLogging = false;
+  // If your backend requires a call to stop logging, include it here
+  await fetch(`${BASE_URL}/log_data/stop`, {
+    method: "GET",
+  }).then((response) => {
+    if (!response.ok) {
+      console.error("Failed to stop logging");
+      // Optionally handle failure to stop logging
+    }
+  });
+};
 
 </script>
 
@@ -245,6 +266,7 @@ const startLogging = () => {
   <!-- Added buttons and logging light indicator -->
   <div class="flex gap-4 mt-4 items-center">
     <Button on:click={startLogging}>Start Logging</Button>
+    <Button on:click={stopLogging}>Stop Logging</Button>
     <Indicator size="sm" color={isLogging ? "green" : "red"} class="me-1.5" />
     <Button>PV Up</Button>
     <Button>PV Down</Button>

@@ -13,7 +13,7 @@ import logging
 import asyncio
 import csv
 import time
-
+import json
 logger = logging.getLogger(__name__)
 
 
@@ -131,3 +131,8 @@ async def ignition(background_tasks: BackgroundTasks, delay: int = Query(4)):
         app.state.pilot_valve_controller.actuate_ignitor, delay)
 
     return {"message": "Ignition successful"}
+
+
+@app.get("/log_data/start")
+async def start_log_data(background_tasks: BackgroundTasks):
+    background_tasks.add_task(app.state.pressure_transducer_sensor.start_logging_all_sensors)

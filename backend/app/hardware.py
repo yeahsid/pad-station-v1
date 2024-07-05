@@ -37,14 +37,14 @@ class LabJackConnection:
         Raises:
             DeviceNotOpenError: If the connection to the LabJack device fails.
         """
-        try:
+       # try:
             # self.handle = ljm.openS("T7", "TCP", "192.168.0.5")
             # self.handle = ljm.openS("T7", "USB", "ANY")
-            self.handle = ljm.openS("T7", "ANY", "ANY")
+        self.handle = ljm.openS("T7", "ANY", "ANY")
 
-        except:
-            logger.error("Failed to open device")
-            raise DeviceNotOpenError("Failed to open device")
+        #except:
+         #   logger.error("Failed to open device")
+          #  raise DeviceNotOpenError("Failed to open device")
 
     def __del__(self):
         """
@@ -104,3 +104,9 @@ class LabJackConnection:
         val = self._access_pin(pin, ljm.eReadName)
         time.sleep(0.005)
         return val
+
+if __name__ == "__main__":
+	a = LabJackConnection()
+	input("beep boop")
+	a.write("CIO2", 1)
+	input("beep boop")
