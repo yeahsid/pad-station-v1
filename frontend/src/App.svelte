@@ -268,11 +268,5 @@ const stopLogging = async () => {
     <Button on:click={startLogging}>Start Logging</Button>
     <Button on:click={stopLogging}>Stop Logging</Button>
     <Indicator size="sm" color={isLogging ? "green" : "red"} class="me-1.5" />
-    
-    <Button on:click={pilotValveUp}>PV Up</Button>
-
-    <Button on:click={pilotValveDown}>PV Down</Button>
-
-    <Button color="red">Ignition</Button>
   </div>
 </div>
