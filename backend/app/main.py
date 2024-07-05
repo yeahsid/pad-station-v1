@@ -124,7 +124,7 @@ async def get_thermocouple_feedback(thermocouple_name: str = Path(...)):
 async def thermocouple_datastream(thermocouple_name: str):
     async def event_generator():
         async for data in app.state.thermocouple_sensor.thermocouple_datastream(thermocouple_name):
-            yield f"data: {data}\n\n"
+            yield f"data: {round(data, 1)}\n\n"
     return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 
