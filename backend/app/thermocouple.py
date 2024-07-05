@@ -137,5 +137,5 @@ class ThermocoupleSensor:
         tasks = [self.thermocouple_transducer_logging(name) for name in self.thermocouples]
         await asyncio.gather(*tasks)
     
-    async def end_logging_all_sensors(self):
+    def end_logging_all_sensors(self):
         self.logging_active = False
