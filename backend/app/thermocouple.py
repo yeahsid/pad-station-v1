@@ -72,7 +72,6 @@ class ThermocoupleSensor:
             float: The temperature reading in degrees Celsius.
         """
         thermocouple = self._get_thermocouple(thermocouple_name)
-        temperature = self.labjack.read(thermocouple.thermo_pin)
 
         EF_INDEX = 22       # feature index for type K thermocouple
         EF_CONFIG_A = 1     # Celsius units

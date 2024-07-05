@@ -23,10 +23,7 @@ LABJACK_PINS = {
     "pressure_transducer_engine": "AIN12",
     "pressure_transducer_tank": "AIN3",  # change 2
     "pressure_transducer_chamber": "AIN2",  # change 
-    # "load_cell": ("AIN9", "AIN9"),
     "thermocouple_engine": "AIN0",
-
-
 
     "pilot_valve_motor_enable": "CIO3",
     "pilot_valve_motor_in_1": "CIO0",
@@ -36,4 +33,5 @@ LABJACK_PINS = {
 
     "ignitor_relay_pin": "CIO2",
 
+    "test_stand_load_cell": ("AIN9", "AIN9") #change 
 }
