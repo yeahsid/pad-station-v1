@@ -140,6 +140,11 @@ async def start_log_data(background_tasks: BackgroundTasks):
     background_tasks.add_task(app.state.pressure_transducer_sensor.start_logging_all_sensors)
     background_tasks.add_task(app.state.thermocouple_sensor.start_logging_all_sensors)
 
+@app.get("/log_data/stop")
+async def start_log_data():
+    app.state.pressure_transducer_sensor.end_logging_all_sensors()
+    app.state.thermocouple_sensor.end_logging_all_sensors()
+
 @app.get("/load_cell/{load_cell_name}/feedback")
 async def get_load_cell_mass(load_cell_name: str = Path(...)):
     feedback = app.state.load_cell_controller.get_load_cell_mass(

@@ -39,16 +39,17 @@ class PressureTransducerSensor:
         """
         self.pressure_transducers = {
             "supply": PressureTransducer(LABJACK_PINS["pressure_transducer_supply"], 200),
-            "engine": PressureTransducer(LABJACK_PINS["pressure_transducer_engine"], 200),
-            "tank": PressureTransducer(LABJACK_PINS["pressure_transducer_tank"], 200),
+            "tank_bottom": PressureTransducer(LABJACK_PINS["pressure_transducer_engine"], 200),
+            "tank_top": PressureTransducer(LABJACK_PINS["pressure_transducer_tank"], 200),
             "chamber": PressureTransducer(LABJACK_PINS["pressure_transducer_chamber"], 200),
-
         }
         self.labjack = labjack
         self.filter_size = filter_size
         self.pressure_readings = {name: deque(
             maxlen=filter_size) for name in self.pressure_transducers}
         self.pressure_sums = {name: 0 for name in self.pressure_transducers}
+
+        self.logging_active = True  # Used to disable logging at a chosen time
 
     def _get_pressure_transducer(self, pressure_transducer_name: str) -> PressureTransducer:
         """
@@ -100,7 +101,7 @@ class PressureTransducerSensor:
         async with aiofiles.open(filename, 'w', newline='') as file:
             await file.write("Pressure Reading,Voltage,Time\n")
 
-            while True:
+            while self.logging_active:
                 pressure_reading, voltage = self.get_pressure_transducer_feedback(pressure_transducer_name)
                 current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
@@ -108,8 +109,11 @@ class PressureTransducerSensor:
                 await asyncio.sleep(LOGGING_RATE)  # Adjust as needed
 
     async def start_logging_all_sensors(self):
+        self.logging_active = True
         tasks = [self.pressure_transducer_logging(name) for name in self.pressure_transducers]
         await asyncio.gather(*tasks)
 
+    async def end_logging_all_sensors(self):
+        self.logging_active = False
 
 

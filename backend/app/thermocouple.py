@@ -46,6 +46,8 @@ class ThermocoupleSensor:
             maxlen=filter_size) for name in self.thermocouples}
         self.thermocouple_sums = {name: 0 for name in self.thermocouples}
 
+        self.logging_active = True
+
     def _get_thermocouple(self, thermocouple_name: str) -> Thermocouple:
         """
         Retrieves the specified thermocouple.
@@ -123,7 +125,7 @@ class ThermocoupleSensor:
         async with aiofiles.open(filename, 'w', newline='') as file:
             await file.write("Temperature Reading,Time\n")
 
-            while True:
+            while self.logging_active:
                 temperature_reading = self.get_thermocouple_temperature(thermocouple_name)
                 current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
@@ -131,5 +133,9 @@ class ThermocoupleSensor:
                 await asyncio.sleep(LOGGING_RATE)  # Adjust as needed
 
     async def start_logging_all_sensors(self):
+        self.logging_active = True
         tasks = [self.thermocouple_transducer_logging(name) for name in self.thermocouples]
         await asyncio.gather(*tasks)
+    
+    async def end_logging_all_sensors(self):
+        self.logging_active = False
