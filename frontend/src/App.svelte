@@ -59,12 +59,20 @@ these are used to create the user interface.
 //variables to store states and data points 
   let supplyPt: string;
   let enginePt: string;
+  let tankPt: string;
+  let chamberPt: string;
   let engineState: TValveState = "Unknown";
   let supplyState: TValveState = "Unknown";
+  let tankState: TValveState = "Unknown";
+  let chamberState: TValveState = "Unknown";
   let selectedEngineOption: string | undefined;
   let selectedSupplyOption: string | undefined;
+  let selectedTankOption: string | undefined;
+  let selectedChamberOption: string | undefined;
   let engineSseStatus: TConnectionStatus = "Unknown";
   let supplySseStatus: TConnectionStatus = "Unknown";
+  let tankSseStatus: TConnectionStatus = "Unknown";
+  let chamberSseStatus: TConnectionStatus = "Unknown";
 
   // New state variable for logging status
   let isLogging = false;
@@ -79,6 +87,16 @@ these are used to create the user interface.
     //pressure data stream
     const supplyPressureSse = new EventSource(
       `${BASE_URL}/pressure/supply/datastream`
+    );
+
+    //pressure data stream
+    const tankPressureSse = new EventSource(
+      `${BASE_URL}/pressure/tank_top/datastream`
+    );
+
+    //pressure data stream
+    const chamberPressureSse = new EventSource(
+      `${BASE_URL}/pressure/chamber/datastream`
     );
 
     //stream receiving messages 
@@ -107,6 +125,31 @@ these are used to create the user interface.
     enginePressureSse.onerror = (_err) => {
       engineSseStatus = "Error";
     };
+
+    tankPressureSse.onmessage = (event) => {
+      tankPt = event.data.toString();
+    };
+
+    tankPressureSse.onopen = () => {
+      tankSseStatus = "Connected";
+    };
+
+    tankPressureSse.onerror = (_err) => {
+      tankSseStatus = "Error";
+    };
+
+    chamberPressureSse.onmessage = (event) => {
+      chamberPt = event.data.toString();
+    };
+
+    chamberPressureSse.onopen = () => {
+      chamberSseStatus = "Connected";
+    };
+
+    chamberPressureSse.onerror = (_err) => {
+      chamberSseStatus = "Error";
+    };
+    
 
     // Return a cleanup function that will be called when the component is unmounted
   });
@@ -194,10 +237,16 @@ const stopLogging = async () => {
 
   <div class="flex gap-4">
     <Badge color={colorMap[engineSseStatus]} rounded class="px-2.5 py-0.5"
-      >Engine Pressure SSE: {engineSseStatus}</Badge
+      >Tank bottom Pressure SSE: {engineSseStatus}</Badge
     >
     <Badge color={colorMap[supplySseStatus]} rounded class="px-2.5 py-0.5"
       >Supply Pressure SSE: {supplySseStatus}</Badge
+    >
+    <Badge color={colorMap[tankSseStatus]} rounded class="px-2.5 py-0.5"
+      >Tank top Pressure SSE: {tankSseStatus}</Badge
+    >
+    <Badge color={colorMap[chamberSseStatus]} rounded class="px-2.5 py-0.5"
+      >Chamber Pressure SSE: {chamberSseStatus}</Badge
     >
   </div>
 
