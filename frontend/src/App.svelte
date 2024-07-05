@@ -251,7 +251,7 @@ const stopLogging = async () => {
   </div>
 
   <!-- Bottom Row -->
-  <div class="grid grid-cols-2 gap-4">
+  <div class="grid grid-cols-3 gap-4">
     <div class="flex flex-col gap-8">
       <div class="flex gap-2 lg:gap-4">
         <P class="text-lg lg:text-xl">Fill Valve</P>
@@ -292,7 +292,7 @@ const stopLogging = async () => {
   </div>
 
   <!-- Top Row -->
-  <div class="grid grid-cols-2 gap-4">
+  <div class="grid grid-cols-3 gap-4">
     <div class="flex flex-col gap-8">
       <div class="flex gap-2 lg:gap-4">
         <P class="text-lg lg:text-xl">Dump Valve</P>
