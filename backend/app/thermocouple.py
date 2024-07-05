@@ -121,10 +121,7 @@ class ThermocoupleSensor:
                 yield temperature
     
     async def thermocouple_transducer_logging(self, thermocouple_name: str):
-        filename = f'~/pad-station/logs/thermocouple/{thermocouple_name}_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.csv'
-	
-        with open(filename, "w") as f:
-            ...
+        filename = f'/home/padstation/pad-station/pad-station/logs/thermocouple/{thermocouple_name}_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.csv'
 
         async with aiofiles.open(filename, 'w', newline='') as file:
             await file.write("Temperature Reading,Time\n")
