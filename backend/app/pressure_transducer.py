@@ -93,7 +93,7 @@ class PressureTransducerSensor:
         while True:
             pressure_reading, voltage = self.get_pressure_transducer_feedback(pressure_transducer_name)
             yield pressure_reading
-            await asyncio.sleep(1)  # Adjust the sleep time as needed
+            await asyncio.sleep(LOGGING_RATE)  # Adjust the sleep time as needed
 
     async def pressure_transducer_logging(self, pressure_transducer_name: str):
         filename = f'/home/padstation/pad-station/logs/pressure/{pressure_transducer_name}_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.csv'

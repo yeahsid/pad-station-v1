@@ -61,18 +61,22 @@ these are used to create the user interface.
   let enginePt: string;
   let tankPt: string;
   let chamberPt: string;
+  let engineTc: string;
   let engineState: TValveState = "Unknown";
   let supplyState: TValveState = "Unknown";
   let tankState: TValveState = "Unknown";
   let chamberState: TValveState = "Unknown";
+  let engineTcState: TValveState = "Unknown";
   let selectedEngineOption: string | undefined;
   let selectedSupplyOption: string | undefined;
   let selectedTankOption: string | undefined;
   let selectedChamberOption: string | undefined;
+  let selectedEngineTOption: string | undefined;
   let engineSseStatus: TConnectionStatus = "Unknown";
   let supplySseStatus: TConnectionStatus = "Unknown";
   let tankSseStatus: TConnectionStatus = "Unknown";
   let chamberSseStatus: TConnectionStatus = "Unknown";
+  let engineTcSseStatus: TConnectionStatus = "Unknown";
 
   // New state variable for logging status
   let isLogging = false;
@@ -97,6 +101,11 @@ these are used to create the user interface.
     //pressure data stream
     const chamberPressureSse = new EventSource(
       `${BASE_URL}/pressure/chamber/datastream`
+    );
+
+    //engine thermocouple data stream
+    const engineTcSse = new EventSource(
+      `${BASE_URL}/thermocouple/engine/datastream`
     );
 
     //stream receiving messages 
@@ -149,7 +158,18 @@ these are used to create the user interface.
     chamberPressureSse.onerror = (_err) => {
       chamberSseStatus = "Error";
     };
-    
+
+    engineTcSse.onmessage = (event) => {
+      engineTc = event.data.toString();
+    };
+
+    engineTcSse.onopen = () => {
+      engineTcSseStatus = "Connected";
+    };
+
+    engineTcSse.onerror = (_err) => {
+      engineTcSseStatus = "Error";
+    };
 
     // Return a cleanup function that will be called when the component is unmounted
   });
@@ -235,7 +255,7 @@ const stopLogging = async () => {
     MHPR Nitrous Fill Box Control
   </Heading>
 
-  <div class="flex gap-4">
+  <div class="flex justify-evenly gap-4">
     <Badge color={colorMap[engineSseStatus]} rounded class="px-2.5 py-0.5"
       >Tank bottom Pressure SSE: {engineSseStatus}</Badge
     >
@@ -337,5 +357,14 @@ const stopLogging = async () => {
     <Button on:click={startLogging}>Start Logging</Button>
     <Button on:click={stopLogging}>Stop Logging</Button>
     <Indicator size="sm" color={isLogging ? "green" : "red"} class="me-1.5" />
+
+    <div class="flex flex-col gap-4">
+      <P class="text-lg lg:text-xl text-end">Engine Temp</P>
+      {#key engineTc}
+        <P class="font-bold text-2xl lg:text-4xl text-end">
+          {engineTc} °C
+        </P>
+      {/key}
+    </div>
   </div>
 </div>

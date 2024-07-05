@@ -111,14 +111,10 @@ class ThermocoupleSensor:
             float: The next temperature reading from the specified thermocouple.
         """
 
-        with open(f'.././logs/thermocouple/{thermocouple_name}.csv', 'a', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow(["Thermocouple Reading"])
-            while True:
-                temperature = self.get_thermocouple_temperature(
-                    thermocouple_name)
-                writer.writerow([temperature] + [time.time()])
-                yield temperature
+        while True:
+            temperature = self.get_thermocouple_temperature(thermocouple_name)
+            yield temperature
+            await asyncio.sleep(LOGGING_RATE)
     
     async def thermocouple_transducer_logging(self, thermocouple_name: str):
         filename = f'/home/padstation/pad-station/logs/thermocouple/{thermocouple_name}_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.csv'

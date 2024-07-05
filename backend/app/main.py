@@ -115,8 +115,8 @@ async def pressure_transducer_datastream(pressure_transducer_name: str):
 
 @app.get("/thermocouple/{thermocouple_name}/feedback")
 async def get_thermocouple_feedback(thermocouple_name: str = Path(...)):
-    feedback = app.state.thermocouple_sensor.get_thermocouple_temperature(
-        thermocouple_name)
+    feedback = app.state.thermocouple_sensor.get_thermocouple_temperature(thermocouple_name)
+
     return {"thermocouple_name": thermocouple_name, "temperature": feedback}
 
 
