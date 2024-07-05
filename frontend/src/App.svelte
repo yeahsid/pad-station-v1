@@ -354,11 +354,11 @@ const stopLogging = async () => {
 
   <!-- Added buttons and logging light indicator -->
   <div class="flex gap-4 mt-4 justify-evenly">
-    <div>
+    <div flex gap-4 mt-4 justify-evenly>
       <Button on:click={startLogging}>Start Logging</Button>
       <Button on:click={stopLogging}>Stop Logging</Button>
       <Indicator size="sm" color={isLogging ? "green" : "red"} class="me-1.5" />
-    </div>
+    <div/>
 
     <div class="flex flex-col gap-4">
       <P class="text-lg lg:text-xl text-end">Engine Temp</P>
