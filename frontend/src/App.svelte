@@ -270,7 +270,7 @@ const stopLogging = async () => {
       </div>
     </div>
 
-    <div class="flex flex-col gap-4 place-self-end">
+    <div class="flex flex-col gap-4">
       <P class="text-lg lg:text-xl text-end">Tank Bottom Pressure</P>
 
       {#key enginePt}
@@ -311,7 +311,7 @@ const stopLogging = async () => {
       </div>
     </div>
 
-    <div class="flex flex-col gap-4 place-self-end">
+    <div class="flex flex-col gap-4">
       <P class="text-lg lg:text-xl text-end">Supply Pressure</P>
 
       {#key supplyPt}
