@@ -135,12 +135,11 @@ async def ignition(background_tasks: BackgroundTasks, delay: int = Query(4)):
 
     return {"message": "Ignition successful"}
 
-<<<<<<< HEAD
-
 @app.get("/log_data/start")
 async def start_log_data(background_tasks: BackgroundTasks):
     background_tasks.add_task(app.state.pressure_transducer_sensor.start_logging_all_sensors)
-=======
+    background_tasks.add_task(app.state.thermocouple_sensor.start_logging_all_sensors)
+
 @app.get("/load_cell/{load_cell_name}/feedback")
 async def get_load_cell_mass(load_cell_name: str = Path(...)):
     feedback = app.state.load_cell_controller.get_load_cell_mass(
@@ -153,4 +152,3 @@ async def load_cell_datastream(load_cell_name: str):
         async for data in app.state.load_cell_controller.load_cell_datastream(load_cell_name):
             yield f"data: {data}\n\n"
     return StreamingResponse(event_generator(), media_type="text/event-stream")
->>>>>>> b1ac6d25f250e3abc30ba914d4152d21d609c992

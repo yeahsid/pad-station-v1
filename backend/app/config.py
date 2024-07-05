@@ -33,5 +33,6 @@ LABJACK_PINS = {
 
     "ignitor_relay_pin": "CIO2",
 
-    "test_stand_load_cell": ("AIN9", "AIN9") #change 
+    "test_stand_load_cell": ("AIN9", "AIN8") #change
 }
+

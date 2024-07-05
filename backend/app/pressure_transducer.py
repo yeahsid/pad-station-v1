@@ -9,6 +9,8 @@ from app.config import LABJACK_PINS
 import aiofiles
 import csv
 
+LOGGING_RATE = 1  # Time between pt log points in seconds
+
 logger = logging.getLogger(__name__)
 
 
@@ -94,14 +96,16 @@ class PressureTransducerSensor:
 
     async def pressure_transducer_logging(self, pressure_transducer_name: str):
         filename = f'../logs/pressure/{pressure_transducer_name}_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.csv'
+
         async with aiofiles.open(filename, 'w', newline='') as file:
-            writer = csv.writer(await file)
             await file.write("Pressure Reading,Voltage,Time\n")
+
             while True:
                 pressure_reading, voltage = self.get_pressure_transducer_feedback(pressure_transducer_name)
                 current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
                 await file.write(f"{pressure_reading},{voltage},{current_time}\n")
-                await asyncio.sleep(1)  # Adjust as needed
+                await asyncio.sleep(LOGGING_RATE)  # Adjust as needed
 
     async def start_logging_all_sensors(self):
         tasks = [self.pressure_transducer_logging(name) for name in self.pressure_transducers]
