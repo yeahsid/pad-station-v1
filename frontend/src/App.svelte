@@ -73,7 +73,7 @@ these are used to create the user interface.
   onMount(() => {
     //pressure data stream
     const enginePressureSse = new EventSource(
-      `${BASE_URL}/pressure/engine/datastream`
+      `${BASE_URL}/pressure/tank_bottom/datastream`
     );
 
     //pressure data stream
