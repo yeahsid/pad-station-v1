@@ -226,7 +226,7 @@ const stopLogging = async () => {
 <!-- ... (rest of the code) -->
 
 
-<div class="w-full min-h-screen flex flex-col container mx-auto p-4 justify-evenly max-w-screen-md">
+<div class="w-full min-h-screen flex flex-col container mx-auto p-4 justify-evenly max-w-screen-lg">
   <Heading
     tag="h1"
     class="font-bold"
