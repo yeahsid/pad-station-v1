@@ -67,8 +67,8 @@ class PressureTransducerSensor:
         try:
             return self.pressure_transducers[pressure_transducer_name]
         except KeyError:
-            logger.error("Pressure Transducer not found")
-            raise PressureSensorError("Pressure Transducer not found")
+            logger.error(f"Pressure Transducer with name {pressure_transducer_name} not found")
+            raise PressureSensorError(f"Pressure Transducer with name {pressure_transducer_name} not found")
 
     def get_pressure_transducer_feedback(self, pressure_transducer_name: str) -> float:
         pressure_transducer = self._get_pressure_transducer(
