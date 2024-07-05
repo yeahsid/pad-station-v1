@@ -96,7 +96,7 @@ class PressureTransducerSensor:
             await asyncio.sleep(1)  # Adjust the sleep time as needed
 
     async def pressure_transducer_logging(self, pressure_transducer_name: str):
-        filename = f'../logs/pressure/{pressure_transducer_name}_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.csv'
+        filename = f'~/pad-station/logs/pressure/{pressure_transducer_name}_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.csv'
 
         async with aiofiles.open(filename, 'w', newline='') as file:
             await file.write("Pressure Reading,Voltage,Time\n")
@@ -113,7 +113,7 @@ class PressureTransducerSensor:
         tasks = [self.pressure_transducer_logging(name) for name in self.pressure_transducers]
         await asyncio.gather(*tasks)
 
-    async def end_logging_all_sensors(self):
+    def end_logging_all_sensors(self):
         self.logging_active = False
 
 
