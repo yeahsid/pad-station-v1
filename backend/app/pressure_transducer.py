@@ -97,6 +97,8 @@ class PressureTransducerSensor:
 
     async def pressure_transducer_logging(self, pressure_transducer_name: str):
         filename = f'~/pad-station/logs/pressure/{pressure_transducer_name}_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.csv'
+        with open(filename, "w") as f:
+            ...
 
         async with aiofiles.open(filename, 'w', newline='') as file:
             await file.write("Pressure Reading,Voltage,Time\n")

@@ -9,6 +9,7 @@ from app.exceptions import ThermocoupleSensorError
 from app.config import LABJACK_PINS
 import aiofiles
 import csv
+from pathlib import Path
 
 LOGGING_RATE = 1  # Time between tc log points in seconds
 
@@ -121,6 +122,9 @@ class ThermocoupleSensor:
     
     async def thermocouple_transducer_logging(self, thermocouple_name: str):
         filename = f'~/pad-station/logs/thermocouple/{thermocouple_name}_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.csv'
+	
+        with open(filename, "w") as f:
+            ...
 
         async with aiofiles.open(filename, 'w', newline='') as file:
             await file.write("Temperature Reading,Time\n")
