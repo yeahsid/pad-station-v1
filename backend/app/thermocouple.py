@@ -1,12 +1,16 @@
 from collections import deque
 from dataclasses import dataclass
 import asyncio
+from datetime import datetime
 import time
 import logging
 from app.hardware import LabJackConnection
 from app.exceptions import ThermocoupleSensorError
 from app.config import LABJACK_PINS
+import aiofiles
 import csv
+
+LOGGING_RATE = 1  # Time between tc log points in seconds
 
 logger = logging.getLogger(__name__)
 
@@ -113,3 +117,20 @@ class ThermocoupleSensor:
                     thermocouple_name)
                 writer.writerow([temperature] + [time.time()])
                 yield temperature
+    
+    async def thermocouple_transducer_logging(self, thermocouple_name: str):
+        filename = f"../logs/temperature/{thermocouple_name}_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.csv"
+
+        async with aiofiles.open(filename, 'w', newline='') as file:
+            await file.write("Temperature Reading,Time\n")
+
+            while True:
+                temperature_reading = self.get_thermocouple_temperature(thermocouple_name)
+                current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+                await file.write(f"{temperature_reading},{current_time}\n")
+                await asyncio.sleep(LOGGING_RATE)  # Adjust as needed
+
+    async def start_logging_all_sensors(self):
+        tasks = [self.thermocouple_transducer_logging(name) for name in self.thermocouples]
+        await asyncio.gather(*tasks)

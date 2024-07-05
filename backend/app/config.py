@@ -35,5 +35,5 @@ LABJACK_PINS = {
     "pilot_valve_limit_switch_work": "EIO5",
 
     "ignitor_relay_pin": "CIO2",
-
 }
+
