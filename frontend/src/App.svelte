@@ -271,11 +271,21 @@ const stopLogging = async () => {
     </div>
 
     <div class="flex flex-col gap-4 place-self-end">
-      <P class="text-lg lg:text-xl text-end">Engine Pressure</P>
+      <P class="text-lg lg:text-xl text-end">Tank Bottom Pressure</P>
 
       {#key enginePt}
         <P class="font-bold text-2xl lg:text-4xl text-end">
           {enginePt} Bar
+        </P>
+      {/key}
+    </div>
+
+    <div class="flex flex-col gap-4 place-self-end">
+      <P class="text-lg lg:text-xl text-end">Tank Top Pressure</P>
+
+      {#key tankPt}
+        <P class="font-bold text-2xl lg:text-4xl text-end">
+          {tankPt} Bar
         </P>
       {/key}
     </div>
@@ -307,6 +317,16 @@ const stopLogging = async () => {
       {#key supplyPt}
         <P class="font-bold text-2xl lg:text-4xl text-end">
           {supplyPt} Bar
+        </P>
+      {/key}
+    </div>
+
+    <div class="flex flex-col gap-4 place-self-end">
+      <P class="text-lg lg:text-xl text-end">Chamber Pressure</P>
+
+      {#key chamberPt}
+        <P class="font-bold text-2xl lg:text-4xl text-end">
+          {chamberPt} Bar
         </P>
       {/key}
     </div>
