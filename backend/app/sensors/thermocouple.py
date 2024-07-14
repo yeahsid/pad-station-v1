@@ -4,8 +4,8 @@ import asyncio
 from datetime import datetime
 import time
 import logging
-from app.hardware import LabJackConnection
-from app.exceptions import ThermocoupleSensorError
+from app.comms.hardware import LabJackConnection
+from app.comms.exceptions import ThermocoupleSensorError
 from app.config import LABJACK_PINS
 import aiofiles
 import csv

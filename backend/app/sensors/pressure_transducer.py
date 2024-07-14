@@ -3,8 +3,8 @@ from dataclasses import dataclass
 import asyncio
 from datetime import datetime
 import logging
-from app.hardware import LabJackConnection
-from app.exceptions import PressureSensorError
+from app.comms.hardware import LabJackConnection
+from app.comms.exceptions import PressureSensorError
 from app.config import LABJACK_PINS
 import aiofiles
 import csv

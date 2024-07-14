@@ -1,14 +1,14 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Path, Query, Request, BackgroundTasks
 from fastapi.responses import JSONResponse, StreamingResponse
-from app.hardware import LabJackConnection
-from app.exceptions import DeviceNotOpenError, ValveNotFoundError, ServoNotFoundError, LabJackError, PressureSensorError, LoadCellError
-from app.valve import ValveController, ValveState
-from app.models import ValveResponse
-from app.pressure_transducer import PressureTransducerSensor
-from app.pilot_valve import PilotValveController
-from app.thermocouple import ThermocoupleSensor
-from app.load_cell import LoadCellSensor
+from app.comms.hardware import LabJackConnection
+from app.comms.exceptions import DeviceNotOpenError, ValveNotFoundError, ServoNotFoundError, LabJackError, PressureSensorError, LoadCellError
+from app.actuators.valve import ValveController, ValveState
+from app.comms.models import ValveResponse
+from app.sensors.pressure_transducer import PressureTransducerSensor
+from app.actuators.pilot_valve import PilotValveController
+from app.sensors.thermocouple import ThermocoupleSensor
+from app.sensors.load_cell import LoadCellSensor
 from fastapi.middleware.cors import CORSMiddleware
 import logging
 import asyncio

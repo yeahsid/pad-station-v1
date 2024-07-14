@@ -6,7 +6,7 @@ This is a Python module named hardware.py that contains a class LabJackConnectio
 import logging
 from typing import Optional, Callable
 from labjack import ljm
-from app.exceptions import DeviceNotOpenError, LabJackError
+from app.comms.exceptions import DeviceNotOpenError, LabJackError
 import time
 
 # Set up a logger for the module

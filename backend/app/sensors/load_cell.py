@@ -3,8 +3,8 @@ from dataclasses import dataclass
 import asyncio
 import time
 import logging
-from app.hardware import LabJackConnection
-from app.exceptions import LoadCellError
+from app.comms.hardware import LabJackConnection
+from app.comms.exceptions import LoadCellError
 from app.config import LABJACK_PINS
 import csv
 

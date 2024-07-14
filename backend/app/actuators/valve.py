@@ -1,8 +1,8 @@
 from typing import Tuple
 from dataclasses import dataclass
 import logging
-from app.hardware import LabJackConnection
-from app.exceptions import ValveNotFoundError
+from app.comms.hardware import LabJackConnection
+from app.comms.exceptions import ValveNotFoundError
 from app.config import LABJACK_PINS
 from enum import Enum
 
