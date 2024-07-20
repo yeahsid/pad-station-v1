@@ -1,5 +1,5 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Path, Query, Request, BackgroundTasks
+from fastapi import FastAPI, Path, Query, Request, BackgroundTasks, HTTPException
 from fastapi.responses import JSONResponse, StreamingResponse
 from app.comms.hardware import LabJackConnection
 from app.comms.exceptions import DeviceNotOpenError, ValveNotFoundError, ServoNotFoundError, LabJackError, PressureSensorError, LoadCellError
@@ -11,32 +11,38 @@ from app.sensors.thermocouple import ThermocoupleSensor
 from app.sensors.load_cell import LoadCellSensor
 from fastapi.middleware.cors import CORSMiddleware
 import logging
-import asyncio
-import csv
-import time
-import json
+import os
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """
-    Context manager for the lifespan of the FastAPI application.
-
-    Args:
-        app (FastAPI): The FastAPI application.
-
-    Yields:
-        None: This context manager does not return any value.
-
-    """
     app.state = type('', (), {})()
-    connection = LabJackConnection()
-    app.state.valve_controller = ValveController(connection)
-    app.state.pressure_transducer_sensor = PressureTransducerSensor(connection)
-    app.state.thermocouple_sensor = ThermocoupleSensor(connection)
-    app.state.pilot_valve_controller = PilotValveController(connection)
-    app.state.load_cell_sensor = LoadCellSensor(connection)
+    # Check if this worker is designated for LabJack connection
+    try:
+        logging.error("Attempting to establish LabJack connection")
+        # Attempt to establish LabJack connection
+        # Ensure this attempts the connection and raises an exception if failed
+        connection = LabJackConnection()
+        # Initialize components with LabJack connection
+        app.state.valve_controller = ValveController(connection)
+        app.state.pressure_transducer_sensor = PressureTransducerSensor(
+            connection)
+        app.state.thermocouple_sensor = ThermocoupleSensor(connection)
+        app.state.pilot_valve_controller = PilotValveController(connection)
+        app.state.load_cell_sensor = LoadCellSensor(connection)
+        app.state.labjack_connected = True
+    except Exception as e:
+        logging.error(f"Failed to establish LabJack connection: {e}")
+        # Optionally, set a flag or disable functionality as needed
+        app.state.labjack_connected = False
+        # Initialize placeholders or alternative logic for failed connection
+        app.state.valve_controller = None
+        app.state.pressure_transducer_sensor = None
+        app.state.thermocouple_sensor = None
+        app.state.pilot_valve_controller = None
+        app.state.load_cell_sensor = None
     yield
 
 app = FastAPI(lifespan=lifespan)
@@ -48,7 +54,7 @@ app = FastAPI(lifespan=lifespan)
 @app.exception_handler(LabJackError)
 @app.exception_handler(PressureSensorError)
 @app.exception_handler(LoadCellError)
-async def handle_custom_exceptions(request, exc):
+async def handle_custom_exceptions(exc):
     return JSONResponse(status_code=500, content={"message": str(exc)})
 
 origins = [
@@ -74,13 +80,17 @@ async def log_requests(request: Request, call_next):
 
 @app.get("/")
 async def read_root():
-    return {"Hello": "World"}
+    return {"labjack_connection": app.state.labjack_connected}
 
 
 @app.get("/valve/{valve_name}", response_model=ValveResponse)
 async def actuate_main_valve(valve_name: str = Path(...), state: ValveState = Query(...)):
-    app.state.valve_controller.actuate_valve(valve_name, state)
-    return {"valve_name": valve_name, "feedback": None}
+    try:
+        app.state.valve_controller.actuate_valve(valve_name, state)
+        return {"valve_name": valve_name, "feedback": None}
+    except Exception:
+        raise HTTPException(
+            status_code=500, detail="Internal Server Error. Check connection to LabJack.")
 
 
 @app.get("/pilot_valve/{valve_name}", response_model=ValveResponse)
@@ -93,67 +103,114 @@ async def actuate_pilot_valve(background_tasks: BackgroundTasks, valve_name: str
 
 @app.get("/valve/{valve_name}/state", response_model=ValveResponse)
 async def get_valve_state(valve_name: str = Path(...)):
-    feedback = app.state.valve_controller.get_valve_state(valve_name)
-    return {"valve_name": valve_name, "feedback": feedback}
+    try:
+        feedback = app.state.valve_controller.get_valve_state(valve_name)
+        return {"valve_name": valve_name, "feedback": feedback}
+    except Exception:
+        raise HTTPException(
+            status_code=500, detail="Internal Server Error. Check connection to LabJack.")
 
 
 @app.get("/pressure/{pressure_transducer_name}/feedback")
 async def get_pressure_transducer_feedback(pressure_transducer_name: str = Path(...)):
-    feedback = app.state.pressure_transducer_sensor.get_pressure_transducer_feedback(
-        pressure_transducer_name)
-    return {"pressure_transducer_name": pressure_transducer_name, "pressure": feedback}
+    try:
+        feedback = app.state.pressure_transducer_sensor.get_pressure_transducer_feedback(
+            pressure_transducer_name)
+        return {"pressure_transducer_name": pressure_transducer_name, "pressure": feedback}
+    except Exception:
+        raise HTTPException(
+            status_code=500, detail="Internal Server Error. Check connection to LabJack.")
 
 
 @app.get("/pressure/{pressure_transducer_name}/datastream")
 async def pressure_transducer_datastream(pressure_transducer_name: str):
-    async def event_generator():
-        async for data in app.state.pressure_transducer_sensor.pressure_transducer_datastream(pressure_transducer_name):
-            yield f"data: {data}\n\n"
+    try:
+        async def event_generator():
+            async for data in app.state.pressure_transducer_sensor.pressure_transducer_datastream(pressure_transducer_name):
+                yield f"data: {data}\n\n"
 
-    return StreamingResponse(event_generator(), media_type="text/event-stream")
+        return StreamingResponse(event_generator(), media_type="text/event-stream")
+    except Exception:
+        raise HTTPException(
+            status_code=500, detail="Internal Server Error. Check connection to LabJack.")
 
 
 @app.get("/thermocouple/{thermocouple_name}/feedback")
 async def get_thermocouple_feedback(thermocouple_name: str = Path(...)):
-    feedback = app.state.thermocouple_sensor.get_thermocouple_temperature(thermocouple_name)
+    try:
+        feedback = app.state.thermocouple_sensor.get_thermocouple_temperature(
+            thermocouple_name)
 
-    return {"thermocouple_name": thermocouple_name, "temperature": feedback}
+        return {"thermocouple_name": thermocouple_name, "temperature": feedback}
+    except Exception:
+        raise HTTPException(
+            status_code=500, detail="Internal Server Error. Check connection to LabJack.")
 
 
 @app.get("/thermocouple/{thermocouple_name}/datastream")
 async def thermocouple_datastream(thermocouple_name: str):
-    async def event_generator():
-        async for data in app.state.thermocouple_sensor.thermocouple_datastream(thermocouple_name):
-            yield f"data: {round(data, 1)}\n\n"
-    return StreamingResponse(event_generator(), media_type="text/event-stream")
+    try:
+        async def event_generator():
+            async for data in app.state.thermocouple_sensor.thermocouple_datastream(thermocouple_name):
+                yield f"data: {round(data, 1)}\n\n"
+        return StreamingResponse(event_generator(), media_type="text/event-stream")
+    except Exception:
+        raise HTTPException(
+            status_code=500, detail="Internal Server Error. Check connection to LabJack.")
 
 
 @app.get("/ignition")
 async def ignition(background_tasks: BackgroundTasks, delay: int = Query(4)):
-    background_tasks.add_task(
-        app.state.pilot_valve_controller.actuate_ignitor, delay)
+    try:
+        background_tasks.add_task(
+            app.state.pilot_valve_controller.actuate_ignitor, delay)
 
-    return {"message": "Ignition successful"}
+        return {"message": "Ignition successful"}
+    except Exception:
+        raise HTTPException(
+            status_code=500, detail="Internal Server Error. Check connection to LabJack.")
+
 
 @app.get("/log_data/start")
 async def start_log_data(background_tasks: BackgroundTasks):
-    background_tasks.add_task(app.state.pressure_transducer_sensor.start_logging_all_sensors)
-    background_tasks.add_task(app.state.thermocouple_sensor.start_logging_all_sensors)
+    try:
+        background_tasks.add_task(
+            app.state.pressure_transducer_sensor.start_logging_all_sensors)
+        background_tasks.add_task(
+            app.state.thermocouple_sensor.start_logging_all_sensors)
+    except Exception:
+        raise HTTPException(
+            status_code=500, detail="Internal Server Error. Check connection to LabJack.")
+
 
 @app.get("/log_data/stop")
 async def stop_log_data():
-    app.state.pressure_transducer_sensor.end_logging_all_sensors()
-    app.state.thermocouple_sensor.end_logging_all_sensors()
+    try:
+        app.state.pressure_transducer_sensor.end_logging_all_sensors()
+        app.state.thermocouple_sensor.end_logging_all_sensors()
+    except Exception:
+        raise HTTPException(
+            status_code=500, detail="Internal Server Error. Check connection to LabJack.")
+
 
 @app.get("/load_cell/{load_cell_name}/feedback")
 async def get_load_cell_mass(load_cell_name: str = Path(...)):
-    feedback = app.state.load_cell_controller.get_load_cell_mass(
-        load_cell_name)
-    return {"load_cell_name": load_cell_name, "mass": feedback}
+    try:
+        feedback = app.state.load_cell_controller.get_load_cell_mass(
+            load_cell_name)
+        return {"load_cell_name": load_cell_name, "mass": feedback}
+    except Exception:
+        raise HTTPException(
+            status_code=500, detail="Internal Server Error. Check connection to LabJack.")
+
 
 @app.get("/load_cell/{load_cell_name}/datastream")
 async def load_cell_datastream(load_cell_name: str):
-    async def event_generator():
-        async for data in app.state.load_cell_controller.load_cell_datastream(load_cell_name):
-            yield f"data: {data}\n\n"
-    return StreamingResponse(event_generator(), media_type="text/event-stream")
+    try:
+        async def event_generator():
+            async for data in app.state.load_cell_controller.load_cell_datastream(load_cell_name):
+                yield f"data: {data}\n\n"
+        return StreamingResponse(event_generator(), media_type="text/event-stream")
+    except Exception:
+        raise HTTPException(
+            status_code=500, detail="Internal Server Error. Check connection to LabJack.")

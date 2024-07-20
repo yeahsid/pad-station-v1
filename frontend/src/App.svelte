@@ -9,7 +9,7 @@
   } from "flowbite-svelte";
   import { onMount } from "svelte";
 
-/*
+/*gyu
 importing various components and functions from flowbite-svelte and svelte
 these are used to create the user interface. 
 'onmount' is a lifecycle function that runs after the component is first rendered 
