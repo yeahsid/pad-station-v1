@@ -95,7 +95,7 @@ class LoadCellSensor:
             float: The next mass reading from the specified load cell.
         """
         while True:
-            load = self.get_pressure_transducer_feedback(load_cell_name)
+            load = self.get_load_cell_mass(load_cell_name)
             yield load
             await asyncio.sleep(LOGGING_RATE)  # Adjust the sleep time as needed
 
@@ -106,7 +106,7 @@ class LoadCellSensor:
             await file.write("Load,Voltage,Time\n")
 
             while self.logging_active:
-                load, voltage = self.get_pressure_transducer_feedback(load_cell_name)
+                load, voltage = self.get_load_cell_mass(load_cell_name)
                 current_time = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
 
                 await file.write(f"{load},{voltage},{current_time}\n")
