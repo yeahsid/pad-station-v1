@@ -6,13 +6,18 @@ import logging
 from app.comms.hardware import LabJackConnection
 from app.comms.exceptions import PressureSensorError
 from app.config import LABJACK_PINS
+import redis
 import aiofiles
+from concurrent.futures import ThreadPoolExecutor
+
+
 import csv
 import os
 from typing import Tuple
 
 
-LOGGING_RATE = 0.005  # Time between pt log points in seconds
+LOGGING_RATE = 1  # Time between pt log points in seconds
+POLLING_RATE = 0.005  # Time between pt readings in seconds
 
 logger = logging.getLogger(__name__)
 
@@ -89,30 +94,75 @@ class PressureTransducerSensor:
         while True:
             pressure_reading, voltage = await self.get_pressure_transducer_feedback(pressure_transducer_name)
             yield pressure_reading
-            await asyncio.sleep(LOGGING_RATE)  # Adjust the sleep time as needed
+            await asyncio.sleep(POLLING_RATE)
 
     async def pressure_transducer_logging(self, pressure_transducer_name: str):
-        filename = os.path.join(os.getcwd(), f'logs/pressure/{pressure_transducer_name}_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.csv')
+        # Initialize Redis connection
+        redis_client = redis.Redis(host='localhost', port=6379, decode_responses=True)
+        
+        # Create a ThreadPoolExecutor
+        executor = ThreadPoolExecutor()
 
-        logger.info(f"Logging pressure transducer data to {filename}")
-
-        async with aiofiles.open(filename, 'w', newline='') as file:
-            await file.write("Pressure Reading,Voltage,Time\n")
-
+        try:
             while self.logging_active:
                 pressure_reading, voltage = await self.get_pressure_transducer_feedback(pressure_transducer_name)
                 current_time = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
-
-                await file.write(f"{pressure_reading},{voltage},{current_time}\n")
+                
+                # Create a structured string or a dictionary to represent the data
+                data = f"{pressure_reading},{voltage},{current_time}"
+                
+                # Use run_in_executor to run the synchronous Redis operation in a separate thread
+                await asyncio.get_event_loop().run_in_executor(executor, lambda: redis_client.lpush(f"pressure_data:{pressure_transducer_name}", data))
+                
                 await asyncio.sleep(LOGGING_RATE)
-                await file.flush()
+        finally:
+            # Close Redis connection outside of the loop
+            redis_client.close()
+            # Shutdown the executor
+            executor.shutdown(wait=True)
+
 
     async def start_logging_all_sensors(self):
         self.logging_active = True
         tasks = [self.pressure_transducer_logging(name) for name in self.pressure_transducers]
         await asyncio.gather(*tasks)
 
-    def end_logging_all_sensors(self):
+        return {"message": "Logging started"}
+
+
+    async def stop_pressure_transducer_logging(self, pressure_transducer_name: str):
+        # Ensure logging is marked as inactive
         self.logging_active = False
 
+        # Initialize Redis connection
+        redis_client = redis.Redis(host='localhost', port=6379, decode_responses=True)
 
+        # Create a ThreadPoolExecutor for running synchronous Redis operations
+        executor = ThreadPoolExecutor()
+
+        try:
+            # Fetch data from Redis asynchronously using executor
+            data = await asyncio.get_event_loop().run_in_executor(executor, lambda: redis_client.lrange(f"pressure_data:{pressure_transducer_name}", 0, -1))
+
+            # Define filename for saving data
+            filename = os.path.join(os.getcwd(), f'logs/pressure/{pressure_transducer_name}_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.csv')
+
+            # Write data to file asynchronously
+            async with aiofiles.open(filename, 'w') as file:
+                await file.write("Pressure Reading,Voltage,Time\n")
+                for entry in data:
+                    await file.write(f"{entry}\n")
+        finally:
+            # Close Redis connection and shutdown executor
+            redis_client.close()
+            executor.shutdown(wait=True)
+
+    async def end_logging_all_sensors(self):
+        # Ensure logging is marked as inactive
+        self.logging_active = False
+
+        # Create tasks for each sensor to stop logging and save data
+        tasks = [self.stop_pressure_transducer_logging(name) for name in self.pressure_transducers]
+        await asyncio.gather(*tasks)
+
+        

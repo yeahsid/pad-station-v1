@@ -74,4 +74,15 @@ npm install -g pm2
 # Navigate to the frontend directory and install Node.js dependencies with npm
 cd ../frontend && ( [ -f package-lock.json ] && npm ci || npm install )
 
+# Install redis
+
+curl -fsSL https://packages.redis.io/gpg | sudo gpg --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg -y
+:
+echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/redis.list -y
+
+sudo apt-get update -y
+sudo apt-get install redis -y
+
+
+
 

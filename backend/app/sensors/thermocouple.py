@@ -7,11 +7,16 @@ from app.comms.hardware import LabJackConnection
 from app.comms.exceptions import ThermocoupleSensorError
 from app.config import LABJACK_PINS
 import aiofiles
+import redis
+from concurrent.futures import ThreadPoolExecutor
+
+
 import csv
 import os
 from pathlib import Path
 
-LOGGING_RATE = 0.005  # Time between tc log points in seconds
+LOGGING_RATE = 1  # Time between tc log points in seconds
+POLLING_RATE = 0.1  # Time between tc readings in seconds
 
 logger = logging.getLogger(__name__)
 
@@ -117,26 +122,73 @@ class ThermocoupleSensor:
         while True:
             temperature = await self.get_thermocouple_temperature(thermocouple_name)
             yield temperature
-            await asyncio.sleep(LOGGING_RATE)
+            await asyncio.sleep(POLLING_RATE)
     
-    async def thermocouple_transducer_logging(self, thermocouple_name: str):
-        filename = os.path.join(os.getcwd(), f'logs/thermocouple/{thermocouple_name}_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.csv')
+    async def thermocouple_logging(self, thermocouple_name: str):
+        # Initialize Redis connection
+        redis_client = redis.Redis(host='localhost', port=6379, decode_responses=True)
+        
+        # Create a ThreadPoolExecutor
+        executor = ThreadPoolExecutor()
 
-        async with aiofiles.open(filename, 'w', newline='') as file:
-            await file.write("Temperature Reading,Time\n")
-
+        try:
             while self.logging_active:
                 temperature_reading = await self.get_thermocouple_temperature(thermocouple_name)
                 current_time = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
-
-                await file.write(f"{temperature_reading},{current_time}\n")
+                
+                # Create a structured string or a dictionary to represent the data
+                data = f"{temperature_reading},{current_time}"
+                
+                # Use run_in_executor to run the synchronous Redis operation in a separate thread
+                await asyncio.get_event_loop().run_in_executor(executor, lambda: redis_client.lpush(f"temperature_data:{thermocouple_name}", data))
+                
                 await asyncio.sleep(LOGGING_RATE)
-                await file.flush()
+        finally:
+            # Close Redis connection outside of the loop
+            redis_client.close()
+            # Shutdown the executor
+            executor.shutdown(wait=True)
+
 
     async def start_logging_all_sensors(self):
         self.logging_active = True
-        tasks = [self.thermocouple_transducer_logging(name) for name in self.thermocouples]
+        tasks = [self.thermocouple_logging(name) for name in self.thermocouples]
         await asyncio.gather(*tasks)
-    
-    def end_logging_all_sensors(self):
+
+        return {"message": "Logging started"}
+
+
+    async def stop_thermocouple_logging(self, thermocouple_name: str):
+        # Ensure logging is marked as inactive
         self.logging_active = False
+
+        # Initialize Redis connection
+        redis_client = redis.Redis(host='localhost', port=6379, decode_responses=True)
+
+        # Create a ThreadPoolExecutor for running synchronous Redis operations
+        executor = ThreadPoolExecutor()
+
+        try:
+            # Fetch data from Redis asynchronously using executor
+            data = await asyncio.get_event_loop().run_in_executor(executor, lambda: redis_client.lrange(f"temperature_data:{thermocouple_name}", 0, -1))
+
+            # Define filename for saving data
+            filename = os.path.join(os.getcwd(), f'logs/thermocouple/{thermocouple_name}_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.csv')
+
+            # Write data to file asynchronously
+            async with aiofiles.open(filename, 'w') as file:
+                await file.write("Temperature,Time\n")
+                for entry in data:
+                    await file.write(f"{entry}\n")
+        finally:
+            # Close Redis connection and shutdown executor
+            redis_client.close()
+            executor.shutdown(wait=True)
+
+    async def end_logging_all_sensors(self):
+        # Ensure logging is marked as inactive
+        self.logging_active = False
+
+        # Create tasks for each sensor to stop logging and save data
+        tasks = [self.stop_thermocouple_logging(name) for name in self.thermocouples]
+        await asyncio.gather(*tasks)

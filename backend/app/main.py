@@ -13,6 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 import logging
 import os
+import asyncio
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -184,26 +185,35 @@ async def load_cell_datastream(load_cell_name: str):
             status_code=500, detail="Internal Server Error. Check connection to LabJack.")
 
 
+async def start_or_stop_sensor_logging(sensor, action: str):
+    try:
+        if action == "start":
+            await sensor.start_logging_all_sensors()
+        elif action == "stop":
+            await sensor.end_logging_all_sensors()
+    except Exception as e:
+        logging.error(f"Failed to {action} logging for {sensor.__class__.__name__}: {e}")
+
+async def operate_all_sensors_concurrently(action: str):
+    tasks = []
+    for sensor in [app.state.pressure_transducer_sensor, app.state.thermocouple_sensor]:
+        tasks.append(start_or_stop_sensor_logging(sensor, action))
+    await asyncio.gather(*tasks)
 
 @app.get("/log_data/start")
-async def start_log_data(background_tasks: BackgroundTasks):
+async def start_log_data(background_tasks: BackgroundTasks) -> dict:
     try:
-        background_tasks.add_task(
-            app.state.pressure_transducer_sensor.start_logging_all_sensors)
-        background_tasks.add_task(
-            app.state.thermocouple_sensor.start_logging_all_sensors)
-    except Exception:
-        raise HTTPException(
-            status_code=500, detail="Internal Server Error. Check connection to LabJack.")
-
+        background_tasks.add_task(operate_all_sensors_concurrently, "start")
+        return {"message": "Logging started"}
+    except Exception as e:
+        logging.error(f"Error starting log data: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error. Check connection to LabJack.")
 
 @app.get("/log_data/stop")
-async def stop_log_data():
+async def stop_log_data(background_tasks: BackgroundTasks) -> dict:
     try:
-        app.state.pressure_transducer_sensor.end_logging_all_sensors()
-        app.state.thermocouple_sensor.end_logging_all_sensors()
-    except Exception:
-        raise HTTPException(
-            status_code=500, detail="Internal Server Error. Check connection to LabJack.")
-
-
+        background_tasks.add_task(operate_all_sensors_concurrently, "stop")
+        return {"message": "Logging stopped"}
+    except Exception as e:
+        logging.error(f"Error stopping log data: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error. Check connection to LabJack.")
