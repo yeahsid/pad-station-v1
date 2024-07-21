@@ -1,7 +1,7 @@
 from collections import deque
 from dataclasses import dataclass
 import asyncio
-from datetime import datetime
+from datetime import datetime, timezone
 import logging
 from app.comms.hardware import LabJackConnection
 from app.comms.exceptions import PressureSensorError
@@ -98,7 +98,7 @@ class PressureTransducerSensor:
 
             while self.logging_active:
                 pressure_reading, voltage = self.get_pressure_transducer_feedback(pressure_transducer_name)
-                current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                current_time = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
 
                 await file.write(f"{pressure_reading},{voltage},{current_time}\n")
                 await asyncio.sleep(LOGGING_RATE)

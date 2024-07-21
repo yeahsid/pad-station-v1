@@ -8,7 +8,7 @@ from app.comms.exceptions import LoadCellError
 from app.config import LABJACK_PINS
 import csv
 import aiofiles
-from datetime import datetime
+from datetime import datetime, timezone
 LOGGING_RATE = 0.005  # Time between pt log points in seconds
 
 logger = logging.getLogger(__name__)
@@ -105,7 +105,7 @@ class LoadCellSensor:
 
             while self.logging_active:
                 load, voltage = self.get_pressure_transducer_feedback(load_cell_name)
-                current_time = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+                current_time = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
 
                 await file.write(f"{load},{voltage},{current_time}\n")
                 await asyncio.sleep(LOGGING_RATE)

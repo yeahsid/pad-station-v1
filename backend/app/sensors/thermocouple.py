@@ -1,8 +1,7 @@
 from collections import deque
 from dataclasses import dataclass
 import asyncio
-from datetime import datetime
-import time
+from datetime import datetime, timezone
 import logging
 from app.comms.hardware import LabJackConnection
 from app.comms.exceptions import ThermocoupleSensorError
@@ -124,7 +123,7 @@ class ThermocoupleSensor:
 
             while self.logging_active:
                 temperature_reading = self.get_thermocouple_temperature(thermocouple_name)
-                current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                current_time = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
 
                 await file.write(f"{temperature_reading},{current_time}\n")
                 await asyncio.sleep(LOGGING_RATE)
