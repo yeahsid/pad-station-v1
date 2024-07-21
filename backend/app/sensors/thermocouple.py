@@ -8,6 +8,7 @@ from app.comms.exceptions import ThermocoupleSensorError
 from app.config import LABJACK_PINS
 import aiofiles
 import csv
+import os
 from pathlib import Path
 
 LOGGING_RATE = 0.005  # Time between tc log points in seconds
@@ -119,7 +120,7 @@ class ThermocoupleSensor:
             await asyncio.sleep(LOGGING_RATE)
     
     async def thermocouple_transducer_logging(self, thermocouple_name: str):
-        filename = f'/home/padstation/pad-station/logs/thermocouple/{thermocouple_name}_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.csv'
+        filename = os.path.join(os.getcwd(), f'logs/thermocouple/{thermocouple_name}_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.csv')
 
         async with aiofiles.open(filename, 'w', newline='') as file:
             await file.write("Temperature Reading,Time\n")

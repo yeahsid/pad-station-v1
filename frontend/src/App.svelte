@@ -379,7 +379,7 @@ these are used to create the user interface.
     </div>
 
     <div class="flex flex-col gap-4">
-      <P class="text-lg lg:text-xl text-end">Engine Temp</P>
+      <P class="text-lg lg:text-xl text-end">Engine Temperature</P>
       {#key engineTc}
         <P class="font-bold text-2xl lg:text-4xl text-end">
           {engineTc} °C

@@ -8,6 +8,7 @@ from app.comms.exceptions import PressureSensorError
 from app.config import LABJACK_PINS
 import aiofiles
 import csv
+import os
 from typing import Tuple
 
 
@@ -91,7 +92,9 @@ class PressureTransducerSensor:
             await asyncio.sleep(LOGGING_RATE)  # Adjust the sleep time as needed
 
     async def pressure_transducer_logging(self, pressure_transducer_name: str):
-        filename = f'/home/padstation/pad-station/logs/pressure/{pressure_transducer_name}_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.csv'
+        filename = os.path.join(os.getcwd(), f'logs/pressure/{pressure_transducer_name}_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.csv')
+
+        logger.info(f"Logging pressure transducer data to {filename}")
 
         async with aiofiles.open(filename, 'w', newline='') as file:
             await file.write("Pressure Reading,Voltage,Time\n")
