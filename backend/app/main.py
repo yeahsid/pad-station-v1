@@ -10,6 +10,7 @@ from app.actuators.pilot_valve import PilotValveController
 from app.sensors.thermocouple import ThermocoupleSensor
 from app.sensors.load_cell import LoadCellSensor
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 import logging
 import os
 logging.basicConfig(level=logging.INFO)
@@ -19,13 +20,9 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     app.state = type('', (), {})()
-    # Check if this worker is designated for LabJack connection
     try:
         logging.error("Attempting to establish LabJack connection")
-        # Attempt to establish LabJack connection
-        # Ensure this attempts the connection and raises an exception if failed
         connection = LabJackConnection()
-        # Initialize components with LabJack connection
         app.state.valve_controller = ValveController(connection)
         app.state.pressure_transducer_sensor = PressureTransducerSensor(
             connection)
@@ -35,14 +32,7 @@ async def lifespan(app: FastAPI):
         app.state.labjack_connected = True
     except Exception as e:
         logging.error(f"Failed to establish LabJack connection: {e}")
-        # Optionally, set a flag or disable functionality as needed
-        app.state.labjack_connected = False
-        # Initialize placeholders or alternative logic for failed connection
-        app.state.valve_controller = None
-        app.state.pressure_transducer_sensor = None
-        app.state.thermocouple_sensor = None
-        app.state.pilot_valve_controller = None
-        app.state.load_cell_sensor = None
+        raise e
     yield
 
 app = FastAPI(lifespan=lifespan)

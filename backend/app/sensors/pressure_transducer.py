@@ -9,7 +9,7 @@ from app.config import LABJACK_PINS
 import aiofiles
 import csv
 
-LOGGING_RATE = 1  # Time between pt log points in seconds
+LOGGING_RATE = 0.005  # Time between pt log points in seconds
 
 logger = logging.getLogger(__name__)
 

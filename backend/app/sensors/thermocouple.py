@@ -11,7 +11,7 @@ import aiofiles
 import csv
 from pathlib import Path
 
-LOGGING_RATE = 1  # Time between tc log points in seconds
+LOGGING_RATE = 0.005  # Time between tc log points in seconds
 
 logger = logging.getLogger(__name__)
 

@@ -9,13 +9,13 @@
   } from "flowbite-svelte";
   import { onMount } from "svelte";
 
-/*gyu
+  /*gyu
 importing various components and functions from flowbite-svelte and svelte
 these are used to create the user interface. 
 'onmount' is a lifecycle function that runs after the component is first rendered 
 */
 
-//an array of objects representing possible valve actions 
+  //an array of objects representing possible valve actions
   const actions: { value: string; name: string }[] = [
     {
       value: "open",
@@ -27,10 +27,10 @@ these are used to create the user interface.
     },
   ];
 
-//typescript union types that define possible connection states and valve states
+  //typescript union types that define possible connection states and valve states
   type TConnectionStatus = "Connected" | "Error" | "Unknown";
   type TValveState = "Open" | "Close" | "Error" | "Unknown";
-//defines a set of possible colour values 
+  //defines a set of possible colour values
   type TColorType =
     | "green"
     | "red"
@@ -44,10 +44,10 @@ these are used to create the user interface.
     | "primary"
     | undefined;
 
-//base url is for API calls to get the data from the backend 
-  const BASE_URL = "http://padstation-dev.local:8000";
+  //base url is for API calls to get the data from the backend
+  const BASE_URL = "http://server.goblin-decibel.ts.net:8000";
 
-//maps valve states to colour types 
+  //maps valve states to colour types
   const colorMap: Record<TConnectionStatus | TValveState, TColorType> = {
     Connected: "green",
     Error: "red",
@@ -56,7 +56,7 @@ these are used to create the user interface.
     Close: "red",
   };
 
-//variables to store states and data points 
+  //variables to store states and data points
   let supplyPt: string;
   let enginePt: string;
   let tankPt: string;
@@ -81,39 +81,39 @@ these are used to create the user interface.
   // New state variable for logging status
   let isLogging = false;
 
-//The onMount function sets up EventSource connections to receive real-time updates
+  //The onMount function sets up EventSource connections to receive real-time updates
   onMount(() => {
     //pressure data stream
     const enginePressureSse = new EventSource(
-      `${BASE_URL}/pressure/tank_bottom/datastream`
+      `${BASE_URL}/pressure/tank_bottom/datastream`,
     );
 
     //pressure data stream
     const supplyPressureSse = new EventSource(
-      `${BASE_URL}/pressure/supply/datastream`
+      `${BASE_URL}/pressure/supply/datastream`,
     );
 
     //pressure data stream
     const tankPressureSse = new EventSource(
-      `${BASE_URL}/pressure/tank_top/datastream`
+      `${BASE_URL}/pressure/tank_top/datastream`,
     );
 
     //pressure data stream
     const chamberPressureSse = new EventSource(
-      `${BASE_URL}/pressure/chamber/datastream`
+      `${BASE_URL}/pressure/chamber/datastream`,
     );
 
     //engine thermocouple data stream
     const engineTcSse = new EventSource(
-      `${BASE_URL}/thermocouple/engine/datastream`
+      `${BASE_URL}/thermocouple/engine/datastream`,
     );
 
-    //stream receiving messages 
+    //stream receiving messages
     supplyPressureSse.onmessage = (event) => {
       supplyPt = event.data.toString();
     };
 
-    //when the stream is opened, display connected 
+    //when the stream is opened, display connected
     supplyPressureSse.onopen = () => {
       supplySseStatus = "Connected";
     };
@@ -124,6 +124,7 @@ these are used to create the user interface.
     };
 
     enginePressureSse.onmessage = (event) => {
+      // Update the state or UI with only the latest data
       enginePt = event.data.toString();
     };
 
@@ -172,22 +173,29 @@ these are used to create the user interface.
     };
 
     // Return a cleanup function that will be called when the component is unmounted
+    return () => {
+      enginePressureSse.close();
+      supplyPressureSse.close();
+      tankPressureSse.close();
+      chamberPressureSse.close();
+      engineTcSse.close();
+    };
   });
 
-//helper function map a string value to the Tvalvestate
+  //helper function map a string value to the Tvalvestate
   const mapToValveState = (value: string): TValveState => {
     switch (value) {
-      case 'open':
-        return 'Open';
-      case 'closed':
-        return 'Close';
+      case "open":
+        return "Open";
+      case "closed":
+        return "Close";
       default:
-        return 'Unknown';
+        return "Unknown";
     }
   };
 
-//send GET requests to the server to actuate the respective sensors
-// and update their states based on the response.
+  //send GET requests to the server to actuate the respective sensors
+  // and update their states based on the response.
   const actuateEngineSensor = async () => {
     if (!selectedEngineOption || selectedEngineOption === "") return;
 
@@ -216,37 +224,37 @@ these are used to create the user interface.
     });
   };
 
-const startLogging = async () => {
-  isLogging = true;
-  await fetch(`${BASE_URL}/log_data/start`, {
-    method: "GET",
-  }).then((response) => {
-    if (!response.ok) {
-      console.error("Failed to start logging");
-      isLogging = false;
-    }
-  });
-};
+  const startLogging = async () => {
+    isLogging = true;
+    await fetch(`${BASE_URL}/log_data/start`, {
+      method: "GET",
+    }).then((response) => {
+      if (!response.ok) {
+        console.error("Failed to start logging");
+        isLogging = false;
+      }
+    });
+  };
 
-const stopLogging = async () => {
-  isLogging = false;
-  // If your backend requires a call to stop logging, include it here
-  await fetch(`${BASE_URL}/log_data/stop`, {
-    method: "GET",
-  }).then((response) => {
-    if (!response.ok) {
-      console.error("Failed to stop logging");
-      // Optionally handle failure to stop logging
-    }
-  });
-};
-
+  const stopLogging = async () => {
+    isLogging = false;
+    // If your backend requires a call to stop logging, include it here
+    await fetch(`${BASE_URL}/log_data/stop`, {
+      method: "GET",
+    }).then((response) => {
+      if (!response.ok) {
+        console.error("Failed to stop logging");
+        // Optionally handle failure to stop logging
+      }
+    });
+  };
 </script>
 
 <!-- ... (rest of the code) -->
 
-
-<div class="w-full min-h-screen flex flex-col container mx-auto p-4 justify-evenly max-w-screen-lg">
+<div
+  class="w-full min-h-screen flex flex-col container mx-auto p-4 justify-evenly max-w-screen-lg"
+>
   <Heading
     tag="h1"
     class="font-bold"
@@ -358,7 +366,11 @@ const stopLogging = async () => {
       <div class="flex gap-4">
         <Button on:click={startLogging}>Start Logging</Button>
         <Button on:click={stopLogging}>Stop Logging</Button>
-        <Indicator size="sm" color={isLogging ? "green" : "red"} class="me-1.5" />
+        <Indicator
+          size="sm"
+          color={isLogging ? "green" : "red"}
+          class="me-1.5"
+        />
       </div>
     </div>
 
