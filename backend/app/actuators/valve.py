@@ -62,7 +62,7 @@ class ValveController:
         self.labjack = labjack
         self.last_states = {}
 
-    def _get_valve(self, valve_name: str) -> Valve:
+    async def _get_valve(self, valve_name: str) -> Valve:
         """
         Get the Valve instance corresponding to the given valve name.
 
@@ -81,7 +81,7 @@ class ValveController:
             raise ValveNotFoundError("Valve not found")
         return self.valves[valve_name]
 
-    def actuate_valve(self, valve_name: str, state: ValveState) -> str:
+    async def actuate_valve(self, valve_name: str, state: ValveState) -> str:
         """
         Actuate the valve to the specified state.
 
@@ -97,12 +97,12 @@ class ValveController:
         input_state = ValveServoState.INPUT_STATES[valve_name][state]
 
         for pin, value in zip(valve.input_pins, input_state):
-            self.labjack.write(pin, value)
+            await self.labjack.write(pin, value)
 
         # Store the last actuated state
         self.last_states[valve_name] = state
 
-    def get_valve_state(self, valve_name: str) -> str:
+    async def get_valve_state(self, valve_name: str) -> str:
         """
         Get the last actuated state of the valve.
 

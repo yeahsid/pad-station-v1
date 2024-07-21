@@ -8,6 +8,8 @@ from app.comms.exceptions import PressureSensorError
 from app.config import LABJACK_PINS
 import aiofiles
 import csv
+from typing import Tuple
+
 
 LOGGING_RATE = 0.005  # Time between pt log points in seconds
 
@@ -65,13 +67,11 @@ class PressureTransducerSensor:
             logger.error(f"Pressure Transducer with name {pressure_transducer_name} not found")
             raise PressureSensorError(f"Pressure Transducer with name {pressure_transducer_name} not found")
 
-    def get_pressure_transducer_feedback(self, pressure_transducer_name: str) -> float:
-        pressure_transducer = self._get_pressure_transducer(
-            pressure_transducer_name)
-        voltage = self.labjack.read(pressure_transducer.pressure_signal)
+    async def get_pressure_transducer_feedback(self, pressure_transducer_name: str) -> Tuple[float, float]:
+        pressure_transducer = self._get_pressure_transducer(pressure_transducer_name)
+        voltage = await self.labjack.read(pressure_transducer.pressure_signal)
         # Calculate pressure from voltage
         pressure = (voltage - 0.5) / 4 * pressure_transducer.max_pressure
-        # pressure_bar = pressure_psi * 0.0689476  # Convert pressure from PSI to bar
         return round(pressure, 2), voltage
 
     async def pressure_transducer_datastream(self, pressure_transducer_name: str):
@@ -86,7 +86,7 @@ class PressureTransducerSensor:
 
         """
         while True:
-            pressure_reading, voltage = self.get_pressure_transducer_feedback(pressure_transducer_name)
+            pressure_reading, voltage = await self.get_pressure_transducer_feedback(pressure_transducer_name)
             yield pressure_reading
             await asyncio.sleep(LOGGING_RATE)  # Adjust the sleep time as needed
 
@@ -97,7 +97,7 @@ class PressureTransducerSensor:
             await file.write("Pressure Reading,Voltage,Time\n")
 
             while self.logging_active:
-                pressure_reading, voltage = self.get_pressure_transducer_feedback(pressure_transducer_name)
+                pressure_reading, voltage = await self.get_pressure_transducer_feedback(pressure_transducer_name)
                 current_time = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
 
                 await file.write(f"{pressure_reading},{voltage},{current_time}\n")

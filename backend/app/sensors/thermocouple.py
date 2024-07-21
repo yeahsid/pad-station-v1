@@ -42,7 +42,9 @@ class ThermocoupleSensor:
         }
         self.labjack = labjack
 
-        self.logging_active = True
+        self.thermocouple_setup = False
+
+        self.logging_active = False
 
     def _get_thermocouple(self, thermocouple_name: str) -> Thermocouple:
         """
@@ -62,8 +64,25 @@ class ThermocoupleSensor:
         except KeyError:
             logger.error("Thermocouple not found")
             raise ThermocoupleSensorError("Thermocouple not found")
+        
 
-    def get_thermocouple_temperature(self, thermocouple_name: str) -> float:
+    async def _thermocouple_setup(self, thermocouple_name: str):
+        """
+        Sets up the LabJack device to read from the specified thermocouple.
+
+        Args:
+            thermocouple_name (str): The name of the thermocouple.
+        """
+        thermocouple = self._get_thermocouple(thermocouple_name)
+
+        # Set up the thermocouple
+        await self.labjack.write(f"{thermocouple.thermo_pin}_EF_INDEX", 22)
+        await self.labjack.write(f"{thermocouple.thermo_pin}_EF_CONFIG_A", 1)
+        await self.labjack.write(f"{thermocouple.thermo_pin}_EF_CONFIG_B", 60052)
+        await self.labjack.write(f"{thermocouple.thermo_pin}_EF_CONFIG_D", 1.0)
+        await self.labjack.write(f"{thermocouple.thermo_pin}_EF_CONFIG_E", 0.0)
+
+    async def get_thermocouple_temperature(self, thermocouple_name: str) -> float:
         """
         Get the temperature reading from a thermocouple.
 
@@ -74,24 +93,12 @@ class ThermocoupleSensor:
             float: The temperature reading in degrees Celsius.
         """
         thermocouple = self._get_thermocouple(thermocouple_name)
+        if not self.thermocouple_setup:
+            await self._thermocouple_setup(thermocouple_name)
+            self.thermocouple_setup = True
 
-        EF_INDEX = 22       # feature index for type K thermocouple
-        EF_CONFIG_A = 1     # Celsius units
-        EF_CONFIG_B = 60052  # TEMPERATURE_DEVICE_K for CJC address
-        EF_CONFIG_D = 1.0   # slope for CJC reading
-        EF_CONFIG_E = 0.0   # offset for CJC reading
 
-        self.labjack.write(f"{thermocouple.thermo_pin}_EF_INDEX", EF_INDEX)
-        self.labjack.write(
-            f"{thermocouple.thermo_pin}_EF_CONFIG_A", EF_CONFIG_A)
-        self.labjack.write(
-            f"{thermocouple.thermo_pin}_EF_CONFIG_B", EF_CONFIG_B)
-        self.labjack.write(
-            f"{thermocouple.thermo_pin}_EF_CONFIG_D", EF_CONFIG_D)
-        self.labjack.write(
-            f"{thermocouple.thermo_pin}_EF_CONFIG_E", EF_CONFIG_E)
-
-        temperature = self.labjack.read(f"{thermocouple.thermo_pin}_EF_READ_A")
+        temperature = await self.labjack.read(f"{thermocouple.thermo_pin}_EF_READ_A")
 
         return temperature
 
@@ -107,7 +114,7 @@ class ThermocoupleSensor:
         """
 
         while True:
-            temperature = self.get_thermocouple_temperature(thermocouple_name)
+            temperature = await self.get_thermocouple_temperature(thermocouple_name)
             yield temperature
             await asyncio.sleep(LOGGING_RATE)
     
@@ -118,7 +125,7 @@ class ThermocoupleSensor:
             await file.write("Temperature Reading,Time\n")
 
             while self.logging_active:
-                temperature_reading = self.get_thermocouple_temperature(thermocouple_name)
+                temperature_reading = await self.get_thermocouple_temperature(thermocouple_name)
                 current_time = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
 
                 await file.write(f"{temperature_reading},{current_time}\n")
