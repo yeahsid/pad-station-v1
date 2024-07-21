@@ -7,6 +7,9 @@ from app.comms.hardware import LabJackConnection
 from app.comms.exceptions import LoadCellError
 from app.config import LABJACK_PINS
 import csv
+import aiofiles
+from datetime import datetime
+LOGGING_RATE = 0.005  # Time between pt log points in seconds
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +78,9 @@ class LoadCellSensor:
 
         voltage_value = self.labjack.read(load_cell.signal_pos)
 
-        return voltage_value * load_cell.calibration_factor + load_cell.calibration_constant
+        load = voltage_value * load_cell.calibration_factor + load_cell.calibration_constant
+
+        return load , voltage_value
 
     async def load_cell_datastream(self, load_cell_name: str):
         """
@@ -87,10 +92,29 @@ class LoadCellSensor:
         Yields:
             float: The next mass reading from the specified load cell.
         """
-        with open(f'.././logs/load_cell/{load_cell_name}.csv', 'a', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow(["Load Cell Reading"])
-            while True:
-                mass = self.get_load_cell_mass(load_cell_name)
-                writer.writerow([mass] + [time.time()])
-                yield mass
+        while True:
+            load = self.get_pressure_transducer_feedback(load_cell_name)
+            yield load
+            await asyncio.sleep(LOGGING_RATE)  # Adjust the sleep time as needed
+
+    async def load_cell_logging(self, load_cell_name: str):
+        filename = f'/home/padstation/pad-station/logs/load_cell/{load_cell_name}_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.csv'
+
+        async with aiofiles.open(filename, 'w', newline='') as file:
+            await file.write("Load,Voltage,Time\n")
+
+            while self.logging_active:
+                load, voltage = self.get_pressure_transducer_feedback(load_cell_name)
+                current_time = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+
+                await file.write(f"{load},{voltage},{current_time}\n")
+                await asyncio.sleep(LOGGING_RATE)
+                await file.flush()
+
+    async def start_logging_all_sensors(self):
+        self.logging_active = True
+        tasks = [self.load_cell_logging(name) for name in self.load_cells]
+        await asyncio.gather(*tasks)
+
+    def end_logging_all_sensors(self):
+        self.logging_active = False
