@@ -159,6 +159,30 @@ async def ignition(background_tasks: BackgroundTasks, delay: int = Query(4)):
     except Exception:
         raise HTTPException(
             status_code=500, detail="Internal Server Error. Check connection to LabJack.")
+    
+@app.get("/load_cell/{load_cell_name}/feedback")
+async def get_load_cell_mass(load_cell_name: str = Path(...)):
+    try:
+        feedback = app.state.load_cell_sensor.get_load_cell_mass(
+            load_cell_name)
+        return {"load_cell_name": load_cell_name, "mass": feedback}
+    except Exception as e:
+        logging.error(f"Error: {e}")
+        raise HTTPException(
+            status_code=500, detail="Internal Server Error. Check connection to LabJack.")
+
+
+@app.get("/load_cell/{load_cell_name}/datastream")
+async def load_cell_datastream(load_cell_name: str):
+    try:
+        async def event_generator():
+            async for data in app.state.load_cell_sensor.load_cell_datastream(load_cell_name):
+                yield f"data: {data}\n\n"
+        return StreamingResponse(event_generator(), media_type="text/event-stream")
+    except Exception:
+        raise HTTPException(
+            status_code=500, detail="Internal Server Error. Check connection to LabJack.")
+
 
 
 @app.get("/log_data/start")
@@ -183,24 +207,3 @@ async def stop_log_data():
             status_code=500, detail="Internal Server Error. Check connection to LabJack.")
 
 
-@app.get("/load_cell/{load_cell_name}/feedback")
-async def get_load_cell_mass(load_cell_name: str = Path(...)):
-    try:
-        feedback = app.state.load_cell_controller.get_load_cell_mass(
-            load_cell_name)
-        return {"load_cell_name": load_cell_name, "mass": feedback}
-    except Exception:
-        raise HTTPException(
-            status_code=500, detail="Internal Server Error. Check connection to LabJack.")
-
-
-@app.get("/load_cell/{load_cell_name}/datastream")
-async def load_cell_datastream(load_cell_name: str):
-    try:
-        async def event_generator():
-            async for data in app.state.load_cell_controller.load_cell_datastream(load_cell_name):
-                yield f"data: {data}\n\n"
-        return StreamingResponse(event_generator(), media_type="text/event-stream")
-    except Exception:
-        raise HTTPException(
-            status_code=500, detail="Internal Server Error. Check connection to LabJack.")

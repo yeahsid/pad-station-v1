@@ -33,12 +33,9 @@ class LoadCellSensor:
             labjack (LabJackConnection): An instance of LabJackConnection used for communication with the LabJack device.
         """
         self.load_cells = {
-            "test_stand_load_cell": LoadCell(*LABJACK_PINS["test_stand_load_cell"], -30606.38127, 1.00271157)
+            "test_stand": LoadCell(*LABJACK_PINS["test_stand_load_cell"], -30606.38127, 1.00271157)
         }
         self.labjack = labjack
-        self.filter_size = filter_size
-        self.load_cell_readings = {name: deque(maxlen=filter_size) for name in self.load_cells}
-        self.load_cell_sums = {name: 0 for name in self.load_cells}
 
     def _get_load_cell(self, load_cell_name: str) -> LoadCell:
         """

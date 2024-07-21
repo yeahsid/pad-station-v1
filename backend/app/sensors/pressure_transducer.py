@@ -44,11 +44,6 @@ class PressureTransducerSensor:
             "chamber": PressureTransducer(LABJACK_PINS["pressure_transducer_chamber"], 200),
         }
         self.labjack = labjack
-        self.filter_size = filter_size
-        self.pressure_readings = {name: deque(
-            maxlen=filter_size) for name in self.pressure_transducers}
-        self.pressure_sums = {name: 0 for name in self.pressure_transducers}
-
         self.logging_active = True  # Used to disable logging at a chosen time
 
     def _get_pressure_transducer(self, pressure_transducer_name: str) -> PressureTransducer:
