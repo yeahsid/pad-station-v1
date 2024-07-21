@@ -41,10 +41,6 @@ class ThermocoupleSensor:
             "engine": Thermocouple(LABJACK_PINS["thermocouple_engine"]),
         }
         self.labjack = labjack
-        self.filter_size = filter_size
-        self.thermocouple_readings = {name: deque(
-            maxlen=filter_size) for name in self.thermocouples}
-        self.thermocouple_sums = {name: 0 for name in self.thermocouples}
 
         self.logging_active = True
 

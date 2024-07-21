@@ -28,7 +28,7 @@ class LoadCellSensor:
         load_cells (dict): A dictionary of load cells with load cell names as keys and LoadCell objects as values.
         labjack (LabJackConnection): An instance of LabJackConnection used for communication with the LabJack device.
     """
-    def __init__(self, labjack: LabJackConnection, filter_size: int = 10):
+    def __init__(self, labjack: LabJackConnection):
         """
         Initializes a LoadCellController object.
 
@@ -36,7 +36,9 @@ class LoadCellSensor:
             labjack (LabJackConnection): An instance of LabJackConnection used for communication with the LabJack device.
         """
         self.load_cells = {
-            "test_stand": LoadCell(*LABJACK_PINS["test_stand_load_cell"], -30606.38127, 1.00271157)
+            # "test_stand": LoadCell(*LABJACK_PINS["test_stand_load_cell"], -30606.38127, 1.00271157)
+
+            "test_stand": LoadCell( "AIN8", "AIN9", -30606.38127, 1.00271157)
         }
         self.labjack = labjack
 
