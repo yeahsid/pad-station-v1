@@ -16,7 +16,7 @@ import os
 from pathlib import Path
 
 LOGGING_RATE = 1  # Time between tc log points in seconds
-POLLING_RATE = 0.1  # Time between tc readings in seconds
+POLLING_RATE = 0.005  # Time between tc readings in seconds
 
 logger = logging.getLogger(__name__)
 
@@ -87,6 +87,7 @@ class ThermocoupleSensor:
         await self.labjack.write(f"{thermocouple.thermo_pin}_EF_CONFIG_B", 60052)
         await self.labjack.write(f"{thermocouple.thermo_pin}_EF_CONFIG_D", 1.0)
         await self.labjack.write(f"{thermocouple.thermo_pin}_EF_CONFIG_E", 0.0)
+        self.thermocouple_setup = True
 
     async def get_thermocouple_temperature(self, thermocouple_name: str) -> float:
         """
@@ -101,7 +102,7 @@ class ThermocoupleSensor:
         thermocouple = self._get_thermocouple(thermocouple_name)
         if not self.thermocouple_setup:
             await self._thermocouple_setup(thermocouple_name)
-            self.thermocouple_setup = True
+            
 
 
         temperature = await self.labjack.read(f"{thermocouple.thermo_pin}_EF_READ_A")

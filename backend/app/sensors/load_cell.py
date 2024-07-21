@@ -1,122 +1,197 @@
 from collections import deque
 from dataclasses import dataclass
 import asyncio
-import time
+from datetime import datetime, timezone
 import logging
 from app.comms.hardware import LabJackConnection
 from app.comms.exceptions import LoadCellError
 from app.config import LABJACK_PINS
-import csv
 import aiofiles
-from datetime import datetime, timezone
-LOGGING_RATE = 0.005  # Time between pt log points in seconds
+import redis
+from concurrent.futures import ThreadPoolExecutor
+
+
+import csv
+import os
+from pathlib import Path
+
+LOGGING_RATE = 1  # Time between tc log points in seconds
+POLLING_RATE = 0.005  # Time between tc readings in seconds
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
-class LoadCell:
+class load_cell:
     signal_pos: str
     signal_neg: str
     calibration_factor: float
     calibration_constant: float
 
+
 class LoadCellSensor:
     """
-    A class that represents Load Cells using a LabJackConnection.
+    Represents a load_cell sensor that measures mass using LabJackConnection.
 
     Attributes:
-        load_cells (dict): A dictionary of load cells with load cell names as keys and LoadCell objects as values.
-        labjack (LabJackConnection): An instance of LabJackConnection used for communication with the LabJack device.
+        load_cells (dict): A dictionary of load_cells, where the keys are the names of the load_cells
+            and the values are instances of the load_cell class.
+        labjack (LabJackConnection): An instance of the LabJackConnection class used to communicate with the LabJack device.
     """
-    def __init__(self, labjack: LabJackConnection):
+
+    def __init__(self, labjack: LabJackConnection, filter_size: int = 10):
         """
-        Initializes a LoadCellController object.
+        Initializes a load_cellSensor object.
 
         Args:
-            labjack (LabJackConnection): An instance of LabJackConnection used for communication with the LabJack device.
+            labjack (LabJackConnection): An instance of the LabJackConnection class used to communicate with the LabJack device.
         """
         self.load_cells = {
-            # "test_stand": LoadCell(*LABJACK_PINS["test_stand_load_cell"], -30606.38127, 1.00271157)
-
-            "test_stand": LoadCell( "AIN8", "AIN9", -30606.38127, 1.00271157)
+            "test_stand": load_cell(*LABJACK_PINS["load_cell_test_stand"] , -3016.6, 7628.51),
         }
         self.labjack = labjack
 
-    def _get_load_cell(self, load_cell_name: str) -> LoadCell:
+        self.load_cell_setup = False
+
+        self.logging_active = False
+
+    def _get_load_cell(self, load_cell_name: str) -> load_cell:
         """
-        Retrieves a LoadCell object based on the load cell name.
+        Retrieves the specified load_cell.
 
         Args:
-            load_cell_name (str): The name of the load cell.
+            load_cell_name (str): The name of the load_cell.
 
         Returns:
-            LoadCell: The LoadCell object.
+            load_cell: The specified load_cell.
 
         Raises:
-            LoadCellError: If the load cell with the specified name is not found.
+            load_cellSensorError: If the specified load_cell is not found.
         """
         try:
             return self.load_cells[load_cell_name]
         except KeyError:
-            logger.error("Load cell not found")
-            raise LoadCellError("Load cell not found")
+            logger.error("load_cell not found")
+            raise LoadCellError("load_cell not found")
+        
 
-    def get_load_cell_mass(self, load_cell_name: str) -> float:
+    async def _load_cell_setup(self, load_cell_name: str):
         """
-        Retrieves the mass value from a load cell.
+        Sets up the LabJack device to read from the specified load_cell.
 
         Args:
-            load_cell_name (str): The name of the load cell.
-
-        Returns:
-            float: The mass value from the load cell.
+            load_cell_name (str): The name of the load_cell.
         """
         load_cell = self._get_load_cell(load_cell_name)
-        
-        self.labjack.write(f"{load_cell.signal_pos}_RANGE", 0.01)
-        self.labjack.write(f"{load_cell.signal_pos}_RESOLUTION_INDEX", 0)
-        self.labjack.write(f"{load_cell.signal_neg}_NEGATIVE_CH", int(load_cell.signal_neg[3:]))
-        self.labjack.write(f"{load_cell.signal_pos}_SETTLING_US", 0)
 
-        voltage_value = self.labjack.read(load_cell.signal_pos)
+        # Set up the load_cell
+        await self.labjack.write(f"{load_cell.signal_pos}_RANGE", 0.01)
+        await self.labjack.write(f"{load_cell.signal_pos}_EF_INDEX", 1)
+        await self.labjack.write(f"{load_cell.signal_pos}_RESOLUTION_INDEX", 0)
+        await self.labjack.write(f"{load_cell.signal_pos}_NEGATIVE_CH", int(load_cell.signal_neg[3::]))
+        await self.labjack.write(f"{load_cell.signal_pos}_SETTLING_US", 0)
+        self.load_cell_setup = True
 
-        load = voltage_value * load_cell.calibration_factor + load_cell.calibration_constant
+    async def get_load_cell_mass(self, load_cell_name: str) -> float:
+        """
+        Get the mass reading from a load_cell.
 
-        return load , voltage_value
+        Args:
+            load_cell_name (str): The name of the load_cell.
+
+        Returns:
+            float: The mass reading in degrees Celsius.
+        """
+        load_cell = self._get_load_cell(load_cell_name)
+        if not self.load_cell_setup:
+            await self._load_cell_setup(load_cell_name)
+            
+
+        mass = await self.labjack.read(f"{load_cell.signal_pos}_EF_READ_A")
+
+        return round(mass,2)
 
     async def load_cell_datastream(self, load_cell_name: str):
         """
-        Creates a data stream of mass readings from the specified load cell.
+        Creates a data stream of mass readings from the specified load_cell.
 
         Args:
-            load_cell_name (str): The name of the load cell.
+            load_cell_name (str): The name of the load_cell.
 
         Yields:
-            float: The next mass reading from the specified load cell.
+            float: The next mass reading from the specified load_cell.
         """
+
         while True:
-            load = self.get_load_cell_mass(load_cell_name)
-            yield load
-            await asyncio.sleep(LOGGING_RATE)  # Adjust the sleep time as needed
-
+            mass = await self.get_load_cell_mass(load_cell_name)
+            yield mass
+            await asyncio.sleep(POLLING_RATE)
+    
     async def load_cell_logging(self, load_cell_name: str):
-        filename = f'/home/padstation/pad-station/logs/load_cell/{load_cell_name}_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.csv'
+        # Initialize Redis connection
+        redis_client = redis.Redis(host='localhost', port=6379, decode_responses=True)
+        
+        # Create a ThreadPoolExecutor
+        executor = ThreadPoolExecutor()
 
-        async with aiofiles.open(filename, 'w', newline='') as file:
-            await file.write("Load,Voltage,Time\n")
-
+        try:
             while self.logging_active:
-                load, voltage = self.get_load_cell_mass(load_cell_name)
+                mass_reading = await self.get_load_cell_mass(load_cell_name)
                 current_time = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
-
-                await file.write(f"{load},{voltage},{current_time}\n")
+                
+                # Create a structured string or a dictionary to represent the data
+                data = f"{mass_reading},{current_time}"
+                
+                # Use run_in_executor to run the synchronous Redis operation in a separate thread
+                await asyncio.get_event_loop().run_in_executor(executor, lambda: redis_client.lpush(f"load_data:{load_cell_name}", data))
+                
                 await asyncio.sleep(LOGGING_RATE)
-                await file.flush()
+        finally:
+            # Close Redis connection outside of the loop
+            redis_client.close()
+            # Shutdown the executor
+            executor.shutdown(wait=True)
+
 
     async def start_logging_all_sensors(self):
         self.logging_active = True
         tasks = [self.load_cell_logging(name) for name in self.load_cells]
         await asyncio.gather(*tasks)
 
-    def end_logging_all_sensors(self):
+        return {"message": "Logging started"}
+
+
+    async def stop_load_cell_logging(self, load_cell_name: str):
+        # Ensure logging is marked as inactive
         self.logging_active = False
+
+        # Initialize Redis connection
+        redis_client = redis.Redis(host='localhost', port=6379, decode_responses=True)
+
+        # Create a ThreadPoolExecutor for running synchronous Redis operations
+        executor = ThreadPoolExecutor()
+
+        try:
+            # Fetch data from Redis asynchronously using executor
+            data = await asyncio.get_event_loop().run_in_executor(executor, lambda: redis_client.lrange(f"load_data:{load_cell_name}", 0, -1))
+
+            # Define filename for saving data
+            filename = os.path.join(os.getcwd(), f'logs/load_cell/{load_cell_name}_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.csv')
+
+            # Write data to file asynchronously
+            async with aiofiles.open(filename, 'w') as file:
+                await file.write("Mass,Time\n")
+                for entry in data:
+                    await file.write(f"{entry}\n")
+        finally:
+            # Close Redis connection and shutdown executor
+            redis_client.close()
+            executor.shutdown(wait=True)
+
+    async def end_logging_all_sensors(self):
+        # Ensure logging is marked as inactive
+        self.logging_active = False
+
+        # Create tasks for each sensor to stop logging and save data
+        tasks = [self.stop_load_cell_logging(name) for name in self.load_cells]
+        await asyncio.gather(*tasks)

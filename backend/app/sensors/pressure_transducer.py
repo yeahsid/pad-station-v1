@@ -154,6 +154,8 @@ class PressureTransducerSensor:
                     await file.write(f"{entry}\n")
         finally:
             # Close Redis connection and shutdown executor
+
+            logger.info(f"Data saved to {filename}")
             redis_client.close()
             executor.shutdown(wait=True)
 

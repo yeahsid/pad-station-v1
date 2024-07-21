@@ -105,7 +105,7 @@ async def get_valve_state(valve_name: str = Path(...)):
 @app.get("/pressure/{pressure_transducer_name}/feedback")
 async def get_pressure_transducer_feedback(pressure_transducer_name: str = Path(...)):
     try:
-        feedback = app.state.pressure_transducer_sensor.get_pressure_transducer_feedback(
+        feedback = await app.state.pressure_transducer_sensor.get_pressure_transducer_feedback(
             pressure_transducer_name)
         return {"pressure_transducer_name": pressure_transducer_name, "pressure": feedback}
     except Exception:
@@ -129,7 +129,7 @@ async def pressure_transducer_datastream(pressure_transducer_name: str):
 @app.get("/thermocouple/{thermocouple_name}/feedback")
 async def get_thermocouple_feedback(thermocouple_name: str = Path(...)):
     try:
-        feedback = app.state.thermocouple_sensor.get_thermocouple_temperature(
+        feedback = await app.state.thermocouple_sensor.get_thermocouple_temperature(
             thermocouple_name)
 
         return {"thermocouple_name": thermocouple_name, "temperature": feedback}
@@ -164,7 +164,7 @@ async def ignition(background_tasks: BackgroundTasks, delay: int = Query(4)):
 @app.get("/load_cell/{load_cell_name}/feedback")
 async def get_load_cell_mass(load_cell_name: str = Path(...)):
     try:
-        feedback = app.state.load_cell_sensor.get_load_cell_mass(
+        feedback = await app.state.load_cell_sensor.get_load_cell_mass(
             load_cell_name)
         return {"load_cell_name": load_cell_name, "mass": feedback}
     except Exception as e:
@@ -196,7 +196,7 @@ async def start_or_stop_sensor_logging(sensor, action: str):
 
 async def operate_all_sensors_concurrently(action: str):
     tasks = []
-    for sensor in [app.state.pressure_transducer_sensor, app.state.thermocouple_sensor]:
+    for sensor in [app.state.pressure_transducer_sensor, app.state.thermocouple_sensor , app.state.load_cell_sensor]:
         tasks.append(start_or_stop_sensor_logging(sensor, action))
     await asyncio.gather(*tasks)
 
@@ -204,6 +204,7 @@ async def operate_all_sensors_concurrently(action: str):
 async def start_log_data(background_tasks: BackgroundTasks) -> dict:
     try:
         background_tasks.add_task(operate_all_sensors_concurrently, "start")
+        logger.info("Logging started")
         return {"message": "Logging started"}
     except Exception as e:
         logging.error(f"Error starting log data: {e}")
