@@ -62,7 +62,7 @@ class ValveController:
         self.labjack = labjack
         self.last_states = {}
 
-    async def _get_valve(self, valve_name: str) -> Valve:
+    def _get_valve(self, valve_name: str) -> Valve:
         """
         Get the Valve instance corresponding to the given valve name.
 
@@ -102,7 +102,7 @@ class ValveController:
         # Store the last actuated state
         self.last_states[valve_name] = state
 
-    async def get_valve_state(self, valve_name: str) -> str:
+    def get_valve_state(self, valve_name: str) -> str:
         """
         Get the last actuated state of the valve.
 

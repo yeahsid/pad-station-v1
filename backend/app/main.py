@@ -76,7 +76,7 @@ async def read_root():
 @app.get("/valve/{valve_name}", response_model=ValveResponse)
 async def actuate_main_valve(valve_name: str = Path(...), state: ValveState = Query(...)):
     try:
-        app.state.valve_controller.actuate_valve(valve_name, state)
+        await app.state.valve_controller.actuate_valve(valve_name, state)
         return {"valve_name": valve_name, "feedback": None}
     except Exception:
         raise HTTPException(
