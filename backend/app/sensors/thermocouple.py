@@ -44,7 +44,7 @@ class ThermocoupleSensor:
             labjack (LabJackConnection): An instance of the LabJackConnection class used to communicate with the LabJack device.
         """
         self.thermocouples = {
-            "engine": Thermocouple(LABJACK_PINS["thermocouple_engine"]),
+            "tank_thermocouple": Thermocouple(LABJACK_PINS["thermocouple_engine"]),
         }
         self.labjack = labjack
 

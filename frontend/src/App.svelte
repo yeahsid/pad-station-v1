@@ -72,7 +72,7 @@ these are used to create the user interface.
   let supplySseStatus: TConnectionStatus = "Unknown";
   let tankSseStatus: TConnectionStatus = "Unknown";
   let chamberSseStatus: TConnectionStatus = "Unknown";
-  let engineTcSseStatus: TConnectionStatus = "Unknown";
+  let tankTcSseStatus: TConnectionStatus = "Unknown";
 
   // New state variable for logging status
   let isLogging = false;
@@ -100,8 +100,8 @@ these are used to create the user interface.
     );
 
     //engine thermocouple data stream
-    const engineTcSse = new EventSource(
-      `${BASE_URL}/thermocouple/engine/datastream`,
+    const tankTcSse = new EventSource(
+      `${BASE_URL}/thermocouple/tank_thermocouple/datastream`,
     );
 
     const testStandLoadCell = new EventSource(
@@ -160,16 +160,16 @@ these are used to create the user interface.
       chamberSseStatus = "Error";
     };
 
-    engineTcSse.onmessage = (event) => {
+    tankTcSse.onmessage = (event) => {
       engineTc = event.data.toString();
     };
 
-    engineTcSse.onopen = () => {
-      engineTcSseStatus = "Connected";
+    tankTcSse.onopen = () => {
+      tankTcSseStatus = "Connected";
     };
 
-    engineTcSse.onerror = (_err) => {
-      engineTcSseStatus = "Error";
+    tankTcSse.onerror = (_err) => {
+      tankTcSseStatus = "Error";
     };
 
     testStandLoadCell.onmessage = (event) => {
@@ -182,7 +182,7 @@ these are used to create the user interface.
       supplyPressureSse.close();
       tankPressureSse.close();
       chamberPressureSse.close();
-      engineTcSse.close();
+      tankTcSse.close();
       testStandLoadCell.close();
     };
   });
