@@ -25,6 +25,8 @@ from app.sensors.thermocouple import ThermocoupleSensor
 from app.sensors.load_cell import LoadCellSensor
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
+import serial
+
 import logging
 import os
 import asyncio
@@ -34,20 +36,20 @@ import asyncio
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-
+rs422 = serial.Serial("/dev/tty.usbserial-B001A43L", 115200, timeout=2)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     app.state = type('', (), {})()
     try:
         logging.info("Attempting to establish LabJack connection")
-        connection = LabJackConnection()
-        app.state.valve_controller = ValveController(connection)
-        app.state.pressure_transducer_sensor = PressureTransducerSensor(
-            connection)
-        app.state.thermocouple_sensor = ThermocoupleSensor(connection)
-        app.state.pilot_valve_controller = PilotValveController(connection)
-        app.state.load_cell_sensor = LoadCellSensor(connection)
+        #connection = LabJackConnection()
+        # app.state.valve_controller = ValveController(connection)
+        # app.state.pressure_transducer_sensor = PressureTransducerSensor(
+        #     connection)
+        # app.state.thermocouple_sensor = ThermocoupleSensor(connection)
+        # app.state.pilot_valve_controller = PilotValveController(connection)
+        # app.state.load_cell_sensor = LoadCellSensor(connection)
         app.state.labjack_connected = True
         logging.info("LabJack connection established")
     except Exception as e:
@@ -96,7 +98,12 @@ async def read_root():
 @app.get("/valve/{valve_name}", response_model=ValveResponse)
 async def actuate_main_valve(valve_name: str = Path(...), state: ValveState = Query(...)):
     try:
-        await app.state.valve_controller.actuate_valve(valve_name, state)
+        if state == ValveState.open:
+            rs422.write(b"\xC0\x00\x2F\x00\x00\x00\x00\x00\x00\x00\x00\x02\x9B\x0A\x92\x20\xC0")
+        elif state == ValveState.closed:
+            rs422.write(b"\xC0\x00\x2F\x00\x00\x00\x00\x00\x00\x00\x00\x02\x9B\x0A\x92\x20\xC0")
+ 
+        # await app.state.valve_controller.actuate_valve(valve_name, state)
         return {"valve_name": valve_name, "feedback": None}
     except Exception:
         raise HTTPException(
