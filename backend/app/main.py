@@ -198,7 +198,7 @@ async def get_load_cell_mass(load_cell_name: str = Path(...)):
             status_code=500, detail="Internal Server Error. Check connection to LabJack.")
 
 
-@app.get("/load_cell_inactive/{load_cell_name}/datastream")
+@app.get("/load_cell_in/{load_cell_name}/datastream")
 async def load_cell_datastream(load_cell_name: str):
     try:
         async def event_generator():

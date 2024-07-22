@@ -105,8 +105,6 @@ class ThermocoupleSensor:
         if not self.thermocouple_setup_status.get(thermocouple_name, False):
             await self._thermocouple_setup(thermocouple_name)
                     
-
-
         temperature = await self.labjack.read(f"{thermocouple.thermo_pin}_EF_READ_A")
 
         return temperature
