@@ -1,3 +1,17 @@
+import sentry_sdk
+
+sentry_sdk.init(
+    dsn="http://0b27760dfd69e45f67fbe80fd94b6b2d@server.goblin-decibel.ts.net:9000/2",
+    # Set traces_sample_rate to 1.0 to capture 100%
+    # of transactions for tracing.
+    traces_sample_rate=1.0,
+    # Set profiles_sample_rate to 1.0 to profile 100%
+    # of sampled transactions.
+    # We recommend adjusting this value in production.
+    profiles_sample_rate=1.0,
+)
+
+
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Path, Query, Request, BackgroundTasks, HTTPException
 from fastapi.responses import JSONResponse, StreamingResponse
@@ -14,15 +28,19 @@ from fastapi.middleware.gzip import GZipMiddleware
 import logging
 import os
 import asyncio
+
+
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     app.state = type('', (), {})()
     try:
-        logging.error("Attempting to establish LabJack connection")
+        logging.info("Attempting to establish LabJack connection")
         connection = LabJackConnection()
         app.state.valve_controller = ValveController(connection)
         app.state.pressure_transducer_sensor = PressureTransducerSensor(
@@ -31,6 +49,7 @@ async def lifespan(app: FastAPI):
         app.state.pilot_valve_controller = PilotValveController(connection)
         app.state.load_cell_sensor = LoadCellSensor(connection)
         app.state.labjack_connected = True
+        logging.info("LabJack connection established")
     except Exception as e:
         logging.error(f"Failed to establish LabJack connection: {e}")
         raise e
@@ -97,7 +116,8 @@ async def get_valve_state(valve_name: str = Path(...)):
     try:
         feedback = app.state.valve_controller.get_valve_state(valve_name)
         return {"valve_name": valve_name, "feedback": feedback}
-    except Exception:
+    except Exception as e:
+        logging.error(f"Error: {e}")
         raise HTTPException(
             status_code=500, detail="Internal Server Error. Check connection to LabJack.")
 
@@ -108,7 +128,8 @@ async def get_pressure_transducer_feedback(pressure_transducer_name: str = Path(
         feedback = await app.state.pressure_transducer_sensor.get_pressure_transducer_feedback(
             pressure_transducer_name)
         return {"pressure_transducer_name": pressure_transducer_name, "pressure": feedback}
-    except Exception:
+    except Exception as e:
+        logging.error(f"Error: {e}")
         raise HTTPException(
             status_code=500, detail="Internal Server Error. Check connection to LabJack.")
 
@@ -121,7 +142,8 @@ async def pressure_transducer_datastream(pressure_transducer_name: str):
                 yield f"data: {data}\n\n"
 
         return StreamingResponse(event_generator(), media_type="text/event-stream")
-    except Exception:
+    except Exception as e:
+        logging.error(f"Error: {e}")
         raise HTTPException(
             status_code=500, detail="Internal Server Error. Check connection to LabJack.")
 
@@ -133,7 +155,8 @@ async def get_thermocouple_feedback(thermocouple_name: str = Path(...)):
             thermocouple_name)
 
         return {"thermocouple_name": thermocouple_name, "temperature": feedback}
-    except Exception:
+    except Exception as e:
+        logging.error(f"Error: {e}")
         raise HTTPException(
             status_code=500, detail="Internal Server Error. Check connection to LabJack.")
 
@@ -145,7 +168,8 @@ async def thermocouple_datastream(thermocouple_name: str):
             async for data in app.state.thermocouple_sensor.thermocouple_datastream(thermocouple_name):
                 yield f"data: {round(data, 1)}\n\n"
         return StreamingResponse(event_generator(), media_type="text/event-stream")
-    except Exception:
+    except Exception as e:
+        logging.error(f"Error: {e}")
         raise HTTPException(
             status_code=500, detail="Internal Server Error. Check connection to LabJack.")
 
@@ -157,7 +181,8 @@ async def ignition(background_tasks: BackgroundTasks, delay: int = Query(4)):
             app.state.pilot_valve_controller.actuate_ignitor, delay)
 
         return {"message": "Ignition successful"}
-    except Exception:
+    except Exception as e:
+        logging.error(f"Error: {e}")
         raise HTTPException(
             status_code=500, detail="Internal Server Error. Check connection to LabJack.")
     
@@ -180,7 +205,8 @@ async def load_cell_datastream(load_cell_name: str):
             async for data in app.state.load_cell_sensor.load_cell_datastream(load_cell_name):
                 yield f"data: {data}\n\n"
         return StreamingResponse(event_generator(), media_type="text/event-stream")
-    except Exception:
+    except Exception as e:
+        logging.error(f"Error: {e}")
         raise HTTPException(
             status_code=500, detail="Internal Server Error. Check connection to LabJack.")
 

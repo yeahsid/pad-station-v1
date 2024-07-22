@@ -48,7 +48,8 @@ class ThermocoupleSensor:
         }
         self.labjack = labjack
 
-        self.thermocouple_setup = False
+        self.thermocouple_setup_status = {}
+
 
         self.logging_active = False
 
@@ -87,7 +88,8 @@ class ThermocoupleSensor:
         await self.labjack.write(f"{thermocouple.thermo_pin}_EF_CONFIG_B", 60052)
         await self.labjack.write(f"{thermocouple.thermo_pin}_EF_CONFIG_D", 1.0)
         await self.labjack.write(f"{thermocouple.thermo_pin}_EF_CONFIG_E", 0.0)
-        self.thermocouple_setup = True
+        self.thermocouple_setup_status[thermocouple_name] = True
+
 
     async def get_thermocouple_temperature(self, thermocouple_name: str) -> float:
         """
@@ -100,9 +102,9 @@ class ThermocoupleSensor:
             float: The temperature reading in degrees Celsius.
         """
         thermocouple = self._get_thermocouple(thermocouple_name)
-        if not self.thermocouple_setup:
+        if not self.thermocouple_setup_status.get(thermocouple_name, False):
             await self._thermocouple_setup(thermocouple_name)
-            
+                    
 
 
         temperature = await self.labjack.read(f"{thermocouple.thermo_pin}_EF_READ_A")

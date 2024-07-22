@@ -19,6 +19,7 @@ pyserial = "^3.5"
 setuptools = "^71.0.4"
 async-timeout = "^4.0.3"
 redis = "^5.0.7"
+sentry-sdk = "^2.10.0"
 
 [build-system]
 requires = ["poetry-core"]
