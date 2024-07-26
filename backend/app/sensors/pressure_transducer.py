@@ -52,7 +52,7 @@ class PressureTransducerSensor:
             "chamber": PressureTransducer(LABJACK_PINS["pressure_transducer_chamber"], 200),
         }
         self.labjack = labjack
-        self.logging_active = True  # Used to disable logging at a chosen time
+        self.logging_active = False  # Used to disable logging at a chosen time
 
     def _get_pressure_transducer(self, pressure_transducer_name: str) -> PressureTransducer:
         """
@@ -77,7 +77,8 @@ class PressureTransducerSensor:
         pressure_transducer = self._get_pressure_transducer(pressure_transducer_name)
         voltage = await self.labjack.read(pressure_transducer.pressure_signal)
         # Calculate pressure from voltage
-        pressure = (voltage - 0.5) / 4 * pressure_transducer.max_pressure
+        # pressure = (voltage - 0.5) / 4 * pressure_transducer.max_pressure
+        pressure = (voltage * 54.87) - 25.82
         return round(pressure, 2), voltage
 
     async def pressure_transducer_datastream(self, pressure_transducer_name: str):

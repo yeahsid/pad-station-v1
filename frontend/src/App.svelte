@@ -44,7 +44,7 @@ these are used to create the user interface.
     | "blue"
     | "primary"
   //base url is for API calls to get the data from the backend
-  const BASE_URL = "http://server.goblin-decibel.ts.net:8000";
+  const BASE_URL = "http://padstation-prod.local:8000";
 
   //maps valve states to colour types
   const colorMap: Record<TConnectionStatus | TValveState, TColorType> = {

@@ -1,15 +1,3 @@
-import sentry_sdk
-
-sentry_sdk.init(
-    dsn="http://0b27760dfd69e45f67fbe80fd94b6b2d@server.goblin-decibel.ts.net:9000/2",
-    # Set traces_sample_rate to 1.0 to capture 100%
-    # of transactions for tracing.
-    traces_sample_rate=1.0,
-    # Set profiles_sample_rate to 1.0 to profile 100%
-    # of sampled transactions.
-    # We recommend adjusting this value in production.
-    profiles_sample_rate=1.0,
-)
 
 
 from contextlib import asynccontextmanager
@@ -239,6 +227,8 @@ async def start_or_stop_sensor_logging(sensor, action: str):
             await sensor.end_logging_all_sensors()
     except Exception as e:
         logging.error(f"Failed to {action} logging for {sensor.__class__.__name__}: {e}")
+
+    
 
 async def operate_all_sensors_concurrently(action: str):
     tasks = []
