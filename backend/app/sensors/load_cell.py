@@ -47,7 +47,7 @@ class LoadCellSensor:
             labjack (LabJackConnection): An instance of the LabJackConnection class used to communicate with the LabJack device.
         """
         self.load_cells = {
-            "test_stand": load_cell(*LABJACK_PINS["load_cell_test_stand"] , 7628.51 , -3016.6),
+            "test_stand": load_cell(*LABJACK_PINS["load_cell_test_stand"] , 1214127 , 34.6) # 7629, -3017
         }
         self.labjack = labjack
 
@@ -85,8 +85,7 @@ class LoadCellSensor:
         load_cell = self._get_load_cell(load_cell_name)
 
         # Set up the load_cell
-        await self.labjack.write(f"{load_cell.signal_pos}_RANGE", 0.1)
-        await self.labjack.write(f"{load_cell.signal_pos}_EF_INDEX", 0)
+        await self.labjack.write(f"{load_cell.signal_pos}_RANGE", 0.01)
         await self.labjack.write(f"{load_cell.signal_pos}_RESOLUTION_INDEX", 0)
         await self.labjack.write(f"{load_cell.signal_pos}_NEGATIVE_CH", int(load_cell.signal_neg[-1]))
         await self.labjack.write(f"{load_cell.signal_pos}_SETTLING_US", 0)
@@ -107,11 +106,11 @@ class LoadCellSensor:
             await self._load_cell_setup(load_cell_name)
             
 
-        voltage = await self.labjack.read(f"{load_cell.signal_pos}_EF_READ_A") 
+        voltage = await self.labjack.read(load_cell.signal_pos) 
         mass = voltage * load_cell.calibration_factor + load_cell.calibration_constant
 
 
-        return round(mass , 2)
+        return round(mass, 2)
 
     async def load_cell_datastream(self, load_cell_name: str):
         """

@@ -43,8 +43,6 @@ these are used to create the user interface.
     | "pink"
     | "blue"
     | "primary"
-    | undefined;
-
   //base url is for API calls to get the data from the backend
   const BASE_URL = "http://server.goblin-decibel.ts.net:8000";
 
@@ -54,7 +52,7 @@ these are used to create the user interface.
     Error: "red",
     Unknown: "dark",
     Open: "green",
-    Close: "red",
+    Close: "red"
   };
 
   //variables to store states and data points
@@ -66,8 +64,8 @@ these are used to create the user interface.
   let testStandLoad: string;
   let engineState: TValveState = "Unknown";
   let supplyState: TValveState = "Unknown";
-  let selectedEngineOption: string | undefined;
-  let selectedSupplyOption: string | undefined;
+  let selectedEngineOption: string | "Unknown";
+  let selectedSupplyOption: string | "Unknown";
   let engineSseStatus: TConnectionStatus = "Unknown";
   let supplySseStatus: TConnectionStatus = "Unknown";
   let tankSseStatus: TConnectionStatus = "Unknown";
@@ -253,13 +251,46 @@ these are used to create the user interface.
       }
     });
   };
+
+  const ignite = async () => {
+    await fetch(`${BASE_URL}/pilot_valve/pilot_valve?delay=4`, {
+      method: "GET",
+    }).then((response) => {
+      if (!response.ok) {
+        console.error("Failed to ignite");
+      }
+    });
+  };
+
+  const fire_qd = async () => {
+    await fetch(`${BASE_URL}/relays/qd`, {
+      method: "GET",
+    }).then((response) => {
+      if (!response.ok) {
+        console.error("Failed to fire QD");
+      };
+    });
+  };
+
+
+  const fire_vent = async () => {
+    await fetch(`${BASE_URL}/relays/vent`, {
+      method: "GET",
+    }).then((response) => {
+      if (!response.ok) {
+        console.error("Failed to fire Vent");
+      }
+    });
+  };
+  
+
 </script>
+
 
 <!-- ... (rest of the code) -->
 
-<div
-  class="w-full min-h-screen flex flex-col container mx-auto p-4 justify-evenly max-w-screen-lg"
->
+
+<div class="w-full min-h-screen flex flex-col container mx-auto p-4 justify-evenly max-w-screen-lg">
   <Heading
     tag="h1"
     class="font-bold"
@@ -324,7 +355,9 @@ these are used to create the user interface.
     </div>
   </div>
 
+  
   <!-- Top Row -->
+  
   <div class="grid grid-cols-3 gap-4">
     <div class="flex flex-col gap-8">
       <div class="flex gap-2 lg:gap-4">
@@ -365,7 +398,9 @@ these are used to create the user interface.
     </div>
   </div>
 
+  
   <!-- Added buttons and logging light indicator -->
+  
   <div class="grid grid-cols-3 gap-4">
     <div class="flex flex-col gap-8">
       <div class="flex gap-4">
@@ -387,14 +422,12 @@ these are used to create the user interface.
         </P>
       {/key}
     </div>
-
-    <div class="flex flex-col gap-4">
-      <P class="text-lg lg:text-xl text-end">Test Stand Load Cell</P>
-      {#key testStandLoad}
-        <P class="font-bold text-2xl lg:text-4xl text-end">
-          {testStandLoad} N
-        </P>
-      {/key}
+  </div>
+  <div class="flex flex-col gap-8">
+    <div class="flex gap-4">
+      <Button on:click={ignite}>Ignite</Button>
+      <Button on:click={fire_qd}>Fire QD</Button>
+      <Button on:click={fire_vent}>Fire Vent</Button>
     </div>
   </div>
 </div>

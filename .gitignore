@@ -28,3 +28,4 @@ dist-ssr
 *.sw?
 *.pyc
 __pycache__
+frontend/*.env
