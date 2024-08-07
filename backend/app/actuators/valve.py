@@ -1,8 +1,8 @@
 from typing import Tuple
 from dataclasses import dataclass
 import logging
-from app.hardware import LabJackConnection
-from app.exceptions import ValveNotFoundError
+from app.comms.hardware import LabJackConnection
+from app.comms.exceptions import ValveNotFoundError
 from app.config import LABJACK_PINS
 from enum import Enum
 
@@ -81,7 +81,7 @@ class ValveController:
             raise ValveNotFoundError("Valve not found")
         return self.valves[valve_name]
 
-    def actuate_valve(self, valve_name: str, state: ValveState) -> str:
+    async def actuate_valve(self, valve_name: str, state: ValveState) -> str:
         """
         Actuate the valve to the specified state.
 
@@ -97,7 +97,7 @@ class ValveController:
         input_state = ValveServoState.INPUT_STATES[valve_name][state]
 
         for pin, value in zip(valve.input_pins, input_state):
-            self.labjack.write(pin, value)
+            await self.labjack.write(pin, value)
 
         # Store the last actuated state
         self.last_states[valve_name] = state
