@@ -30,7 +30,7 @@ these are used to create the user interface.
 
   //typescript union types that define possible connection states and valve states
   type TConnectionStatus = "Connected" | "Error" | "Unknown";
-  type TValveState = "Open" | "Close" | "Error" | "Unknown";
+  type TValveState = "Open" | "Close" | "Error" | "Unknown"; 
   //defines a set of possible colour values
   type TColorType =
     | "green"
@@ -64,8 +64,10 @@ these are used to create the user interface.
   let testStandLoad: string;
   let engineState: TValveState = "Unknown";
   let supplyState: TValveState = "Unknown";
+  let pilotState: TValveState = "Unknown";
   let selectedEngineOption: string | "Unknown";
   let selectedSupplyOption: string | "Unknown";
+  let selectedPilotOption: string | "Unknown";
   let engineSseStatus: TConnectionStatus = "Unknown";
   let supplySseStatus: TConnectionStatus = "Unknown";
   let tankSseStatus: TConnectionStatus = "Unknown";
@@ -227,6 +229,20 @@ these are used to create the user interface.
     });
   };
 
+  const actuatePilotValve = async () => {
+    if (!selectedPilotOption || selectedPilotOption === "") return;
+
+    await fetch(`${BASE_URL}/pilot_valve/pilot_valve?state=${selectedPilotOption}&timeout=10`, {
+      method: "GET",
+    }).then((response) => {
+      if (response.ok) {
+        pilotState = mapToValveState(selectedPilotOption);
+      } else {
+        pilotState = "Error";
+      }
+    });
+  };
+
   const startLogging = async () => {
     isLogging = true;
     await fetch(`${BASE_URL}/log_data/start`, {
@@ -253,7 +269,7 @@ these are used to create the user interface.
   };
 
   const ignite = async () => {
-    await fetch(`${BASE_URL}/pilot_valve/pilot_valve?delay=2`, {
+    await fetch(`${BASE_URL}/pilot_valve/pilot_valve?delay=1`, {
       method: "GET",
     }).then((response) => {
       if (!response.ok) {
@@ -312,6 +328,28 @@ these are used to create the user interface.
     <Badge color={colorMap[chamberSseStatus]} rounded class="px-2.5 py-0.5"
       >Chamber Pressure SSE: {chamberSseStatus}</Badge
     >
+  </div>
+
+
+  <!-- Pilot Valve -->
+  <div class="grid grid-cols-3 gap-4">
+    <div class="flex flex-col gap-8">
+      <div class="flex gap-2 lg:gap-4">
+        <P class="text-lg lg:text-xl">Pilot Valve</P>
+
+        <span>
+          <Badge color={colorMap[pilotState]} rounded class="px-2.5 py-0.5">
+            <Indicator size="sm" color={colorMap[pilotState]} class="me-1.5" />
+            <span>{pilotState}</span>
+          </Badge>
+        </span>
+      </div>
+
+      <div class="flex gap-4">
+        <Select items={actions} bind:value={selectedPilotOption} />
+        <Button on:click={actuatePilotValve}>Execute</Button>
+      </div>
+    </div>
   </div>
 
   <!-- Bottom Row -->

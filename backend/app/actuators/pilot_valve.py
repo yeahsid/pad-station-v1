@@ -112,13 +112,13 @@ class PilotValveController:
         await asyncio.sleep(15)
         await self._stop_motor(motor_name)
 
-    async def actuate_valve(self, motor_name: str, state: str):
+    async def actuate_valve(self, motor_name: str, state: str, timeout: int):
         if state == "open":
-            await self.open_motor(motor_name)
+            await self.open_motor(motor_name, timeout)
         elif state == "closed":
-            await self.close_motor(motor_name)
+            await self.close_motor(motor_name, timeout)
         else:
-            raise MotorError("Invalid state")
+            raise MotorError(f"Invalid state: {state}")
         return state
 
     async def actuate_ignitor(self, valve_name, delay):

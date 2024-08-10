@@ -14,7 +14,7 @@ Pin Configuration:
 
 LABJACK_PINS = {
     "engine_input": ("FIO3", "FIO2"),
-    "engine_output": ("FIO1", "FIO0"),
+    "engine_output": ("MIO1", "MIO0"),
     "relief_input": ("FIO7", "FIO6"),
     "relief_output": ("FIO5", "FIO4"),
     # "d1_servo_pwm": "FIO0",

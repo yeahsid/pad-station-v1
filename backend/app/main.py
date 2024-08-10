@@ -95,11 +95,12 @@ async def actuate_main_valve(valve_name: str = Path(...), state: ValveState = Qu
 
 
 @app.get("/pilot_valve/{valve_name}", response_model=ValveResponse)
-async def actuate_pilot_valve(valve_name: str = Path(...), delay: int = Query(...)):
+async def actuate_pilot_valve(valve_name: str = Path(...), state: str = Query(...), timeout: int = Query(...)):
     try:
-        await app.state.pilot_valve_controller.actuate_ignitor(valve_name, delay)
+        await app.state.pilot_valve_controller.actuate_valve(valve_name, state, timeout)
         return {"valve_name": valve_name, "feedback": None}
-    except Exception:
+    except Exception as ex:
+        raise ex
         raise HTTPException(
             status_code=500, detail="Internal Server Error. Check connection to LabJack.")
 
