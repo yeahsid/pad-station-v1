@@ -126,7 +126,6 @@ class PilotValveController:
         
         await asyncio.sleep(delay)
 
-        await self.labjack.write(LABJACK_PINS["ignitor_relay_pin"], 0)
-
         await self.open_motor(valve_name)
+        await self.labjack.write(LABJACK_PINS["ignitor_relay_pin"], 0)
         return "Ignitor actuated"

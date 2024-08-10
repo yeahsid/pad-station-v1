@@ -253,7 +253,7 @@ these are used to create the user interface.
   };
 
   const ignite = async () => {
-    await fetch(`${BASE_URL}/pilot_valve/pilot_valve?delay=4`, {
+    await fetch(`${BASE_URL}/pilot_valve/pilot_valve?delay=2`, {
       method: "GET",
     }).then((response) => {
       if (!response.ok) {
