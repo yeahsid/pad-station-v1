@@ -1,17 +1,10 @@
-from typing import Tuple
-from dataclasses import dataclass
-
-MAX_PACKET_SIZE = 8
-
-@dataclass
-class IRISPacket:
-
-    otherDevID: str
-    packetID: Tuple[str, int, int, int, str]
-    payload: list
-    payloadLength: int
-    requestNotResponse: bool
-
+import mvp_packets
+from iris_packet import IRISPacket
+#import iris_event_handler
 
 class IRIS:
-    pass
+    
+    def __init__(self, irispacket: IRISPacket):
+        self.devID: int
+        #self.IrisEventHandler: IrisEventHandler
+        self.requestInPropgressPacket: irispacket
