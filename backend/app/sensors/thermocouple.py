@@ -15,8 +15,8 @@ import csv
 import os
 from pathlib import Path
 
-LOGGING_RATE = 1  # Time between tc log points in seconds
-POLLING_RATE = 0.005  # Time between tc readings in seconds
+LOGGING_RATE = 0.001  # Time between tc log points in seconds
+POLLING_RATE = 0.5  # Time between tc readings in seconds
 
 logger = logging.getLogger(__name__)
 
@@ -170,17 +170,22 @@ class ThermocoupleSensor:
 
         # Create a ThreadPoolExecutor for running synchronous Redis operations
         executor = ThreadPoolExecutor()
+        redis_client.delete(f"temperature_data:{thermocouple_name}")
 
         try:
             # Fetch data from Redis asynchronously using executor
             data = await asyncio.get_event_loop().run_in_executor(executor, lambda: redis_client.lrange(f"temperature_data:{thermocouple_name}", 0, -1))
 
+            # Define directory for saving data
+            directory = os.path.join(os.getcwd(), f'logs/{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}/thermocouple')
             # Define filename for saving data
-            filename = os.path.join(os.getcwd(), f'logs/thermocouple/{thermocouple_name}_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.csv')
+            os.makedirs(directory, exist_ok=True)
+            filename = os.path.join(directory, f'{thermocouple_name}.csv')
 
             # Write data to file asynchronously
             async with aiofiles.open(filename, 'w') as file:
                 await file.write("Temperature,Time\n")
+                data.sort(key = lambda x: x.split(",")[-1])
                 for entry in data:
                     await file.write(f"{entry}\n")
         finally:

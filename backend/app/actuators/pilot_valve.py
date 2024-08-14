@@ -90,26 +90,33 @@ class PilotValveController:
 
     async def _detect_at_base(self, motor_name: str) -> bool:
         motor = self._get_motor(motor_name)
-        return await self.labjack.read(motor.limit_switch_base_pin) == 1
+        while True:
+            if await self.labjack.read(motor.limit_switch_base_pin) == 1:
+                return True
+            await asyncio.sleep(0.01)
 
     async def _detect_at_work(self, motor_name: str) -> bool:
         motor = self._get_motor(motor_name)
-        return await self.labjack.read(motor.limit_switch_work_pin) == 1
+        while True:
+            if await self.labjack.read(motor.limit_switch_work_pin) == 1:
+                return True
+            await asyncio.sleep(0.01)
 
     async def open_motor(self, motor_name: str, wait_time: int = 15):
-        curr_time = time.time()
         await self._spin_open(motor_name)
-        # while (not self._detect_at_work(motor_name)) and (time.time() - curr_time < wait_time):
-        #     pass
-        await asyncio.sleep(15)
+        try:
+            await asyncio.wait_for(self._detect_at_base(motor_name), timeout=wait_time)
+            print(await self.labjack.read(self._get_motor(motor_name).limit_switch_work_pin))
+        except asyncio.TimeoutError:
+            pass
         await self._stop_motor(motor_name)
 
     async def close_motor(self, motor_name: str, wait_time: int = 15):
-        curr_time = time.time()
-        self._spin_close(motor_name)
-        # while (not self._detect_at_base(motor_name)) and (time.time() - curr_time < wait_time):
-        #     pass
-        await asyncio.sleep(15)
+        await self._spin_close(motor_name)
+        try:
+            await asyncio.wait_for(self._detect_at_work(motor_name), timeout=wait_time)
+        except asyncio.TimeoutError:
+            pass
         await self._stop_motor(motor_name)
 
     async def actuate_valve(self, motor_name: str, state: str, timeout: int):

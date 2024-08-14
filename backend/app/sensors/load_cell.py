@@ -15,8 +15,8 @@ import csv
 import os
 from pathlib import Path
 
-LOGGING_RATE = 1  # Time between tc log points in seconds
-POLLING_RATE = 0.005  # Time between tc readings in seconds
+LOGGING_RATE = 0.0001  # Time between tc log points in seconds
+POLLING_RATE = 0.5 # Time between tc readings in seconds
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +31,7 @@ class load_cell:
 
 class LoadCellSensor:
     """
-    Represents a load_cell sensor that measures mass using LabJackConnection.
+    Represents a load_cell sensor that measures force using LabJackConnection.
 
     Attributes:
         load_cells (dict): A dictionary of load_cells, where the keys are the names of the load_cells
@@ -91,15 +91,15 @@ class LoadCellSensor:
         await self.labjack.write(f"{load_cell.signal_pos}_SETTLING_US", 0)
         self.load_cell_setup = True 
 
-    async def get_load_cell_mass(self, load_cell_name: str) -> float:
-        """œ
-        Get the mass reading from a load_cell.
+    async def get_load_cell_force(self, load_cell_name: str) -> float:
+        """
+        Get the force reading from a load_cell.
 
         Args:
             load_cell_name (str): The name of the load_cell.
 
         Returns:
-            float: The mass reading in degrees N.
+            float: The force reading in degrees N.
         """
         load_cell = self._get_load_cell(load_cell_name)
         if not self.load_cell_setup:
@@ -107,25 +107,25 @@ class LoadCellSensor:
             
 
         voltage = await self.labjack.read(load_cell.signal_pos) 
-        mass = voltage * load_cell.calibration_factor + load_cell.calibration_constant
+        force = voltage * load_cell.calibration_factor + load_cell.calibration_constant
 
 
-        return round(mass, 2)
+        return round(force, 2)
 
     async def load_cell_datastream(self, load_cell_name: str):
         """
-        Creates a data stream of mass readings from the specified load_cell.
+        Creates a data stream of force readings from the specified load_cell.
 
         Args:
             load_cell_name (str): The name of the load_cell.
 
         Yields:
-            float: The next mass reading from the specified load_cell.
+            float: The next force reading from the specified load_cell.
         """
 
         while True:
-            mass = await self.get_load_cell_mass(load_cell_name)
-            yield mass
+            force = await self.get_load_cell_force(load_cell_name)
+            yield force
             await asyncio.sleep(POLLING_RATE)
     
     async def load_cell_logging(self, load_cell_name: str):
@@ -134,14 +134,14 @@ class LoadCellSensor:
         
         # Create a ThreadPoolExecutor
         executor = ThreadPoolExecutor()
-
+        redis_client.delete(f"load_data:{load_cell_name}")
         try:
             while self.logging_active:
-                mass_reading = await self.get_load_cell_mass(load_cell_name)
+                force_reading = await self.get_load_cell_force(load_cell_name)
                 current_time = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
                 
                 # Create a structured string or a dictionary to represent the data
-                data = f"{mass_reading},{current_time}"
+                data = f"{force_reading},{current_time}"
                 
                 # Use run_in_executor to run the synchronous Redis operation in a separate thread
                 await asyncio.get_event_loop().run_in_executor(executor, lambda: redis_client.lpush(f"load_data:{load_cell_name}", data))
@@ -176,12 +176,16 @@ class LoadCellSensor:
             # Fetch data from Redis asynchronously using executor
             data = await asyncio.get_event_loop().run_in_executor(executor, lambda: redis_client.lrange(f"load_data:{load_cell_name}", 0, -1))
 
+            # Define directory for saving data
+            directory = os.path.join(os.getcwd(), f'logs/{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}/load_cell')
             # Define filename for saving data
-            filename = os.path.join(os.getcwd(), f'logs/load_cell/{load_cell_name}_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.csv')
+            os.makedirs(directory, exist_ok=True)
+            filename = os.path.join(directory, f'{load_cell_name}.csv')
 
             # Write data to file asynchronously
             async with aiofiles.open(filename, 'w') as file:
-                await file.write("Mass,Time\n")
+                await file.write("Force,Time\n")
+                data.sort(key = lambda x: x.split(",")[-1])
                 for entry in data:
                     await file.write(f"{entry}\n")
         finally:

@@ -16,8 +16,8 @@ import os
 from typing import Tuple
 
 
-LOGGING_RATE = 1  # Time between pt log points in seconds
-POLLING_RATE = 0.005  # Time between pt readings in seconds
+LOGGING_RATE = 0.001  # Time between pt log points in seconds
+POLLING_RATE = 0.25  # Time between pt readings in seconds
 
 logger = logging.getLogger(__name__)
 
@@ -47,10 +47,11 @@ class PressureTransducerSensor:
         """
         self.pressure_transducers = {
             "supply": PressureTransducer(LABJACK_PINS["pressure_transducer_supply"], 200),
-            "tank_bottom": PressureTransducer(LABJACK_PINS["pressure_transducer_engine"], 200),
+            "fill": PressureTransducer(LABJACK_PINS["pressure_transducer_fill"], 200),
             "tank_top": PressureTransducer(LABJACK_PINS["pressure_transducer_tank"], 200),
             "chamber": PressureTransducer(LABJACK_PINS["pressure_transducer_chamber"], 200),
         }
+        self.pressure_transducers_to_log = list(self.pressure_transducers.keys())[2:]
         self.labjack = labjack
         self.logging_active = False  # Used to disable logging at a chosen time
 
@@ -138,19 +139,25 @@ class PressureTransducerSensor:
         # Initialize Redis connection
         redis_client = redis.Redis(host='localhost', port=6379, decode_responses=True)
 
+
         # Create a ThreadPoolExecutor for running synchronous Redis operations
         executor = ThreadPoolExecutor()
+        redis_client.delete(f"pressure_data:{pressure_transducer_name}")
 
         try:
             # Fetch data from Redis asynchronously using executor
             data = await asyncio.get_event_loop().run_in_executor(executor, lambda: redis_client.lrange(f"pressure_data:{pressure_transducer_name}", 0, -1))
 
+            # Define directory for saving data
+            directory = os.path.join(os.getcwd(), f'logs/{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}/pressure')
             # Define filename for saving data
-            filename = os.path.join(os.getcwd(), f'logs/pressure/{pressure_transducer_name}_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.csv')
+            os.makedirs(directory, exist_ok=True)
+            filename = os.path.join(directory, f'{pressure_transducer_name}.csv')
 
             # Write data to file asynchronously
             async with aiofiles.open(filename, 'w') as file:
                 await file.write("Pressure Reading,Voltage,Time\n")
+                data.sort(key = lambda x: x.split(",")[-1])
                 for entry in data:
                     await file.write(f"{entry}\n")
         finally:
@@ -165,7 +172,7 @@ class PressureTransducerSensor:
         self.logging_active = False
 
         # Create tasks for each sensor to stop logging and save data
-        tasks = [self.stop_pressure_transducer_logging(name) for name in self.pressure_transducers]
+        tasks = [self.stop_pressure_transducer_logging(name) for name in self.pressure_transducers_to_log]
         await asyncio.gather(*tasks)
 
         

@@ -1,5 +1,4 @@
 <script lang="ts">
-  
   import {
     Heading,
     P,
@@ -30,7 +29,7 @@ these are used to create the user interface.
 
   //typescript union types that define possible connection states and valve states
   type TConnectionStatus = "Connected" | "Error" | "Unknown";
-  type TValveState = "Open" | "Close" | "Error" | "Unknown"; 
+  type TValveState = "Open" | "Close" | "Error" | "Unknown";
   //defines a set of possible colour values
   type TColorType =
     | "green"
@@ -42,7 +41,7 @@ these are used to create the user interface.
     | "purple"
     | "pink"
     | "blue"
-    | "primary"
+    | "primary";
   //base url is for API calls to get the data from the backend
   const BASE_URL = "http://padstation-prod.local:8000";
 
@@ -52,7 +51,7 @@ these are used to create the user interface.
     Error: "red",
     Unknown: "dark",
     Open: "green",
-    Close: "red"
+    Close: "red",
   };
 
   //variables to store states and data points
@@ -60,7 +59,7 @@ these are used to create the user interface.
   let enginePt: string;
   let tankPt: string;
   let chamberPt: string;
-  let engineTc: string;
+  let tankTc: string;
   let testStandLoad: string;
   let engineState: TValveState = "Unknown";
   let supplyState: TValveState = "Unknown";
@@ -81,7 +80,7 @@ these are used to create the user interface.
   onMount(() => {
     //pressure data stream
     const enginePressureSse = new EventSource(
-      `${BASE_URL}/pressure/tank_bottom/datastream`,
+      ``,
     );
 
     //pressure data stream
@@ -161,7 +160,7 @@ these are used to create the user interface.
     };
 
     tankTcSse.onmessage = (event) => {
-      engineTc = event.data.toString();
+      tankTc = event.data.toString();
     };
 
     tankTcSse.onopen = () => {
@@ -232,9 +231,12 @@ these are used to create the user interface.
   const actuatePilotValve = async () => {
     if (!selectedPilotOption || selectedPilotOption === "") return;
 
-    await fetch(`${BASE_URL}/pilot_valve/pilot_valve?state=${selectedPilotOption}&timeout=10`, {
-      method: "GET",
-    }).then((response) => {
+    await fetch(
+      `${BASE_URL}/pilot_valve/pilot_valve?state=${selectedPilotOption}&timeout=10`,
+      {
+        method: "GET",
+      },
+    ).then((response) => {
       if (response.ok) {
         pilotState = mapToValveState(selectedPilotOption);
       } else {
@@ -245,68 +247,86 @@ these are used to create the user interface.
 
   const startLogging = async () => {
     isLogging = true;
-    await fetch(`${BASE_URL}/log_data/start`, {
-      method: "GET",
-    }).then((response) => {
+    try {
+      const response = await fetch(`${BASE_URL}/log_data/start`, {
+        method: "GET",
+      });
       if (!response.ok) {
         console.error("Failed to start logging");
         isLogging = false;
+        // Optionally handle failure to start logging
       }
-    });
+    } catch (error) {
+      console.error("Error occurred while starting logging:", error);
+      isLogging = false;
+      // Optionally handle the error
+    }
   };
 
   const stopLogging = async () => {
     isLogging = false;
-    // If your backend requires a call to stop logging, include it here
-    await fetch(`${BASE_URL}/log_data/stop`, {
-      method: "GET",
-    }).then((response) => {
+    try {
+      const response = await fetch(`${BASE_URL}/log_data/stop`, {
+        method: "GET",
+      });
       if (!response.ok) {
         console.error("Failed to stop logging");
         // Optionally handle failure to stop logging
       }
-    });
+    } catch (error) {
+      console.error("Error occurred while stopping logging:", error);
+      // Optionally handle the error
+    }
   };
 
   const ignite = async () => {
-    await fetch(`${BASE_URL}/pilot_valve/pilot_valve?delay=1`, {
-      method: "GET",
-    }).then((response) => {
+    try {
+      const response = await fetch(
+        `${BASE_URL}/ignition?delay=1`,
+        {
+          method: "GET",
+        },
+      );
       if (!response.ok) {
         console.error("Failed to ignite");
       }
-    });
+    } catch (error) {
+      console.error("Error occurred while igniting:", error);
+    }
   };
 
   const fire_qd = async () => {
-    await fetch(`${BASE_URL}/relays/qd`, {
-      method: "GET",
-    }).then((response) => {
+    try {
+      const response = await fetch(`${BASE_URL}/relays/qd`, {
+        method: "GET",
+      });
       if (!response.ok) {
         console.error("Failed to fire QD");
-      };
-    });
+      }
+    } catch (error) {
+      console.error("Error occurred while firing QD:", error);
+    }
   };
 
-
   const fire_vent = async () => {
-    await fetch(`${BASE_URL}/relays/vent`, {
-      method: "GET",
-    }).then((response) => {
+    try {
+      const response = await fetch(`${BASE_URL}/relays/vent`, {
+        method: "GET",
+      });
       if (!response.ok) {
         console.error("Failed to fire Vent");
       }
-    });
+    } catch (error) {
+      console.error("Error occurred while firing Vent:", error);
+    }
   };
-  
-
 </script>
-
 
 <!-- ... (rest of the code) -->
 
-
-<div class="w-full min-h-screen flex flex-col container mx-auto p-4 justify-evenly max-w-screen-lg">
+<div
+  class="w-full min-h-screen flex flex-col container mx-auto p-4 justify-evenly max-w-screen-lg"
+>
   <Heading
     tag="h1"
     class="font-bold"
@@ -317,7 +337,7 @@ these are used to create the user interface.
 
   <div class="flex justify-evenly gap-4">
     <Badge color={colorMap[engineSseStatus]} rounded class="px-2.5 py-0.5"
-      >Tank bottom Pressure SSE: {engineSseStatus}</Badge
+      >Chamber SSE: {engineSseStatus}</Badge
     >
     <Badge color={colorMap[supplySseStatus]} rounded class="px-2.5 py-0.5"
       >Supply Pressure SSE: {supplySseStatus}</Badge
@@ -326,10 +346,9 @@ these are used to create the user interface.
       >Tank top Pressure SSE: {tankSseStatus}</Badge
     >
     <Badge color={colorMap[chamberSseStatus]} rounded class="px-2.5 py-0.5"
-      >Chamber Pressure SSE: {chamberSseStatus}</Badge
+      >Fill Pressure SSE: {chamberSseStatus}</Badge
     >
   </div>
-
 
   <!-- Pilot Valve -->
   <div class="grid grid-cols-3 gap-4">
@@ -373,7 +392,7 @@ these are used to create the user interface.
     </div>
 
     <div class="flex flex-col gap-4">
-      <P class="text-lg lg:text-xl text-end">Tank Bottom Pressure</P>
+      <P class="text-lg lg:text-xl text-end">Chamber</P>
 
       {#key enginePt}
         <P class="font-bold text-2xl lg:text-4xl text-end">
@@ -383,7 +402,7 @@ these are used to create the user interface.
     </div>
 
     <div class="flex flex-col gap-4">
-      <P class="text-lg lg:text-xl text-end">Tank Top Pressure</P>
+      <P class="text-lg lg:text-xl text-end">Tank Pressure</P>
 
       {#key tankPt}
         <P class="font-bold text-2xl lg:text-4xl text-end">
@@ -393,9 +412,8 @@ these are used to create the user interface.
     </div>
   </div>
 
-  
   <!-- Top Row -->
-  
+
   <div class="grid grid-cols-3 gap-4">
     <div class="flex flex-col gap-8">
       <div class="flex gap-2 lg:gap-4">
@@ -426,7 +444,7 @@ these are used to create the user interface.
     </div>
 
     <div class="flex flex-col gap-4">
-      <P class="text-lg lg:text-xl text-end">Chamber Pressure</P>
+      <P class="text-lg lg:text-xl text-end">Fill Pressure</P>
 
       {#key chamberPt}
         <P class="font-bold text-2xl lg:text-4xl text-end">
@@ -436,9 +454,19 @@ these are used to create the user interface.
     </div>
   </div>
 
-  
+  <div class="grid grid-cols-3 gap-4">
+    <div class="flex flex-col gap-4">
+      <P class="text-lg lg:text-xl text-end">Test Stand Force</P>
+      {#key testStandLoad}
+        <P class="font-bold text-2xl lg:text-4xl text-end">
+          {testStandLoad} kg
+        </P>
+      {/key}
+    </div>
+  </div>
+
   <!-- Added buttons and logging light indicator -->
-  
+
   <div class="grid grid-cols-3 gap-4">
     <div class="flex flex-col gap-8">
       <div class="flex gap-4">
@@ -453,10 +481,10 @@ these are used to create the user interface.
     </div>
 
     <div class="flex flex-col gap-4">
-      <P class="text-lg lg:text-xl text-end">Engine Temp</P>
-      {#key engineTc}
+      <P class="text-lg lg:text-xl text-end">Tank Temp</P>
+      {#key tankTc}
         <P class="font-bold text-2xl lg:text-4xl text-end">
-          {engineTc} °C
+          {tankTc} °C
         </P>
       {/key}
     </div>

@@ -20,6 +20,7 @@ import asyncio
 
 
 
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -100,7 +101,6 @@ async def actuate_pilot_valve(valve_name: str = Path(...), state: str = Query(..
         await app.state.pilot_valve_controller.actuate_valve(valve_name, state, timeout)
         return {"valve_name": valve_name, "feedback": None}
     except Exception as ex:
-        raise ex
         raise HTTPException(
             status_code=500, detail="Internal Server Error. Check connection to LabJack.")
 
@@ -187,7 +187,7 @@ async def thermocouple_datastream(thermocouple_name: str):
 async def ignition(background_tasks: BackgroundTasks, delay: int = Query(3)):
     try:
         background_tasks.add_task(
-            app.state.pilot_valve_controller.actuate_ignitor, delay)
+            app.state.pilot_valve_controller.actuate_ignitor, 'pilot_valve', delay)
 
         return {"message": "Ignition successful"}
     except Exception as e:
@@ -195,19 +195,19 @@ async def ignition(background_tasks: BackgroundTasks, delay: int = Query(3)):
         raise HTTPException(
             status_code=500, detail="Internal Server Error. Check connection to LabJack.")
     
-@app.get("/load_cell_in/{load_cell_name}/feedback")
-async def get_load_cell_mass(load_cell_name: str = Path(...)):
+@app.get("/load_cell/{load_cell_name}/feedback")
+async def get_load_cell_force(load_cell_name: str = Path(...)):
     try:
-        feedback = await app.state.load_cell_sensor.get_load_cell_mass(
+        feedback = await app.state.load_cell_sensor.get_load_cell_force(
             load_cell_name)
-        return {"load_cell_name": load_cell_name, "mass": feedback}
+        return {"load_cell_name": load_cell_name, "force": feedback}
     except Exception as e:
         logging.error(f"Error: {e}")
         raise HTTPException(
             status_code=500, detail="Internal Server Error. Check connection to LabJack.")
 
 
-@app.get("/load_cell_in/{load_cell_name}/datastream")
+@app.get("/load_cell/{load_cell_name}/datastream")
 async def load_cell_datastream(load_cell_name: str):
     try:
         async def event_generator():

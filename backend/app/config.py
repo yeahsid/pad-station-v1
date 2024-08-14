@@ -20,7 +20,7 @@ LABJACK_PINS = {
     # "d1_servo_pwm": "FIO0",
     # "d1_servo_feedback": "AIN3",
     "pressure_transducer_supply": "AIN13", # supply
-    "pressure_transducer_engine": "AIN12", # fill
+    "pressure_transducer_fill": "AIN12", # fill
     "pressure_transducer_tank": "AIN3",  # tank top
     "pressure_transducer_chamber": "AIN2",  # chamber
     "thermocouple_engine": "AIN0",
@@ -28,8 +28,8 @@ LABJACK_PINS = {
     "pilot_valve_motor_enable": "CIO3",
     "pilot_valve_motor_in_1": "CIO1",
     "pilot_valve_motor_in_2": "CIO0",
-    "pilot_valve_limit_switch_base": "EIO4",
-    "pilot_valve_limit_switch_work": "EIO5",
+    "pilot_valve_limit_switch_base": "EIO7",
+    "pilot_valve_limit_switch_work": "EIO6",
 
     "ignitor_relay_pin": "CIO2",
     "vent_relay_pin": "EIO2",
