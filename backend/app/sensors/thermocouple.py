@@ -133,7 +133,7 @@ class ThermocoupleSensor:
         
         # Create a ThreadPoolExecutor
         executor = ThreadPoolExecutor()
-
+        redis_client.delete(f"load_data:{thermocouple_name}")
         try:
             while self.logging_active:
                 temperature_reading = await self.get_thermocouple_temperature(thermocouple_name)
@@ -170,8 +170,7 @@ class ThermocoupleSensor:
 
         # Create a ThreadPoolExecutor for running synchronous Redis operations
         executor = ThreadPoolExecutor()
-        redis_client.delete(f"temperature_data:{thermocouple_name}")
-
+        
         try:
             # Fetch data from Redis asynchronously using executor
             data = await asyncio.get_event_loop().run_in_executor(executor, lambda: redis_client.lrange(f"temperature_data:{thermocouple_name}", 0, -1))

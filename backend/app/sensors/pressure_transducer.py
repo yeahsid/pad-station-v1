@@ -104,7 +104,7 @@ class PressureTransducerSensor:
         
         # Create a ThreadPoolExecutor
         executor = ThreadPoolExecutor()
-
+        redis_client.delete(f"load_data:{pressure_transducer_name}")
         try:
             while self.logging_active:
                 pressure_reading, voltage = await self.get_pressure_transducer_feedback(pressure_transducer_name)
@@ -142,8 +142,7 @@ class PressureTransducerSensor:
 
         # Create a ThreadPoolExecutor for running synchronous Redis operations
         executor = ThreadPoolExecutor()
-        redis_client.delete(f"pressure_data:{pressure_transducer_name}")
-
+        
         try:
             # Fetch data from Redis asynchronously using executor
             data = await asyncio.get_event_loop().run_in_executor(executor, lambda: redis_client.lrange(f"pressure_data:{pressure_transducer_name}", 0, -1))
