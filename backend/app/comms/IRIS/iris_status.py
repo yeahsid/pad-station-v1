@@ -12,4 +12,5 @@ class IrisStatus(str, Enum):
 def returnOnError(status):
     if status != IrisStatus.IRIS_OK:
         return status
-        
+    else:
+        pass
