@@ -9,7 +9,7 @@ Enum for different statuses
 
 from enum import Enum
 
-class IrisStatus(Enum,int):
+class IrisStatus(Enum):
     IRIS_OK = 0
     IRIS_ERR_ARGUMENT_OUT_OF_RANGE = 1
     IRIS_ERR_TIMEOUT = 2

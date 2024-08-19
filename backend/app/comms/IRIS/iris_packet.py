@@ -9,6 +9,8 @@ Helper Class for an IRIS packet
 from mvp_packets import packet_types
 from dataclasses import dataclass
 from enum import Enum
+from iris import Iris
+from iris_status import IrisStatus
 
 #The number of different events that can occur at any time
 IRIS_NUM_EVENT_ID = 8
@@ -32,7 +34,6 @@ class IrisPacket:
 
         # Packet Fields
         priority (IrisPacketPriority): The priority of the message when it is sent or received to the tx or rx queue.
-        eventID (int): Specific identifier for this message. 
         packetID (packet_types): The ID of the packet being sent from the packet library
         payload: The data to be sent in the message
         payloadLength (int): Length of the payload
@@ -47,5 +48,26 @@ class IrisPacket:
         __init__(): Creates an IRIS packet with the required fields.
     """
 
-    def __init__(self, priority: IrisPacketPriority, eventID: int, ):
-        pass
+    def __init__(self,
+                iris: Iris,
+                priority: IrisPacketPriority,
+                packetid: packet_types,
+                payload,
+                payloadlength: int,
+                messagenotservice: bool,
+                otherDevID: int,
+                requestNotResponse: bool,
+                ):
+        self.priority = priority
+        self.eventID = (iris.currentEventID) + 1 % 8
+        self.packetID = packetid
+        self.payloadLength = payloadlength
+        self.messageNotService = messagenotservice
+        self.requestNotResponse = requestNotResponse
+        self.otherDevID = otherDevID
+        self.payload = payload  # gonna have to split this up into 8 byte chunks for multi-frame transmissions.
+        #self.timestamp = getTime()
+
+    def __new__():
+        return IrisStatus.IRIS_OK   #lol check if this is even what we're meant to do
+    

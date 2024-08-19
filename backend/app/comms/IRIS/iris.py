@@ -21,7 +21,7 @@ class Iris:
     Attributes:
 
         devID (int): The ID of the device this instance of IRIS is running on.
-        curretnEventID (int): The current event's ID.
+        currentEventID (int): The current event's ID.
         txQueue (queue)
         rxQueue (queue)
 
