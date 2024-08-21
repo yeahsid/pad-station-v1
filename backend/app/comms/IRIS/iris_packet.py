@@ -69,5 +69,5 @@ class IrisPacket:
         #self.timestamp = getTime()
 
     def __new__():
-        return IrisStatus.IRIS_OK   #lol check if this is even what we're meant to do
+        return IrisStatus.IRIS_OK   #lol check if this is even works
     

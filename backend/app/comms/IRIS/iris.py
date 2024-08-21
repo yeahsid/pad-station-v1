@@ -11,10 +11,13 @@ from abc import ABC, abstractmethod
 from queue import Queue
 
 import iris_status
-import iris_packet
-import iris_rs422
+from iris_packet import IrisPacket
+import iris_serial
+from iris_interface import IrisInterface
 
-class Iris: 
+
+
+class Iris(ABC): 
     """
     Represents an IRIS instance
 
@@ -24,14 +27,33 @@ class Iris:
         currentEventID (int): The current event's ID.
         txQueue (queue)
         rxQueue (queue)
-
-
+        interface (IrisInterface): The hardware interface helper class.
+        stats (int): No. of timeouts occured in this instance of IRIS
 
     Methods:
         __init__(): Initialise the IRIS instance.
-        irisSendRequest(ABC): Abstract method to send a request using any hardware interface.
-        irisSendResponse(ABC): Abstract method to send a response using any hardware interface.
-        irisSendMessage(ABC): Abstract method to send a message using any hardware interface.
-        irisRespondtoReceiveEvent(ABC): Abstract method to respond to an incoming message.
+        irisSendRequest(Iris, eventnotifier, IrisPacket, IrisPacket, int): 
+        irisSendResponse(Iris, IrisPacket):
+        irisSendMessage(Iris, IrisPacket):
+        irisRespondtoReceiveEvent(Iris, IrisPacket):
+        irisCallRespondFunction(Iris, IrisPacket): 
     """
+
+    def __init__(self,
+                devID: int,
+                txQueue: Queue,
+                rxQueue: Queue,
+                interface: IrisInterface
+                ):
+        self.devID = devID
+        self.txQueue = txQueue
+        self.rxQueue = rxQueue
+        self.interface = interface
+        self.currentEventID = 0
+        self.stats = 0
+    
+    def irisSendRequest(self, eventNotifier, request_packet: IrisPacket, response_packet: IrisPacket, timeout: int):
+        pass
+
+    def
 
