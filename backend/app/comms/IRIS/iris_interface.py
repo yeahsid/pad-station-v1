@@ -28,6 +28,7 @@ class IrisInterface(ABC):
     @abstractmethod
     def interfaceParsePacket(iris: Iris, packet: iris_packet):
         pass
-
+    
+    @abstractmethod
     def interfaceSendPacket(iris, packet: iris_packet):
         pass

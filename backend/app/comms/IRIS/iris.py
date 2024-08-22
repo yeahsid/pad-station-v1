@@ -7,7 +7,6 @@ Created by: Maisur Rahman
 Helper Class for an IRIS instance
 """
 
-from abc import ABC, abstractmethod
 from queue import Queue
 
 import iris_status
@@ -17,7 +16,7 @@ from iris_interface import IrisInterface
 
 
 
-class Iris(ABC): 
+class Iris() : 
     """
     Represents an IRIS instance
 
@@ -55,5 +54,18 @@ class Iris(ABC):
     def irisSendRequest(self, eventNotifier, request_packet: IrisPacket, response_packet: IrisPacket, timeout: int):
         pass
 
-    def
+    def irisSendResponse(self, packet: IrisPacket):
+        pass
+
+    def irisSendMessage(self, packet: IrisPacket):
+        pass
+
+    def irisRespondtoReceiveEvent(self, packet: IrisPacket):
+        pass
+
+    def irisCallRespondFunction(Iris, packet: IrisPacket):
+        pass
+
+    def irisTransmit(self, transmitPacket: IrisPacket):
+        self.interface.interfaceSendPacket(self,transmitPacket)
 
