@@ -10,7 +10,6 @@ from mvp_packets import packet_types
 from dataclasses import dataclass
 from enum import Enum
 from iris import Iris
-from iris_status import IrisStatus
 
 #The number of different events that can occur at any time
 IRIS_NUM_EVENT_ID = 8
@@ -68,6 +67,4 @@ class IrisPacket:
         self.payload = payload  # gonna have to split this up into 8 byte chunks for multi-frame transmissions.
         #self.timestamp = getTime()
 
-    def __new__():
-        return IrisStatus.IRIS_OK   #lol check if this is even works
     

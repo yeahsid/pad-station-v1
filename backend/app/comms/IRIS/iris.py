@@ -7,11 +7,10 @@ Created by: Maisur Rahman
 Helper Class for an IRIS instance
 """
 
-from queue import Queue
+from queue import PriorityQueue
 
 import iris_status
 from iris_packet import IrisPacket
-import iris_serial
 from iris_interface import IrisInterface
 
 
@@ -40,8 +39,8 @@ class Iris() :
 
     def __init__(self,
                 devID: int,
-                txQueue: Queue,
-                rxQueue: Queue,
+                txQueue: PriorityQueue,
+                rxQueue: PriorityQueue,
                 interface: IrisInterface
                 ):
         self.devID = devID
