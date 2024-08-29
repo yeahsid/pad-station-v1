@@ -7,7 +7,6 @@ Created by: Maisur Rahman
 Helper Class for an IRIS packet
 """
 from mvp_packets import packet_types
-from dataclasses import dataclass
 from enum import Enum
 from iris import Iris
 

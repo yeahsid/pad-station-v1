@@ -9,11 +9,9 @@ Helper Class for an IRIS serial interace
 
 from iris import Iris
 from iris_interface import IrisInterface
-from iris_status import IrisStatus
 import asyncio
 import serial_asyncio
 from iris_packet import IrisPacket
-from queue import Queue
 
 
 class IrisRS422(IrisInterface):
@@ -38,8 +36,8 @@ class IrisRS422(IrisInterface):
             self,
             Port: str,
             baudrate: int,
-            rxQueue: Queue,
-            txQueue: Queue,
+            rxQueue: asyncio.Queue,
+            txQueue: asyncio.Queue,
     ):
         self.loop = asyncio.get_running_loop
         self.Port = Port
@@ -49,7 +47,7 @@ class IrisRS422(IrisInterface):
         self.interfaceInit(self, Iris)
 
     def interfaceInit(self, iris: Iris):
-        iris_port = serial_asyncio.create_serial_connection(self.loop, hardwareProtocol, self.Port, self.baudrate)
+        iris_port = serial_asyncio.create_serial_connection(self.loop, HardwareProtocol, self.Port, self.baudrate)
         transport, protocol = self.loop.run_until_complete(iris_port)
     
     def interfaceParsePacket(iris: Iris, packet: IrisPacket):
@@ -59,7 +57,7 @@ class IrisRS422(IrisInterface):
         return super().interfaceSendPacket(packet)
     
 
-class hardwareProtocol(asyncio.Protocol):
+class HardwareProtocol(asyncio.Protocol):
 
     def __init__(self):
         super().__init__()

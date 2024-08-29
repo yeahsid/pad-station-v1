@@ -7,11 +7,11 @@ Created by: Maisur Rahman
 Helper Class for an IRIS instance
 """
 
-from queue import PriorityQueue
 
 import iris_status
 from iris_packet import IrisPacket
 from iris_interface import IrisInterface
+import asyncio
 
 
 
@@ -39,30 +39,103 @@ class Iris() :
 
     def __init__(self,
                 devID: int,
-                txQueue: PriorityQueue,
-                rxQueue: PriorityQueue,
+                tx_queue: asyncio.PriorityQueue,
+                rx_queue: asyncio.PriorityQueue,
                 interface: IrisInterface
                 ):
         self.devID = devID
-        self.txQueue = txQueue
-        self.rxQueue = rxQueue
+        self.tx_queue = tx_queue
+        self.rx_queue = rx_queue
         self.interface = interface
-        self.currentEventID = 0
+        self.current_event_ID = 0
         self.stats = 0
     
-    def irisSendRequest(self, eventNotifier, request_packet: IrisPacket, response_packet: IrisPacket, timeout: int):
+    def irisSendRequest(self, event_notifier: asyncio.Event, request_packet: IrisPacket, response_packet: IrisPacket, response_payload_class, response_timeout: int):
+        """
+        Function for putting a request onto the tx queue to be shipped off by the hardware protocol.
+        
+        args: 
+            event_notifier (event): The event to notify when the response to this request has arrived.
+            request_packet (IrisPacket): the packet we're sending out
+            response_packet (IrisPacket): used to check that the response was correct and to fill in the response payload
+            response_timeout (int): how long we willin to wait
+
+        returns:
+            none
+        
+        Exceptions:
+            IRIS_ERR_UNKKNOWN: If the response packet wasn't as expected
+            IRIS_ERR_TIMEOUT: If the the response timed out
+            
+
+        """
         pass
 
     def irisSendResponse(self, packet: IrisPacket):
+         """
+        Function for putting a response onto the tx queue to be shipped off by the hardware protocol.
+        
+        args: 
+            packet (IrisPacket): The packet to be shipped off as a response.
+
+        returns:
+            none
+        
+        Exceptions:
+            IRIS_ERR_UNKKNOWN: If the response packet wasn't as expected
+            IRIS_ERR_TIMEOUT: If the the response timed out
+            
+
+        """
         pass
 
     def irisSendMessage(self, packet: IrisPacket):
+         """
+        Function for putting a message onto the tx queue to be shipped off by the hardware protocol.
+        
+        args: 
+            packet (IrisPacket): The packet to be shipped off as a message.
+
+        returns:
+            none
+        
+        Exceptions:
+            IRIS_ERR_UNKKNOWN: If the response packet wasn't as expected
+            IRIS_ERR_TIMEOUT: If the the response timed out
+            
+
+        """
         pass
 
     def irisRespondtoReceiveEvent(self, packet: IrisPacket):
+         """
+        Function for responding to a receive event, does different things based on the type of packet. 
+        args: 
+            packet (IrisPacket): The packet to be shipped off as a response.
+
+        returns:
+            none
+        
+        Exceptions:
+            IRIS_ERR_UNKKNOWN: If the response packet wasn't as expected
+            IRIS_ERR_TIMEOUT: If the the response timed out
+            
+
+        """
         pass
 
     def irisCallRespondFunction(Iris, packet: IrisPacket):
+        """
+        Function for actioning a request or message that has been received by calling the appropriate function.
+        args: 
+            packet (IrisPacket): The packet to be shipped off as a response.
+
+        returns:
+            none
+        
+        Exceptions:
+
+        """
         pass
 
     def irisTransmit(self, transmitPacket: IrisPacket):
