@@ -232,7 +232,7 @@ these are used to create the user interface.
     if (!selectedPilotOption || selectedPilotOption === "") return;
 
     await fetch(
-      `${BASE_URL}/pilot_valve/pilot_valve?state=${selectedPilotOption}&timeout=10`,
+      `${BASE_URL}/pilot_valve/pilot_valve?state=${selectedPilotOption}&timeout=50`,
       {
         method: "GET",
       },
@@ -459,7 +459,7 @@ these are used to create the user interface.
       <P class="text-lg lg:text-xl text-end">Test Stand Force</P>
       {#key testStandLoad}
         <P class="font-bold text-2xl lg:text-4xl text-end">
-          {testStandLoad} kg
+          {testStandLoad} N
         </P>
       {/key}
     </div>

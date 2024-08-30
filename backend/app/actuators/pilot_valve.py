@@ -102,7 +102,7 @@ class PilotValveController:
                 return True
             await asyncio.sleep(0.01)
 
-    async def open_motor(self, motor_name: str, wait_time: int = 15):
+    async def open_motor(self, motor_name: str, wait_time: int = 50):
         await self._spin_open(motor_name)
         try:
             await asyncio.wait_for(self._detect_at_base(motor_name), timeout=wait_time)
@@ -111,7 +111,7 @@ class PilotValveController:
             pass
         await self._stop_motor(motor_name)
 
-    async def close_motor(self, motor_name: str, wait_time: int = 15):
+    async def close_motor(self, motor_name: str, wait_time: int = 50):
         await self._spin_close(motor_name)
         try:
             await asyncio.wait_for(self._detect_at_work(motor_name), timeout=wait_time)
@@ -129,10 +129,13 @@ class PilotValveController:
         return state
 
     async def actuate_ignitor(self, valve_name, delay):
+
         await self.labjack.write(LABJACK_PINS["ignitor_relay_pin"], 1)
         
-        await asyncio.sleep(delay)
+        #await asyncio.sleep(delay)
+        #await asyncio.sleep(5)
 
         await self.open_motor(valve_name)
+        await asyncio.sleep(5)
         await self.labjack.write(LABJACK_PINS["ignitor_relay_pin"], 0)
         return "Ignitor actuated"
