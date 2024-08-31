@@ -14,6 +14,28 @@ import serial_asyncio
 from iris_packet import IrisPacket
 
 
+"""
+wall of text time:
+
+isntead of using serial asyncio, make a task that continually reads one byte from the com port
+if it finds a start of frame bit (0xC0) it starts reading the header. Once you have the payload
+length in the header, set a loop to keep reading and storing the bytes received based on the length
+of the payload
+
+async def serial_read_task()
+    data = serial.read(1)
+    if data.hex() = '0xC0':
+        serial_packet = serial_packet()
+        
+
+
+
+
+"""
+
+
+
+
 class IrisRS422(IrisInterface):
     """
     Represents the IRISRS422 interface class
@@ -36,10 +58,9 @@ class IrisRS422(IrisInterface):
             self,
             Port: str,
             baudrate: int,
-            rxQueue: asyncio.Queue,
-            txQueue: asyncio.Queue,
+            rxQueue: asyncio.PriorityQueue,
+            txQueue: asyncio.PriorityQueue,
     ):
-        self.loop = asyncio.get_running_loop
         self.Port = Port
         self.baudrate = baudrate
         self.rxQueue = rxQueue
