@@ -66,10 +66,8 @@ class Iris() :
         Exceptions:
             IRIS_ERR_UNKKNOWN: If the response packet wasn't as expected
             IRIS_ERR_TIMEOUT: If the the response timed out
-            
-
         """
-        pass
+        
 
     def irisSendResponse(self, packet: IrisPacket):
          """
