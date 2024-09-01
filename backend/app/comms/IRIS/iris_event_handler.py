@@ -12,6 +12,14 @@ import serial_asyncio
 from iris import Iris
 import iris_serial
 
+class IrisEventTracker:
+
+    def __init__(self, event: asyncio.Event, timeout: int):
+        self.event = event
+        self.timeout = timeout
+
+
+
 async def InitIrisTasksSerial():
     """
     Create the tasks required to run IRIS

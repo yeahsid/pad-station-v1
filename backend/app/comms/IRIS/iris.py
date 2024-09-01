@@ -8,9 +8,10 @@ Helper Class for an IRIS instance
 """
 
 
-import iris_status
-from iris_packet import IrisPacket
+from iris_status import IRIS_ERR_ARGUMENT_OUT_OF_RANGE, IRIS_ERR_TIMEOUT, IRIS_ERR_UNKNOWN, IRIS_ERR_PACKET_TYPE, IRIS_OK
+from iris_packet import IrisPacket, IRIS_NUM_EVENT_ID, IRIS_PAYLOAD_DATA_SIZE
 from iris_interface import IrisInterface
+from iris_event_handler import IrisEventTracker
 import asyncio
 
 
@@ -49,6 +50,8 @@ class Iris() :
         self.interface = interface
         self.current_event_ID = 0
         self.stats = 0
+        self.event_tracker = dict.fromkeys(range(IRIS_NUM_EVENT_ID))    # someone needs to check this reaaaaaal bad
+        self.event_to_packet = dict.fromkeys(range(IRIS_NUM_EVENT_ID))
     
     def irisSendRequest(self, event_notifier: asyncio.Event, request_packet: IrisPacket, response_packet: IrisPacket, response_payload_class, response_timeout: int):
         """
@@ -67,6 +70,20 @@ class Iris() :
             IRIS_ERR_UNKKNOWN: If the response packet wasn't as expected
             IRIS_ERR_TIMEOUT: If the the response timed out
         """
+        current_event = IrisEventTracker(event_notifier,response_timeout)
+        self.event_tracker[request_packet.eventID] = current_event
+
+        self.tx_queue.put(request_packet)
+
+        try:
+            asyncio.wait_for(event_notifier.wait(),response_timeout)
+
+        except asyncio.TimeoutError:
+            raise IRIS_ERR_TIMEOUT
+        
+        response_packet = self.event_to_packet[request_packet.eventID]
+        IrisPayloadToClass(response_packet.payload, )
+
         
 
     def irisSendResponse(self, packet: IrisPacket):
