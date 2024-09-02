@@ -56,18 +56,18 @@ these are used to create the user interface.
 
   //variables to store states and data points
   let supplyPt: string;
-  let enginePt: string;
+  let fillPt: string;
   let tankPt: string;
   let chamberPt: string;
   let tankTc: string;
   let testStandLoad: string;
-  let engineState: TValveState = "Unknown";
+  let fillState: TValveState = "Unknown";
   let supplyState: TValveState = "Unknown";
   let pilotState: TValveState = "Unknown";
-  let selectedEngineOption: string | "Unknown";
+  let selectedFillOption: string | "Unknown";
   let selectedSupplyOption: string | "Unknown";
   let selectedPilotOption: string | "Unknown";
-  let engineSseStatus: TConnectionStatus = "Unknown";
+  let fillSseStatus: TConnectionStatus = "Unknown";
   let supplySseStatus: TConnectionStatus = "Unknown";
   let tankSseStatus: TConnectionStatus = "Unknown";
   let chamberSseStatus: TConnectionStatus = "Unknown";
@@ -79,8 +79,8 @@ these are used to create the user interface.
   //The onMount function sets up EventSource connections to receive real-time updates
   onMount(() => {
     //pressure data stream
-    const enginePressureSse = new EventSource(
-      ``,
+    const fillPressureSse = new EventSource(
+      `${BASE_URL}/pressure/fill/datastream`,
     );
 
     //pressure data stream
@@ -95,10 +95,10 @@ these are used to create the user interface.
 
     //pressure data stream
     const chamberPressureSse = new EventSource(
-      `${BASE_URL}/pressure/chamber/datastream`,
+      ``,//${BASE_URL}/pressure/chamber/datastream
     );
 
-    //engine thermocouple data stream
+    //tank thermocouple data stream
     const tankTcSse = new EventSource(
       `${BASE_URL}/thermocouple/tank_thermocouple/datastream`,
     );
@@ -122,17 +122,17 @@ these are used to create the user interface.
       supplySseStatus = "Error";
     };
 
-    enginePressureSse.onmessage = (event) => {
+    fillPressureSse.onmessage = (event) => {
       // Update the state or UI with only the latest data
-      enginePt = event.data.toString();
+      fillPt = event.data.toString();
     };
 
-    enginePressureSse.onopen = () => {
-      engineSseStatus = "Connected";
+    fillPressureSse.onopen = () => {
+      fillSseStatus = "Connected";
     };
 
-    enginePressureSse.onerror = (_err) => {
-      engineSseStatus = "Error";
+    fillPressureSse.onerror = (_err) => {
+      fillSseStatus = "Error";
     };
 
     tankPressureSse.onmessage = (event) => {
@@ -177,7 +177,7 @@ these are used to create the user interface.
 
     // Return a cleanup function that will be called when the component is unmounted
     return () => {
-      enginePressureSse.close();
+      fillPressureSse.close();
       supplyPressureSse.close();
       tankPressureSse.close();
       chamberPressureSse.close();
@@ -200,21 +200,21 @@ these are used to create the user interface.
 
   //send GET requests to the server to actuate the respective sensors
   // and update their states based on the response.
-  const actuateEngineSensor = async () => {
-    if (!selectedEngineOption || selectedEngineOption === "") return;
+  const actuateFillValve = async () => {
+    if (!selectedFillOption || selectedFillOption === "") return;
 
-    await fetch(`${BASE_URL}/valve/engine?state=${selectedEngineOption}`, {
+    await fetch(`${BASE_URL}/valve/engine?state=${selectedFillOption}`, {
       method: "GET",
     }).then((response) => {
       if (response.ok) {
-        engineState = mapToValveState(selectedEngineOption);
+        fillState = mapToValveState(selectedFillOption);
       } else {
-        engineState = "Error";
+        fillState = "Error";
       }
     });
   };
 
-  const actuateSupplySensor = async () => {
+  const actuateSupplyValve = async () => {
     if (!selectedSupplyOption || selectedSupplyOption === "") return;
 
     await fetch(`${BASE_URL}/valve/relief?state=${selectedSupplyOption}`, {
@@ -232,7 +232,7 @@ these are used to create the user interface.
     if (!selectedPilotOption || selectedPilotOption === "") return;
 
     await fetch(
-      `${BASE_URL}/pilot_valve/pilot_valve?state=${selectedPilotOption}&timeout=50`,
+      `${BASE_URL}/pilot_valve/pilot_valve?state=${selectedPilotOption}&timeout=5`,//timeout does nothing
       {
         method: "GET",
       },
@@ -336,17 +336,17 @@ these are used to create the user interface.
   </Heading>
 
   <div class="flex justify-evenly gap-4">
-    <Badge color={colorMap[engineSseStatus]} rounded class="px-2.5 py-0.5"
-      >Chamber SSE: {engineSseStatus}</Badge
+    <Badge color={colorMap[fillSseStatus]} rounded class="px-2.5 py-0.5"
+      >Fill Pressure SSE: {fillSseStatus}</Badge
     >
     <Badge color={colorMap[supplySseStatus]} rounded class="px-2.5 py-0.5"
       >Supply Pressure SSE: {supplySseStatus}</Badge
     >
     <Badge color={colorMap[tankSseStatus]} rounded class="px-2.5 py-0.5"
-      >Tank top Pressure SSE: {tankSseStatus}</Badge
+      >Tank Pressure SSE: {tankSseStatus}</Badge
     >
     <Badge color={colorMap[chamberSseStatus]} rounded class="px-2.5 py-0.5"
-      >Fill Pressure SSE: {chamberSseStatus}</Badge
+      >Chamber Pressure SSE: {chamberSseStatus}</Badge
     >
   </div>
 
@@ -378,25 +378,25 @@ these are used to create the user interface.
         <P class="text-lg lg:text-xl">Fill Valve</P>
 
         <span>
-          <Badge color={colorMap[engineState]} rounded class="px-2.5 py-0.5">
-            <Indicator size="sm" color={colorMap[engineState]} class="me-1.5" />
-            <span>{engineState}</span>
+          <Badge color={colorMap[fillState]} rounded class="px-2.5 py-0.5">
+            <Indicator size="sm" color={colorMap[fillState]} class="me-1.5" />
+            <span>{fillState}</span>
           </Badge>
         </span>
       </div>
 
       <div class="flex gap-4">
-        <Select items={actions} bind:value={selectedEngineOption} />
-        <Button on:click={actuateEngineSensor}>Execute</Button>
+        <Select items={actions} bind:value={selectedFillOption} />
+        <Button on:click={actuateFillValve}>Execute</Button>
       </div>
     </div>
 
     <div class="flex flex-col gap-4">
-      <P class="text-lg lg:text-xl text-end">Chamber</P>
+      <P class="text-lg lg:text-xl text-end">Fill Pressure</P>
 
-      {#key enginePt}
+      {#key fillPt}
         <P class="font-bold text-2xl lg:text-4xl text-end">
-          {enginePt} Bar
+          {fillPt} Bar
         </P>
       {/key}
     </div>
@@ -429,7 +429,7 @@ these are used to create the user interface.
 
       <div class="flex gap-4">
         <Select items={actions} bind:value={selectedSupplyOption} />
-        <Button on:click={actuateSupplySensor}>Execute</Button>
+        <Button on:click={actuateSupplyValve}>Execute</Button>
       </div>
     </div>
 
@@ -444,7 +444,7 @@ these are used to create the user interface.
     </div>
 
     <div class="flex flex-col gap-4">
-      <P class="text-lg lg:text-xl text-end">Fill Pressure</P>
+      <P class="text-lg lg:text-xl text-end">Chamber Pressure</P>
 
       {#key chamberPt}
         <P class="font-bold text-2xl lg:text-4xl text-end">
