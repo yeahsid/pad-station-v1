@@ -40,13 +40,11 @@ class Iris() :
 
     def __init__(self,
                 devID: int,
-                tx_queue: asyncio.PriorityQueue,
-                rx_queue: asyncio.PriorityQueue,
                 interface: IrisInterface
                 ):
         self.devID = devID
-        self.tx_queue = tx_queue
-        self.rx_queue = rx_queue
+        self.tx_queue = asyncio.PriorityQueue(IRIS_NUM_EVENT_ID)
+        self.rx_queue = asyncio.PriorityQueue(IRIS_NUM_EVENT_ID)
         self.interface = interface
         self.current_event_ID = 0
         self.stats = 0
@@ -82,12 +80,12 @@ class Iris() :
             raise IRIS_ERR_TIMEOUT
         
         response_packet = self.event_to_packet[request_packet.eventID]
-        IrisPayloadToClass(response_packet.payload, )
+        #IrisPayloadToClass(response_packet.payload)
 
         
 
     def irisSendResponse(self, packet: IrisPacket):
-         """
+        """
         Function for putting a response onto the tx queue to be shipped off by the hardware protocol.
         
         args: 
@@ -102,10 +100,11 @@ class Iris() :
             
 
         """
-        pass
+        self.tx_queue.put((packet.priority, packet))
+        
 
     def irisSendMessage(self, packet: IrisPacket):
-         """
+        """
         Function for putting a message onto the tx queue to be shipped off by the hardware protocol.
         
         args: 
@@ -117,13 +116,25 @@ class Iris() :
         Exceptions:
             IRIS_ERR_UNKKNOWN: If the response packet wasn't as expected
             IRIS_ERR_TIMEOUT: If the the response timed out
-            
+        """
 
+        self.tx_queue.put((packet.priority, packet))
+    
+    def irisCallRespondFunction(self, packet: IrisPacket):
+        """
+        Function for actioning a request or message that has been received by calling the appropriate function.
+        args: 
+            packet (IrisPacket): The packet to be shipped off as a response.
+
+        returns:
+            none
+        
+        Exceptions:
         """
         pass
 
     def irisRespondtoReceiveEvent(self, packet: IrisPacket):
-         """
+        """
         Function for responding to a receive event, does different things based on the type of packet. 
         args: 
             packet (IrisPacket): The packet to be shipped off as a response.
@@ -137,21 +148,15 @@ class Iris() :
             
 
         """
-        pass
-
-    def irisCallRespondFunction(Iris, packet: IrisPacket):
-        """
-        Function for actioning a request or message that has been received by calling the appropriate function.
-        args: 
-            packet (IrisPacket): The packet to be shipped off as a response.
-
-        returns:
-            none
+        if (packet.messageNotService | packet.requestNotResponse):
+            self.irisCallRespondFunction(packet)
         
-        Exceptions:
+        else:
+            if packet.eventID in self.event_tracker:
+                
 
-        """
-        pass
+
+
 
     def irisTransmit(self, transmitPacket: IrisPacket):
         self.interface.interfaceSendPacket(self,transmitPacket)
