@@ -36,5 +36,6 @@ LABJACK_PINS = {
     "vent_relay_pin": "CIO3",
 
     "load_cell_test_stand": ("AIN8", "AIN9") 
+    #AV servo pwm FIO0
 }
 

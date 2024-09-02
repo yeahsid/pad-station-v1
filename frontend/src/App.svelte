@@ -9,13 +9,6 @@
   } from "flowbite-svelte";
   import { onMount } from "svelte";
 
-  /*gyu
-importing various components and functions from flowbite-svelte and svelte
-these are used to create the user interface. 
-'onmount' is a lifecycle function that runs after the component is first rendered 
-*/
-
-  //an array of objects representing possible valve actions
   const actions: { value: string; name: string }[] = [
     {
       value: "open",
@@ -27,10 +20,8 @@ these are used to create the user interface.
     },
   ];
 
-  //typescript union types that define possible connection states and valve states
   type TConnectionStatus = "Connected" | "Error" | "Unknown";
   type TValveState = "Open" | "Close" | "Error" | "Unknown";
-  //defines a set of possible colour values
   type TColorType =
     | "green"
     | "red"
@@ -42,10 +33,9 @@ these are used to create the user interface.
     | "pink"
     | "blue"
     | "primary";
-  //base url is for API calls to get the data from the backend
+
   const BASE_URL = "http://padstation-prod.local:8000";
 
-  //maps valve states to colour types
   const colorMap: Record<TConnectionStatus | TValveState, TColorType> = {
     Connected: "green",
     Error: "red",
@@ -54,13 +44,11 @@ these are used to create the user interface.
     Close: "red",
   };
 
-  //variables to store states and data points
   let supplyPt: string;
   let fillPt: string;
   let tankPt: string;
-  let chamberPt: string;
-  let tankTc: string;
   let testStandLoad: string;
+  let tankTc: string;
   let fillState: TValveState = "Unknown";
   let supplyState: TValveState = "Unknown";
   let pilotState: TValveState = "Unknown";
@@ -70,35 +58,23 @@ these are used to create the user interface.
   let fillSseStatus: TConnectionStatus = "Unknown";
   let supplySseStatus: TConnectionStatus = "Unknown";
   let tankSseStatus: TConnectionStatus = "Unknown";
-  let chamberSseStatus: TConnectionStatus = "Unknown";
   let tankTcSseStatus: TConnectionStatus = "Unknown";
 
-  // New state variable for logging status
   let isLogging = false;
 
-  //The onMount function sets up EventSource connections to receive real-time updates
   onMount(() => {
-    //pressure data stream
     const fillPressureSse = new EventSource(
       `${BASE_URL}/pressure/fill/datastream`,
     );
 
-    //pressure data stream
     const supplyPressureSse = new EventSource(
       `${BASE_URL}/pressure/supply/datastream`,
     );
 
-    //pressure data stream
     const tankPressureSse = new EventSource(
       `${BASE_URL}/pressure/tank_top/datastream`,
     );
 
-    //pressure data stream
-    const chamberPressureSse = new EventSource(
-      ``,//${BASE_URL}/pressure/chamber/datastream
-    );
-
-    //tank thermocouple data stream
     const tankTcSse = new EventSource(
       `${BASE_URL}/thermocouple/tank_thermocouple/datastream`,
     );
@@ -107,23 +83,19 @@ these are used to create the user interface.
       `${BASE_URL}/load_cell/test_stand/datastream`,
     );
 
-    //stream receiving messages
     supplyPressureSse.onmessage = (event) => {
       supplyPt = event.data.toString();
     };
 
-    //when the stream is opened, display connected
     supplyPressureSse.onopen = () => {
       supplySseStatus = "Connected";
     };
 
-    //when the stream is error-ing out, display error
     supplyPressureSse.onerror = (_err) => {
       supplySseStatus = "Error";
     };
 
     fillPressureSse.onmessage = (event) => {
-      // Update the state or UI with only the latest data
       fillPt = event.data.toString();
     };
 
@@ -147,18 +119,6 @@ these are used to create the user interface.
       tankSseStatus = "Error";
     };
 
-    chamberPressureSse.onmessage = (event) => {
-      chamberPt = event.data.toString();
-    };
-
-    chamberPressureSse.onopen = () => {
-      chamberSseStatus = "Connected";
-    };
-
-    chamberPressureSse.onerror = (_err) => {
-      chamberSseStatus = "Error";
-    };
-
     tankTcSse.onmessage = (event) => {
       tankTc = event.data.toString();
     };
@@ -175,18 +135,15 @@ these are used to create the user interface.
       testStandLoad = event.data.toString();
     };
 
-    // Return a cleanup function that will be called when the component is unmounted
     return () => {
       fillPressureSse.close();
       supplyPressureSse.close();
       tankPressureSse.close();
-      chamberPressureSse.close();
       tankTcSse.close();
       testStandLoadCell.close();
     };
   });
 
-  //helper function map a string value to the Tvalvestate
   const mapToValveState = (value: string): TValveState => {
     switch (value) {
       case "open":
@@ -198,8 +155,6 @@ these are used to create the user interface.
     }
   };
 
-  //send GET requests to the server to actuate the respective sensors
-  // and update their states based on the response.
   const actuateFillValve = async () => {
     if (!selectedFillOption || selectedFillOption === "") return;
 
@@ -232,7 +187,7 @@ these are used to create the user interface.
     if (!selectedPilotOption || selectedPilotOption === "") return;
 
     await fetch(
-      `${BASE_URL}/pilot_valve/pilot_valve?state=${selectedPilotOption}&timeout=5`,//timeout does nothing
+      `${BASE_URL}/pilot_valve/pilot_valve?state=${selectedPilotOption}&timeout=5`,
       {
         method: "GET",
       },
@@ -254,12 +209,10 @@ these are used to create the user interface.
       if (!response.ok) {
         console.error("Failed to start logging");
         isLogging = false;
-        // Optionally handle failure to start logging
       }
     } catch (error) {
       console.error("Error occurred while starting logging:", error);
       isLogging = false;
-      // Optionally handle the error
     }
   };
 
@@ -271,22 +224,17 @@ these are used to create the user interface.
       });
       if (!response.ok) {
         console.error("Failed to stop logging");
-        // Optionally handle failure to stop logging
       }
     } catch (error) {
       console.error("Error occurred while stopping logging:", error);
-      // Optionally handle the error
     }
   };
 
   const ignite = async () => {
     try {
-      const response = await fetch(
-        `${BASE_URL}/ignition?delay=1`,
-        {
-          method: "GET",
-        },
-      );
+      const response = await fetch(`${BASE_URL}/ignition?delay=1`, {
+        method: "GET",
+      });
       if (!response.ok) {
         console.error("Failed to ignite");
       }
@@ -317,7 +265,7 @@ these are used to create the user interface.
         console.error("Failed to fire Vent");
       }
     } catch (error) {
-      console.error("Error occurred while firing Vent:", error);
+      console.error("Error occurred while firing Vent");
     }
   };
 </script>
@@ -344,9 +292,6 @@ these are used to create the user interface.
     >
     <Badge color={colorMap[tankSseStatus]} rounded class="px-2.5 py-0.5"
       >Tank Pressure SSE: {tankSseStatus}</Badge
-    >
-    <Badge color={colorMap[chamberSseStatus]} rounded class="px-2.5 py-0.5"
-      >Chamber Pressure SSE: {chamberSseStatus}</Badge
     >
   </div>
 
@@ -444,18 +389,6 @@ these are used to create the user interface.
     </div>
 
     <div class="flex flex-col gap-4">
-      <P class="text-lg lg:text-xl text-end">Chamber Pressure</P>
-
-      {#key chamberPt}
-        <P class="font-bold text-2xl lg:text-4xl text-end">
-          {chamberPt} Bar
-        </P>
-      {/key}
-    </div>
-  </div>
-
-  <div class="grid grid-cols-3 gap-4">
-    <div class="flex flex-col gap-4">
       <P class="text-lg lg:text-xl text-end">Test Stand Force</P>
       {#key testStandLoad}
         <P class="font-bold text-2xl lg:text-4xl text-end">
@@ -489,9 +422,13 @@ these are used to create the user interface.
       {/key}
     </div>
   </div>
+
   <div class="flex flex-col gap-8">
     <div class="flex gap-4">
-      <Button on:click={ignite}>Ignite</Button>
+      <Button
+        class="bg-red-500 text-white text-xl py-4 px-8 rounded"
+        on:click={ignite}>Ignite</Button
+      >
       <Button on:click={fire_qd}>Fire QD</Button>
       <Button on:click={fire_vent}>Fire Vent</Button>
     </div>
