@@ -6,8 +6,9 @@ This is a Python module named hardware.py that contains a class LabJackConnectio
 import logging
 from typing import Optional, Callable
 from labjack import ljm
-from app.exceptions import DeviceNotOpenError, LabJackError
+from app.comms.exceptions import DeviceNotOpenError, LabJackError
 import time
+import asyncio
 
 # Set up a logger for the module
 logger = logging.getLogger(__name__)
@@ -53,7 +54,7 @@ class LabJackConnection:
         if hasattr(self, 'handle') and self.handle:
             ljm.close(self.handle)
 
-    def _access_pin(self, pin: str, action: Callable, value: Optional[int] = None) -> int:
+    async def _access_pin(self, pin: str, action: Callable, value: Optional[int] = None) -> int:
         """
         Private method to access a pin on the LabJack device.
 
@@ -81,7 +82,7 @@ class LabJackConnection:
             logger.error(str(e))
             raise LabJackError(str(e))
 
-    def write(self, pin: str, value: int):
+    async def write(self, pin: str, value: int):
         """
         Writes a value to a pin on the LabJack device.
 
@@ -89,9 +90,9 @@ class LabJackConnection:
             pin: The name of the pin to write to.
             value: The value to write to the pin.
         """
-        self._access_pin(pin, ljm.eWriteName, value)
+        await self._access_pin(pin, ljm.eWriteName, value)
 
-    def read(self, pin: str) -> int:
+    async def read(self, pin: str) -> int:
         """
         Reads a value from a pin on the LabJack device.
 
@@ -101,12 +102,6 @@ class LabJackConnection:
         Returns:
             The value read from the pin.
         """
-        val = self._access_pin(pin, ljm.eReadName)
-        time.sleep(0.005)
+        val = await self._access_pin(pin, ljm.eReadName)
         return val
 
-if __name__ == "__main__":
-	a = LabJackConnection()
-	input("beep boop")
-	a.write("CIO2", 1)
-	input("beep boop")

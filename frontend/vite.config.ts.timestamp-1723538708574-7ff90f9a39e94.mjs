@@ -1,0 +1,19 @@
+// vite.config.ts
+import { sentryVitePlugin } from "file:///home/padstation/pad-station/frontend/node_modules/@sentry/vite-plugin/dist/esm/index.mjs";
+import { defineConfig } from "file:///home/padstation/pad-station/frontend/node_modules/vite/dist/node/index.js";
+import { svelte } from "file:///home/padstation/pad-station/frontend/node_modules/@sveltejs/vite-plugin-svelte/src/index.js";
+import compression from "file:///home/padstation/pad-station/frontend/node_modules/vite-plugin-compression/dist/index.mjs";
+var vite_config_default = defineConfig({
+  plugins: [svelte(), compression(), sentryVitePlugin({
+    org: "monash-hpr",
+    project: "pad-station",
+    url: "http://server.goblin-decibel.ts.net:9000"
+  })],
+  build: {
+    sourcemap: true
+  }
+});
+export {
+  vite_config_default as default
+};
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsidml0ZS5jb25maWcudHMiXSwKICAic291cmNlc0NvbnRlbnQiOiBbImNvbnN0IF9fdml0ZV9pbmplY3RlZF9vcmlnaW5hbF9kaXJuYW1lID0gXCIvaG9tZS9wYWRzdGF0aW9uL3BhZC1zdGF0aW9uL2Zyb250ZW5kXCI7Y29uc3QgX192aXRlX2luamVjdGVkX29yaWdpbmFsX2ZpbGVuYW1lID0gXCIvaG9tZS9wYWRzdGF0aW9uL3BhZC1zdGF0aW9uL2Zyb250ZW5kL3ZpdGUuY29uZmlnLnRzXCI7Y29uc3QgX192aXRlX2luamVjdGVkX29yaWdpbmFsX2ltcG9ydF9tZXRhX3VybCA9IFwiZmlsZTovLy9ob21lL3BhZHN0YXRpb24vcGFkLXN0YXRpb24vZnJvbnRlbmQvdml0ZS5jb25maWcudHNcIjtpbXBvcnQgeyBzZW50cnlWaXRlUGx1Z2luIH0gZnJvbSBcIkBzZW50cnkvdml0ZS1wbHVnaW5cIjtcbmltcG9ydCB7IGRlZmluZUNvbmZpZyB9IGZyb20gJ3ZpdGUnO1xuaW1wb3J0IHsgc3ZlbHRlIH0gZnJvbSAnQHN2ZWx0ZWpzL3ZpdGUtcGx1Z2luLXN2ZWx0ZSc7XG5pbXBvcnQgY29tcHJlc3Npb24gZnJvbSAndml0ZS1wbHVnaW4tY29tcHJlc3Npb24nO1xuXG5cbi8vIGh0dHBzOi8vdml0ZWpzLmRldi9jb25maWcvXG5leHBvcnQgZGVmYXVsdCBkZWZpbmVDb25maWcoe1xuICAgIHBsdWdpbnM6IFtzdmVsdGUoKSwgY29tcHJlc3Npb24oKSwgc2VudHJ5Vml0ZVBsdWdpbih7XG4gICAgICAgIG9yZzogXCJtb25hc2gtaHByXCIsXG4gICAgICAgIHByb2plY3Q6IFwicGFkLXN0YXRpb25cIixcbiAgICAgICAgdXJsOiBcImh0dHA6Ly9zZXJ2ZXIuZ29ibGluLWRlY2liZWwudHMubmV0OjkwMDBcIlxuICAgIH0pXSxcblxuICAgIGJ1aWxkOiB7XG4gICAgICAgIHNvdXJjZW1hcDogdHJ1ZVxuICAgIH1cbn0pOyJdLAogICJtYXBwaW5ncyI6ICI7QUFBaVMsU0FBUyx3QkFBd0I7QUFDbFUsU0FBUyxvQkFBb0I7QUFDN0IsU0FBUyxjQUFjO0FBQ3ZCLE9BQU8saUJBQWlCO0FBSXhCLElBQU8sc0JBQVEsYUFBYTtBQUFBLEVBQ3hCLFNBQVMsQ0FBQyxPQUFPLEdBQUcsWUFBWSxHQUFHLGlCQUFpQjtBQUFBLElBQ2hELEtBQUs7QUFBQSxJQUNMLFNBQVM7QUFBQSxJQUNULEtBQUs7QUFBQSxFQUNULENBQUMsQ0FBQztBQUFBLEVBRUYsT0FBTztBQUFBLElBQ0gsV0FBVztBQUFBLEVBQ2Y7QUFDSixDQUFDOyIsCiAgIm5hbWVzIjogW10KfQo=

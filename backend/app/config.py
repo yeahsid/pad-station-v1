@@ -13,26 +13,29 @@ Pin Configuration:
 """
 
 LABJACK_PINS = {
-    "engine_input": ("FIO3", "FIO2"),
-    "engine_output": ("FIO1", "FIO0"),
-    "relief_input": ("FIO7", "FIO6"),
-    "relief_output": ("FIO5", "FIO4"),
+    "engine_input": ("FIO4", "FIO5"),
+    "engine_output": ("MI01", "MIO2"),
+    "relief_input": ("FIO2", "FIO3"),
+    "relief_output": ("FIO6", "FIO7"),
     # "d1_servo_pwm": "FIO0",
     # "d1_servo_feedback": "AIN3",
-    "pressure_transducer_supply": "AIN13",
-    "pressure_transducer_engine": "AIN12",
-    "pressure_transducer_tank": "AIN3",  # change 2
-    "pressure_transducer_chamber": "AIN2",  # change 
-    "thermocouple_engine": "AIN0",
+    "pressure_transducer_supply": "AIN5", # supply
+    "pressure_transducer_fill": "AIN4", # fill
+    "pressure_transducer_tank": "AIN12",  # tank top
+    "pressure_transducer_chamber": "AIN10",  # chamber
+    "thermocouple_engine": "AIN2",
 
-    "pilot_valve_motor_enable": "CIO3",
-    "pilot_valve_motor_in_1": "CIO0",
-    "pilot_valve_motor_in_2": "CIO1",
-    "pilot_valve_limit_switch_base": "EIO4",
-    "pilot_valve_limit_switch_work": "EIO5",
+    "pilot_valve_motor_enable": "EIO3",
+    "pilot_valve_motor_in_1": "EIO4",
+    "pilot_valve_motor_in_2": "EIO5",
+    "pilot_valve_limit_switch_base": "EIO0",
+    "pilot_valve_limit_switch_work": "EIO1",
 
-    "ignitor_relay_pin": "CIO2",
+    "ignitor_relay_pin": "CIO1",
+    "qd_relay_pin": "CIO2",
+    "vent_relay_pin": "CIO3",
 
-    "test_stand_load_cell": ("AIN9", "AIN8") #change
+    "load_cell_test_stand": ("AIN8", "AIN9") 
+    #AV servo pwm FIO0
 }
 
