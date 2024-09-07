@@ -42,14 +42,14 @@ install_packages() {
 update_packages
 
 # Install Python, pip, Node.js
-install_packages python3 python3-pip python3-virtualenv , pipx
+install_packages python3 python3-pip python3-virtualenv pipx
 
 pipx ensurepath
 
 
 # Install nodejs with NVM.
 
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | zsh
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
 
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
@@ -73,5 +73,16 @@ npm install -g pm2
 
 # Navigate to the frontend directory and install Node.js dependencies with npm
 cd ../frontend && ( [ -f package-lock.json ] && npm ci || npm install )
+
+# Install redis
+
+curl -fsSL https://packages.redis.io/gpg | sudo gpg --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg -y
+:
+echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/redis.list -y
+
+sudo apt-get update -y
+sudo apt-get install redis -y
+
+
 
 

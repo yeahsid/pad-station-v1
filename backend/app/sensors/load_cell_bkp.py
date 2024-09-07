@@ -3,10 +3,13 @@ from dataclasses import dataclass
 import asyncio
 import time
 import logging
-from app.hardware import LabJackConnection
-from app.exceptions import LoadCellError
+from app.comms.hardware import LabJackConnection
+from app.comms.exceptions import LoadCellError
 from app.config import LABJACK_PINS
 import csv
+import aiofiles
+from datetime import datetime, timezone
+LOGGING_RATE = 0.005  # Time between pt log points in seconds
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +28,7 @@ class LoadCellSensor:
         load_cells (dict): A dictionary of load cells with load cell names as keys and LoadCell objects as values.
         labjack (LabJackConnection): An instance of LabJackConnection used for communication with the LabJack device.
     """
-    def __init__(self, labjack: LabJackConnection, filter_size: int = 10):
+    def __init__(self, labjack: LabJackConnection):
         """
         Initializes a LoadCellController object.
 
@@ -33,12 +36,11 @@ class LoadCellSensor:
             labjack (LabJackConnection): An instance of LabJackConnection used for communication with the LabJack device.
         """
         self.load_cells = {
-            "test_stand_load_cell": LoadCell(*LABJACK_PINS["test_stand_load_cell"], -30606.38127, 1.00271157)
+            # "test_stand": LoadCell(*LABJACK_PINS["test_stand_load_cell"], -30606.38127, 1.00271157)
+
+            "test_stand": LoadCell( "AIN8", "AIN9", -30606.38127, 1.00271157)
         }
         self.labjack = labjack
-        self.filter_size = filter_size
-        self.load_cell_readings = {name: deque(maxlen=filter_size) for name in self.load_cells}
-        self.load_cell_sums = {name: 0 for name in self.load_cells}
 
     def _get_load_cell(self, load_cell_name: str) -> LoadCell:
         """
@@ -78,7 +80,9 @@ class LoadCellSensor:
 
         voltage_value = self.labjack.read(load_cell.signal_pos)
 
-        return voltage_value * load_cell.calibration_factor + load_cell.calibration_constant
+        load = voltage_value * load_cell.calibration_factor + load_cell.calibration_constant
+
+        return load , voltage_value
 
     async def load_cell_datastream(self, load_cell_name: str):
         """
@@ -90,10 +94,29 @@ class LoadCellSensor:
         Yields:
             float: The next mass reading from the specified load cell.
         """
-        with open(f'.././logs/load_cell/{load_cell_name}.csv', 'a', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow(["Load Cell Reading"])
-            while True:
-                mass = self.get_load_cell_mass(load_cell_name)
-                writer.writerow([mass] + [time.time()])
-                yield mass
+        while True:
+            load = self.get_load_cell_mass(load_cell_name)
+            yield load
+            await asyncio.sleep(LOGGING_RATE)  # Adjust the sleep time as needed
+
+    async def load_cell_logging(self, load_cell_name: str):
+        filename = f'/home/padstation/pad-station/logs/load_cell/{load_cell_name}_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.csv'
+
+        async with aiofiles.open(filename, 'w', newline='') as file:
+            await file.write("Load,Voltage,Time\n")
+
+            while self.logging_active:
+                load, voltage = self.get_load_cell_mass(load_cell_name)
+                current_time = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+
+                await file.write(f"{load},{voltage},{current_time}\n")
+                await asyncio.sleep(LOGGING_RATE)
+                await file.flush()
+
+    async def start_logging_all_sensors(self):
+        self.logging_active = True
+        tasks = [self.load_cell_logging(name) for name in self.load_cells]
+        await asyncio.gather(*tasks)
+
+    def end_logging_all_sensors(self):
+        self.logging_active = False
