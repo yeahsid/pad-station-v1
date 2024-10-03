@@ -51,7 +51,7 @@ class PressureTransducerSensor:
             "tank_top": PressureTransducer(LABJACK_PINS["pressure_transducer_tank"], 200),
             "chamber": PressureTransducer(LABJACK_PINS["pressure_transducer_chamber"], 200),
         }
-        self.pressure_transducers_to_log = list(self.pressure_transducers.keys())[2:]
+        self.pressure_transducers_to_log = list(self.pressure_transducers.keys())[0:2]
         self.labjack = labjack
         self.logging_active = False  # Used to disable logging at a chosen time
 

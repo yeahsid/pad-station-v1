@@ -154,9 +154,9 @@ class ThermocoupleSensor:
 
 
     async def start_logging_all_sensors(self):
-        self.logging_active = True
-        tasks = [self.thermocouple_logging(name) for name in self.thermocouples]
-        await asyncio.gather(*tasks)
+        # self.logging_active = True
+        # tasks = [self.thermocouple_logging(name) for name in self.thermocouples]
+        # await asyncio.gather(*tasks)
 
         return {"message": "Logging started"}
 
@@ -193,9 +193,10 @@ class ThermocoupleSensor:
             executor.shutdown(wait=True)
 
     async def end_logging_all_sensors(self):
-        # Ensure logging is marked as inactive
-        self.logging_active = False
+        pass
+        # # Ensure logging is marked as inactive
+        # self.logging_active = False
 
-        # Create tasks for each sensor to stop logging and save data
-        tasks = [self.stop_thermocouple_logging(name) for name in self.thermocouples]
-        await asyncio.gather(*tasks)
+        # # Create tasks for each sensor to stop logging and save data
+        # tasks = [self.stop_thermocouple_logging(name) for name in self.thermocouples]
+        # await asyncio.gather(*tasks)

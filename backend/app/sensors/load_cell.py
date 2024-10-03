@@ -47,7 +47,8 @@ class LoadCellSensor:
             labjack (LabJackConnection): An instance of the LabJackConnection class used to communicate with the LabJack device.
         """
         self.load_cells = {
-            "test_stand": load_cell(*LABJACK_PINS["load_cell_test_stand"] , 1214127 , 34.6) # 7629, -3017
+            "test_stand": load_cell(*LABJACK_PINS["load_cell"] , 1214127 , 34.6), # 7629, -3017
+            "rail_mass": load_cell(*LABJACK_PINS["load_cell"] , 12422.3602484472 , 1.166149068)
         }
         self.labjack = labjack
 
@@ -110,7 +111,7 @@ class LoadCellSensor:
         force = voltage * load_cell.calibration_factor + load_cell.calibration_constant
 
 
-        return round(force, 2)
+        return round(force, 3)
 
     async def load_cell_datastream(self, load_cell_name: str):
         """
@@ -199,4 +200,5 @@ class LoadCellSensor:
 
         # Create tasks for each sensor to stop logging and save data
         tasks = [self.stop_load_cell_logging(name) for name in self.load_cells]
-        await asyncio.gather(*tasks)
+        await asyncio.gather(*tasks) 
+        pass

@@ -35,6 +35,7 @@
     | "primary";
 
   const BASE_URL = "http://padstation-prod.local:8000";
+  //const BASE_URL = "http://padstation-prod.goblin-decibel.ts.net:8000";
 
   const colorMap: Record<TConnectionStatus | TValveState, TColorType> = {
     Connected: "green",
@@ -52,9 +53,11 @@
   let fillState: TValveState = "Unknown";
   let supplyState: TValveState = "Unknown";
   let pilotState: TValveState = "Unknown";
+  let activeVentState: TValveState = "Unknown";
   let selectedFillOption: string | "Unknown";
   let selectedSupplyOption: string | "Unknown";
   let selectedPilotOption: string | "Unknown";
+  let selectedActiveVentOption: string | "Unknown";
   let fillSseStatus: TConnectionStatus = "Unknown";
   let supplySseStatus: TConnectionStatus = "Unknown";
   let tankSseStatus: TConnectionStatus = "Unknown";
@@ -72,11 +75,13 @@
     );
 
     const tankPressureSse = new EventSource(
-      `${BASE_URL}/pressure/tank_top/datastream`,
+      //`${BASE_URL}/pressure/tank_top/datastream`,
+      "",
     );
 
     const tankTcSse = new EventSource(
-      `${BASE_URL}/thermocouple/tank_thermocouple/datastream`,
+      //`${BASE_URL}/thermocouple/tank_thermocouple/datastream`,
+      "",
     );
 
     const testStandLoadCell = new EventSource(
@@ -187,7 +192,7 @@
     if (!selectedPilotOption || selectedPilotOption === "") return;
 
     await fetch(
-      `${BASE_URL}/pilot_valve/pilot_valve?state=${selectedPilotOption}&timeout=5`,
+      `${BASE_URL}/pilot_valve/pilot_valve?state=${selectedPilotOption}&timeout=60`,
       {
         method: "GET",
       },
@@ -199,6 +204,20 @@
       }
     });
   };
+
+  const actuateActiveVent = async () => {
+  if (!selectedActiveVentOption || selectedActiveVentOption === "") return;
+
+  await fetch(`${BASE_URL}/servo/active_vent?state=${selectedActiveVentOption}`, {
+    method: "GET",
+  }).then((response) => {
+    if (response.ok) {
+      activeVentState = mapToValveState(selectedActiveVentOption);
+    } else {
+      activeVentState = "Error";
+    }
+  });
+};
 
   const startLogging = async () => {
     isLogging = true;
@@ -315,6 +334,26 @@
       </div>
     </div>
   </div>
+  <!-- Servo Control Box -->
+<div class="grid grid-cols-3 gap-4">
+  <div class="flex flex-col gap-8">
+    <div class="flex gap-2 lg:gap-4">
+      <P class="text-lg lg:text-xl">Active Vent Servo</P>
+
+      <span>
+        <Badge color={colorMap[activeVentState]} rounded class="px-2.5 py-0.5">
+          <Indicator size="sm" color={colorMap[activeVentState]} class="me-1.5" />
+          <span>{activeVentState}</span>
+        </Badge>
+      </span>
+    </div>
+
+    <div class="flex gap-4">
+      <Select items={actions} bind:value={selectedActiveVentOption} />
+      <Button on:click={actuateActiveVent}>Execute</Button>
+    </div>
+  </div>
+</div>
 
   <!-- Bottom Row -->
   <div class="grid grid-cols-3 gap-4">

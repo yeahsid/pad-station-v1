@@ -12,6 +12,7 @@ from app.actuators.pilot_valve import PilotValveController
 from app.sensors.thermocouple import ThermocoupleSensor
 from app.sensors.load_cell import LoadCellSensor
 from app.actuators.relay import IgnitorRelayController
+from app.actuators.servo import ServoController, ServoState
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 import logging
@@ -38,6 +39,7 @@ async def lifespan(app: FastAPI):
         app.state.thermocouple_sensor = ThermocoupleSensor(connection)
         app.state.pilot_valve_controller = PilotValveController(connection)
         app.state.ignitor_relay_controller = IgnitorRelayController(connection)
+        app.state.servo_controller = ServoController(connection)
         app.state.load_cell_sensor = LoadCellSensor(connection)
         app.state.labjack_connected = True
         logging.info("LabJack connection established")
@@ -103,6 +105,17 @@ async def actuate_pilot_valve(valve_name: str = Path(...), state: str = Query(..
     except Exception as ex:
         raise HTTPException(
             status_code=500, detail="Internal Server Error. Check connection to LabJack.")
+
+@app.get("/servo/{servo_name}", response_model=ValveResponse)
+async def actuate_servo(servo_name: str = Path(...), state: ServoState = Query(...)):
+    try:
+        await app.state.servo_controller.actuate_servo(servo_name, state)
+        return {"valve_name": servo_name, "feedback": None}
+    except Exception as ex:
+        raise ex
+        raise HTTPException(
+            status_code=500, detail="Internal Server Error. Check connection to LabJack.")
+
 
 @app.get("/relays/{relay_name}", response_model=ValveResponse)
 async def actuate_relay(relay_name: str = Path(...)):
