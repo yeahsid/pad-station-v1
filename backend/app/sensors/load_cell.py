@@ -27,7 +27,8 @@ class load_cell:
     signal_neg: str
     calibration_factor: float
     calibration_constant: float
-
+    tarre_reading: float = 0.0
+     
 
 class LoadCellSensor:
     """
@@ -47,9 +48,12 @@ class LoadCellSensor:
             labjack (LabJackConnection): An instance of the LabJackConnection class used to communicate with the LabJack device.
         """
         self.load_cells = {
-            "test_stand": load_cell(*LABJACK_PINS["load_cell"] , 1214127 , 34.6), # 7629, -3017
-            "rail_mass": load_cell(*LABJACK_PINS["load_cell"] , 12422.3602484472 , 1.166149068)
+            #"test_stand": load_cell(*LABJACK_PINS["load_cell"] , 1214127 , 34.6), # 7629, -3017 REAL
+            "test_stand": load_cell(*LABJACK_PINS["load_cell"] , -19273.41, 0.873069067), # 7629, -3017 (RAIL MASS TEST - after getting rocket mass)
+            "test_stand": load_cell(*LABJACK_PINS["load_cell"] , -20000, 0.873069067), # 7629, -3017 (RAIL MASS TEST)
+            #"rail_mass": load_cell(*LABJACK_PINS["load_cell"], -12296.04489, 1.213464875) # 12422.3602484472 , 1.166149068
         }
+        
         self.labjack = labjack
 
         self.load_cell_setup = False
@@ -92,6 +96,16 @@ class LoadCellSensor:
         await self.labjack.write(f"{load_cell.signal_pos}_SETTLING_US", 0)
         self.load_cell_setup = True 
 
+    async def tarre_load_cell(self, load_cell_name: str):
+        """
+        Tarres the specified load_cell.
+
+        Args:
+            load_cell_name (str): The name of the load_cell.
+        """
+        load_cell = self._get_load_cell(load_cell_name)
+        load_cell.tarre_reading = await self.get_load_cell_force(load_cell_name) + load_cell.tarre_reading
+
     async def get_load_cell_force(self, load_cell_name: str) -> float:
         """
         Get the force reading from a load_cell.
@@ -109,9 +123,22 @@ class LoadCellSensor:
 
         voltage = await self.labjack.read(load_cell.signal_pos) 
         force = voltage * load_cell.calibration_factor + load_cell.calibration_constant
-
-
+        force -= load_cell.tarre_reading
         return round(force, 3)
+    
+    async def get_ave_load_cell_force(self, load_cell_name: str, num_readings: int = 5) -> float:
+        """
+        Get the average force reading from a load_cell.
+
+        Args:
+            load_cell_name (str): The name of the load_cell.
+            num_readings (int): The number of readings to average.
+
+        Returns:
+            float: The average force reading in degrees N.
+        """
+        readings = [await self.get_load_cell_force(load_cell_name) for _ in range(num_readings)]
+        return round(sum(readings) / num_readings, 3)
 
     async def load_cell_datastream(self, load_cell_name: str):
         """

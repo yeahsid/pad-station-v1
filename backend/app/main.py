@@ -207,13 +207,23 @@ async def ignition(background_tasks: BackgroundTasks, delay: int = Query(3)):
         logging.error(f"Error: {e}")
         raise HTTPException(
             status_code=500, detail="Internal Server Error. Check connection to LabJack.")
-    
+
 @app.get("/load_cell/{load_cell_name}/feedback")
 async def get_load_cell_force(load_cell_name: str = Path(...)):
     try:
-        feedback = await app.state.load_cell_sensor.get_load_cell_force(
+        feedback = await app.state.load_cell_sensor.get_ave_load_cell_force(
             load_cell_name)
         return {"load_cell_name": load_cell_name, "force": feedback}
+    except Exception as e:
+        logging.error(f"Error: {e}")
+        raise HTTPException(
+            status_code=500, detail="Internal Server Error. Check connection to LabJack.")
+
+
+@app.get("/load_cell/{load_cell_name}/tarre", status_code=204)
+async def tarre_load_cell(load_cell_name: str = Path(...)):
+    try:
+        await app.state.load_cell_sensor.tarre_load_cell(load_cell_name)
     except Exception as e:
         logging.error(f"Error: {e}")
         raise HTTPException(

@@ -287,6 +287,19 @@
       console.error("Error occurred while firing Vent");
     }
   };
+
+  const tarreTestStandLoadCell = async () => {
+    try {
+      const response = await fetch(`${BASE_URL}/load_cell/test_stand/tarre`, {
+        method: "GET",
+      });
+      if (!response.ok) {
+        console.error("Failed to tarre test stand load cell");
+      }
+    } catch (error) {
+      console.error("Error occurred while tarring test stand load cell:", error);
+    }
+  };
 </script>
 
 <!-- ... (rest of the code) -->
@@ -428,12 +441,13 @@
     </div>
 
     <div class="flex flex-col gap-4">
-      <P class="text-lg lg:text-xl text-end">Test Stand Force</P>
+      <P class="text-lg lg:text-xl text-end">Rail Mass</P>
       {#key testStandLoad}
         <P class="font-bold text-2xl lg:text-4xl text-end">
-          {testStandLoad} N
+          {testStandLoad} Kg
         </P>
       {/key}
+      <Button on:click={tarreTestStandLoadCell}>Tarre</Button> 
     </div>
   </div>
 
