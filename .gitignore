@@ -1,0 +1,17 @@
+# Node modules
+node_modules/
+
+# Build directories
+*/public/build/
+
+# Svelte files
+*.svelte
+
+# Virtual environment
+venv/   
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+.DS_Store
