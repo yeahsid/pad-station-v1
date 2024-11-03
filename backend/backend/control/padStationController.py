@@ -26,6 +26,14 @@ class PadStationController:
         self.analog_sensors: dict[str, AbstractAnalogSensor] = self._initialize_analog_sensors()
         self.actuators: dict[str, AbstractActuator] = self._initialize_actuators()
         self.streaming_controller = StreamingLoggingController(self.actuators, self.analog_sensors, self.digital_sensors)
+        self.actuated_event = asyncio.Event()
+
+        for actuator in self.actuators.values():
+            actuator.register_event_handler(self.actuated_event_handler)
+
+    async def actuated_event_handler(self, actuator: AbstractActuator, position):
+        self.streaming_controller.write_actuator_event_to_csv(actuator.name, position)
+        self.actuated_event.set()
 
     def _initialize_digital_sensors(self):
         return {
@@ -124,6 +132,14 @@ class PadStationController:
         await self.streaming_controller.stop_streaming()
 
     async def gather_and_compile_data_frontend(self):
+        # Wait for the event or timeout
+        try:
+            await asyncio.wait_for(self.actuated_event.wait(), timeout=1 / FRONTEND_UPDATE_RATE)
+        except asyncio.TimeoutError:
+            pass
+        finally:
+            self.actuated_event.clear()
+
         # Compile data from sensors and actuators
         compiled_data = {}
         for sensor in self.analog_sensors.values():
@@ -131,7 +147,3 @@ class PadStationController:
         for sensor in self.digital_sensors.values():
             compiled_data[sensor.name] = (await sensor.read()).name
         return compiled_data
-
-    async def _send_to_frontend(self, data):
-        # Send data to the frontend at FRONTEND_UPDATE_RATE
-        pass
