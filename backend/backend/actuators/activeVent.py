@@ -1,13 +1,21 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import logging
 from backend.actuators.servo import Servo
 from backend.config import ACTIVE_VENT_CLOSED_POSITION, ACTIVE_VENT_OPEN_POSITION
 
 @dataclass
 class ActiveVent(Servo):
+    name: str
+    actuator_type: str
+    pwm_pin: str
+    default_position: int
+    safe_position: int
     power_relay_pin: str
-    open_position: int = ACTIVE_VENT_OPEN_POSITION
-    closed_position: int = ACTIVE_VENT_CLOSED_POSITION
+    open_position: int = field(default=ACTIVE_VENT_OPEN_POSITION, init=False)
+    closed_position: int = field(default=ACTIVE_VENT_CLOSED_POSITION, init=False)
+
+    def __post_init__(self):
+        super().__init__(self.name, self.pwm_pin, self.default_position, self.safe_position)  # No need to initialize labjack here
 
     logger = logging.getLogger(__name__)
 

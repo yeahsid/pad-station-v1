@@ -8,8 +8,8 @@ from datetime import datetime
 
 class StreamingLoggingController:
 
-    def __init__(self, labjack: LabJack, actuators: list[AbstractActuator], analog_sensors: list[AbstractAnalogSensor], digital_sensors: list[AbstractDigitalSensor]):
-        self.labjack = labjack
+    def __init__(self, actuators: list[AbstractActuator], analog_sensors: list[AbstractAnalogSensor], digital_sensors: list[AbstractDigitalSensor]):
+        self.labjack = LabJack()  # Access the singleton instance directly
         self.actuators = actuators
         self.analog_sensors = analog_sensors
         self.digital_sensors = digital_sensors
@@ -17,6 +17,8 @@ class StreamingLoggingController:
         self.streaming = False
         self.csv_file = None
         self.csv_writer = None
+        self.event_csv_file = None
+        self.event_csv_writer = None
 
         for actuator in self.actuators:
             actuator.register_event_handler(self.actuated_event_handler)
@@ -25,7 +27,8 @@ class StreamingLoggingController:
         # Handle the event here
         # Insert the movement of the actuator into the logs here when the event is received
         # send the position of the actuator to the frontend
-        pass
+        event_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        self.event_csv_writer.writerow([event_time, actuator.name, position])
 
     async def start_streaming(self):
         self.labjack.start_stream([sensor.streaming_address for sensor in self.analog_sensors])
@@ -37,6 +40,11 @@ class StreamingLoggingController:
         self.csv_file = open(f"streaming_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv", mode='w', newline='')
         self.csv_writer = csv.writer(self.csv_file)
         self.csv_writer.writerow(header)
+
+        # Open the event CSV file and write the header
+        self.event_csv_file = open(f"event_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv", mode='w', newline='')
+        self.event_csv_writer = csv.writer(self.event_csv_file)
+        self.event_csv_writer.writerow(["time", "actuator", "position"])
         
         while self.streaming:
             data = self.labjack.read_stream()
@@ -61,3 +69,5 @@ class StreamingLoggingController:
         self.streaming = False
         if self.csv_file:
             self.csv_file.close()
+        if self.event_csv_file:
+            self.event_csv_file.close()

@@ -10,6 +10,6 @@ class HanbayValveFeedbackSensor(AbstractDigitalSensor):
         pass # No setup required for hanbay valve feedback sensor
 
     async def read(self) -> HanbayValveState:
-        out0 = await self.labjack.read(self.output_pins[0])
-        out1 = await self.labjack.read(self.output_pins[1])
+        out0 = await self.labjack.read(self.valve_output_pins[0])
+        out1 = await self.labjack.read(self.valve_output_pins[1])
         return HanbayValveEncodings.output[(out0, out1)]

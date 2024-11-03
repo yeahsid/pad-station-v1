@@ -6,12 +6,26 @@ from backend.actuators.relay import Relay
 import asyncio
 from backend.config import PILOT_VALVE_TIMEOUT
 
-
 @dataclass
 class PilotValve(DcMotor):
+    name: str
+    motor_enable_pin: str
+    motor_in_pins: tuple[str, str]
+    limit_switch_open_pin: str
+    limit_switch_close_pin: str
     ignitor_relay: Relay
-    armed = False
-    
+    armed: bool = False
+
+    def __post_init__(self):
+        super().__init__(
+            name=self.name, 
+            motor_enable_pin=self.motor_enable_pin, 
+            motor_in_pins=self.motor_in_pins, 
+            limit_switch_open_pin=self.limit_switch_open_pin, 
+            limit_switch_close_pin=self.limit_switch_close_pin, 
+            safe_position=BinaryPosition.CLOSE
+        )
+
     logger = logging.getLogger(__name__)
 
     async def actuate_valve(self, position: BinaryPosition):

@@ -4,21 +4,20 @@ import asyncio
 from backend.control.labjack import LabJack
 
 class AbstractActuator(ABC):
-
     logger = logging.getLogger(__name__)
 
-    def __init__(self, labjack: LabJack, name: str, actuator_type: str):
-        self.labjack = labjack
+    def __init__(self, name: str):
         self.name = name
+        self.labjack = LabJack()  # Access the singleton instance directly
         self.actuated_event = asyncio.Event()
         self.position = None
         self.event_handlers = []
 
         try:
             asyncio.run(self.setup())
-            self.logger.info(f"{actuator_type} {self.name} setup complete")
+            self.logger.info(f"{self.name} setup complete")
         except Exception as e:
-            self.logger.error(f"{actuator_type} {self.name} setup failed: {e}")
+            self.logger.error(f"{self.name} setup failed: {e}")
 
     @abstractmethod
     async def setup(self):

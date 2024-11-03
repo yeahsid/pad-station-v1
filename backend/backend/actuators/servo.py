@@ -1,12 +1,17 @@
 from dataclasses import dataclass
 import logging
+from backend.control.labjack import LabJack
 from backend.actuators.abstractActuator import AbstractActuator
 
 @dataclass
 class Servo(AbstractActuator):
+    name: str
     pwm_pin: str
     default_position: int
     safe_position: int
+
+    def __post_init__(self):
+        super().__init__(self.name)  # No need to initialize labjack here
 
     logger = logging.getLogger(__name__)
 
@@ -15,10 +20,6 @@ class Servo(AbstractActuator):
         # Should be 80 Hz signal? Ask Ben McDonald so he can tell you what to do
         # Disable clock source
         await self.labjack.write("DIO_EF_CLOCK0_ENABLE", 0)
-        # Configure Clock0's divisor and roll value
-        await self.labjack.write("DIO_EF_CLOCK0_DIVISOR", 1)
-        await self.labjack.write("DIO_EF_CLOCK0_ROLL_VALUE", 1000000)
-        # Enable Clock0
         await self.labjack.write("DIO_EF_CLOCK0_ENABLE", 1)
 
         # Configure EF (Extended Features) Channel Registers:

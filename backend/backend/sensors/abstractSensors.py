@@ -9,10 +9,10 @@ class AbstractAnalogSensor(ABC):
 
     logger = logging.getLogger(__name__)
 
-    def __init__(self, labjack: LabJack, name: str, unit: str):
+    def __init__(self, name: str, unit: str):
         self.name = name
         self.unit = unit
-        self.labjack = labjack
+        self.labjack = LabJack()  # Access the singleton instance directly
         self.streaming_address = None
 
         try:
@@ -45,9 +45,9 @@ class AbstractDigitalSensor(ABC):
 
     logger = logging.getLogger(__name__)
 
-    def __init__(self, labjack: LabJack, name: str):
+    def __init__(self, name: str):
         self.name = name
-        self.labjack = labjack
+        self.labjack = LabJack()  # Access the singleton instance directly
 
         try:
             self.setup()
@@ -64,8 +64,8 @@ class AbstractDigitalSensor(ABC):
     async def read(self):
         pass
 
-   
-    
 
-    
+
+
+
 

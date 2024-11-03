@@ -18,16 +18,21 @@ class LabJack:
         streaming_addresses (list[int]): The MODBUS addresses of the pins being streamed.
     """
     logger = logging.getLogger(__name__)
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super(LabJack, cls).__new__(cls)
+        return cls._instance
 
     def __init__(self):
-        """
-        Initializes the LabJack device and sets up the connection.
-        """
-        self._handle = ljm.openS("T7", "TCP", "192.168.0.5")
-        self.logger.info("LabJack device connected")
-        self.real_scan_rate = None
-        self.next_read_start_time = None
-        self.streaming_addresses = None
+        if not hasattr(self, '_initialized'):
+            self._handle = ljm.openS("T7", "TCP", "192.168.0.5")
+            self.logger.info("LabJack device connected")
+            self.real_scan_rate = None
+            self.next_read_start_time = None
+            self.streaming_addresses = None
+            self._initialized = True
 
     def __del__(self):
         """
