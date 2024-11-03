@@ -21,18 +21,12 @@ class StreamingLoggingController:
         self.event_csv_file = None
         self.event_csv_writer = None
 
-        for actuator in self.actuators:
-            actuator.register_event_handler(self.actuated_event_handler)
-
         self.logger = logging.getLogger(__name__)
 
-    async def actuated_event_handler(self, actuator: AbstractActuator, position):
-        # Handle the event here
-        # Insert the movement of the actuator into the logs here when the event is received
-        # send the position of the actuator to the frontend
-        event_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        self.logger.info(f"Actuator {actuator.name} moved to position {position} at {event_time}")
-        self.event_csv_writer.writerow([event_time, actuator.name, position])
+    def write_actuator_event_to_csv(self, actuator_name, position):
+        if self.streaming:
+            event_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            self.event_csv_writer.writerow([event_time, actuator_name, position])
 
     async def start_streaming(self):
         self.labjack.start_stream([sensor.streaming_address for sensor in self.analog_sensors])
@@ -70,9 +64,6 @@ class StreamingLoggingController:
 
     async def stop_streaming(self):
         self.labjack.stop_stream()
-
-        for actuator in self.actuators:
-            actuator.unregister_event_handler(self.actuated_event_handler)
 
         for sensor in self.analog_sensors:
             sensor.streaming_value = None
