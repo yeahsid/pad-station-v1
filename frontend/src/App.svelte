@@ -2,12 +2,31 @@
 	export let name;
 
 	let message = "";
+	const socket = new WebSocket("ws://localhost:8000/ws/data");
 
 	async function fetchMessage() {
 		const response = await fetch("http://localhost:8000/");
 		const data = await response.json();
 		message = data.message;
 	}
+
+	socket.onopen = function(event) {
+		console.log("WebSocket connection opened");
+	};
+
+	socket.onmessage = function(event) {
+		const data = JSON.parse(event.data);
+		console.log("Received data:", data);
+		// Update your frontend with the received data
+	};
+
+	socket.onclose = function(event) {
+		console.log("WebSocket connection closed");
+	};
+
+	socket.onerror = function(error) {
+		console.log("WebSocket error:", error);
+	};
 
   fetchMessage();
 </script>

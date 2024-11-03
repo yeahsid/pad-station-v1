@@ -130,8 +130,8 @@ class PadStationController:
             compiled_data[sensor.name] = await sensor.read()
         for sensor in self.digital_sensors.values():
             compiled_data[sensor.name] = (await sensor.read()).name
+        return compiled_data
 
     async def _send_to_frontend(self, data):
         # Send data to the frontend at FRONTEND_UPDATE_RATE
         pass
-        
