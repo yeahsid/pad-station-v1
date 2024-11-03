@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 import logging
 from backend.actuators.servo import Servo
 from backend.actuators.relay import Relay
-from backend.config import ACTIVE_VENT_CLOSED_POSITION, ACTIVE_VENT_OPEN_POSITION
+from backend.util.config import ACTIVE_VENT_CLOSED_POSITION, ACTIVE_VENT_OPEN_POSITION
 
 @dataclass
 class ActiveVent(Servo):

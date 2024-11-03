@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import asyncio
 import logging
 from backend.sensors.abstractSensors import AbstractAnalogSensor
-from backend.config import PRESSURE_TRANSDUCER_CALIBRATION
+from backend.util.config import PRESSURE_TRANSDUCER_CALIBRATION
 from backend.sensors.abstractSensors import extract_number_from_ain
 
 logger = logging.getLogger(__name__)

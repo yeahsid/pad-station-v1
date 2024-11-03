@@ -1,7 +1,7 @@
 from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from backend.control.padStationController import PadStationController
-from backend.config import FRONTEND_UPDATE_RATE
+from backend.util.config import FRONTEND_UPDATE_RATE
 import asyncio
 
 app = FastAPI()

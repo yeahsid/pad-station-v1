@@ -11,7 +11,7 @@ from backend.sensors.loadCell import LoadCell
 from backend.sensors.thermocouple import Thermocouple
 from backend.control.labjack import LabJack
 from backend.control.streamingLoggingController import StreamingLoggingController
-from backend.config import *
+from backend.util.config import *
 from backend.util.constants import BinaryPosition
 import asyncio
 import logging

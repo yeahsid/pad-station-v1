@@ -4,7 +4,7 @@ from labjack import ljm
 from labjack.ljm import LJMError
 import numpy as np
 from datetime import datetime, timedelta
-from backend.config import TARGET_SCAN_RATE
+from backend.util.config import TARGET_SCAN_RATE
 
 class LabJack:
     """

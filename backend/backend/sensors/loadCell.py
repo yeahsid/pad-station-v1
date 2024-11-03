@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 import logging
 from backend.sensors.abstractSensors import AbstractAnalogSensor, extract_number_from_ain
-from backend.config import LOAD_CELL_CALIBRATION
+from backend.util.config import LOAD_CELL_CALIBRATION
 
 logger = logging.getLogger(__name__)
 

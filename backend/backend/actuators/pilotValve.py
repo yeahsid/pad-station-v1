@@ -4,7 +4,7 @@ from backend.actuators.dcMotor import DcMotor
 from backend.util.constants import BinaryPosition
 from backend.actuators.relay import Relay
 import asyncio
-from backend.config import PILOT_VALVE_TIMEOUT
+from backend.util.config import PILOT_VALVE_TIMEOUT
 
 @dataclass
 class PilotValve(DcMotor):
