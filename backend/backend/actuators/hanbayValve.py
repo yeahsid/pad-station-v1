@@ -11,7 +11,6 @@ logger = logging.getLogger(__name__)
 @dataclass
 class HanbayValve(AbstractActuator):
     name: str
-    actuator_type: str
     input_pins: tuple[str, str]
     output_pins: tuple[str, str]
     is_high_high_open: bool
@@ -45,12 +44,13 @@ class HanbayValve(AbstractActuator):
             await asyncio.sleep(0.2)
             state = await self.output_state_sensor.read()
 
-            if state == HanbayValveState.IN_POSITION:
-                await self.trigger_actuated_event(state)
-                break
-
             if state != last_state:
                 self.logger.info(f"Valve {self.name} state changed to {state}")
                 await self.trigger_actuated_event(state)
+                last_state = state
+
+            if state == HanbayValveState.IN_POSITION:
+                await self.trigger_actuated_event(state)
+                break           
 
         self.logger.info(f"HanbayValve {self.name} actuated to {position}")

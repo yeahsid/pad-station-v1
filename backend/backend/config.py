@@ -37,14 +37,14 @@ class LabJackPeripherals(Enum):
     # Pilot Valve
     PILOT_VALVE = "Pilot Valve"
     PILOT_VALVE_MOTOR_ENABLE_PIN = "EIO3"
-    PILOT_VALVE_MOTOR_IN_1_PIN = "EIO4"
-    PILOT_VALVE_MOTOR_IN_2_PIN = "EIO5"
+    PILOT_VALVE_MOTOR_IN_PINS = ("EIO4", "EIO5")
     PILOT_VALVE_LIMIT_SWITCH_TOP_PIN = "EIO0"
     PILOT_VALVE_LIMIT_SWITCH_BOTTOM_PIN = "EIO1"
 
     # Active Vent
     ACTIVE_VENT = "Active Vent"
     ACTIVE_VENT_SERVO_PWM = "DIO0"
+    ACTIVE_VENT_RELAY = "Active Vent Relay"
     ACTIVE_VENT_RELAY_PIN = "CIO0"
 
     # Pyro Channels

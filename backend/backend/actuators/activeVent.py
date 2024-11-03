@@ -1,16 +1,16 @@
 from dataclasses import dataclass, field
 import logging
 from backend.actuators.servo import Servo
+from backend.actuators.relay import Relay
 from backend.config import ACTIVE_VENT_CLOSED_POSITION, ACTIVE_VENT_OPEN_POSITION
 
 @dataclass
 class ActiveVent(Servo):
     name: str
-    actuator_type: str
     pwm_pin: str
     default_position: int
     safe_position: int
-    power_relay_pin: str
+    power_relay: Relay
     open_position: int = field(default=ACTIVE_VENT_OPEN_POSITION, init=False)
     closed_position: int = field(default=ACTIVE_VENT_CLOSED_POSITION, init=False)
 
@@ -21,7 +21,8 @@ class ActiveVent(Servo):
 
     async def setup(self):
         await super().setup()
-        await self.labjack.write(self.power_relay_pin, 1)
+        await self.power_relay.setup()
+        await self.power_relay.fire()
         self.logger.info(f"Active Vent {self.name} setup complete")
 
     async def move_to_open(self):

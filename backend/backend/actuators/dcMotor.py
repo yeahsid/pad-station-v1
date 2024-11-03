@@ -2,8 +2,9 @@ from dataclasses import dataclass
 import logging
 import asyncio
 from backend.actuators.abstractActuator import AbstractActuator
-from backend.util.constants import BinaryPosition
+from backend.util.constants import BinaryPosition, DCMotorState
 from backend.control.labjack import LabJack
+from backend.sensors.dcMotorLimitSwitchSensor import DcMotorLimitSwitchSensor
 
 logger = logging.getLogger(__name__)
 
@@ -14,12 +15,13 @@ class DcMotor(AbstractActuator):
     name: str
     motor_enable_pin: str
     motor_in_pins: tuple[str, str]
-    limit_switch_open_pin: str | None
-    limit_switch_close_pin: str | None
+    limit_switch_open_pin: str
+    limit_switch_close_pin: str
     safe_position: BinaryPosition
+    limit_switch_sensor: DcMotorLimitSwitchSensor
 
     def __post_init__(self):
-        super().__init__(self.name)  # No need to initialize labjack here
+        super().__init__(self.name)
 
     logger = logging.getLogger(__name__)
 
@@ -48,40 +50,37 @@ class DcMotor(AbstractActuator):
             raise ValueError(f"Invalid position: {position}. Must be '{BinaryPosition.OPEN}' or '{BinaryPosition.CLOSE}'")
 
     async def wait_for_limit_switch(self, position: BinaryPosition):
-        if position == BinaryPosition.OPEN:
-            pin = self.limit_switch_open_pin
-        elif position == BinaryPosition.CLOSE:
-            pin = self.limit_switch_close_pin
-        else:
-            raise ValueError(f"Invalid position: {position}. Must be '{BinaryPosition.OPEN}' or '{BinaryPosition.CLOSE}'")
-
-        if not pin:
-            raise ValueError("No limit switch pin provided")
-        
         count = 0
+        last_state: DCMotorState = await self.limit_switch_sensor.read(position)
+
+        self.trigger_actuated_event(last_state.value)
+
         while True:
-            if await self.labjack.read(pin) == 1:
+            state: DCMotorState = await self.limit_switch_sensor.read(position)
+
+            if state != last_state:
+                self.trigger_actuated_event(state.value)
+                last_state = state
+
+            if state.value == position.value:
                 count += 1
             else:
                 count = 0
+
             if count == CONSECUTIVE_READS:
-                self.logger.info(f"Limit switch {position.value} reached")
+                self.logger.info(f"Limit switch {position.name} reached")
                 return True
+            
             await asyncio.sleep(0.01)
 
     async def move_motor_to_position(self, position: BinaryPosition, timeout: int):
         await self.spin_motor(position)
-        await self.trigger_actuated_event(-1)
-        limit_switch_pin = self.limit_switch_open_pin if position == BinaryPosition.OPEN else self.limit_switch_close_pin
-        if limit_switch_pin is None:
-            logger.warning(f"Motor {self.name} has no limit switch for {position.value} position. Running for {timeout} seconds")
-            await asyncio.sleep(timeout)
-        else:
-            try:
-                await asyncio.wait_for(self.wait_for_limit_switch(position), timeout=timeout)
-            except asyncio.TimeoutError:
-                logger.warning(f"Motor {self.name} timed out after {timeout} seconds while moving to {position.value} position")
-                pass
+
+        try:
+            await asyncio.wait_for(self.wait_for_limit_switch(position), timeout=timeout)
+        except asyncio.TimeoutError:
+            logger.warning(f"Motor {self.name} timed out after {timeout} seconds while moving to {position.name} position")
+            pass
+
         await self.stop_motor()
-        await self.trigger_actuated_event(position.value)
-        self.logger.info(f"Motor {self.name} moved to {position.value} position")
+        self.logger.info(f"Motor {self.name} moved to {position.name} position")
