@@ -1,25 +1,17 @@
 [tool.poetry]
-name = "pad-station"
+name = "backend"
 version = "0.1.0"
-description = "Pad Station for Monash HPR"
-authors = ["Siddharth Iyer <siye0010@student.monash.edu>"]
-license = "MIT"
+description = "A FastAPI backend application"
+authors = ["RachitTamrakar <Rtam0011@student.monash.edu>"]
 readme = "README.md"
-package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.10"
+fastapi = "^0.115.4"
+uvicorn = "^0.32.0"
 labjack-ljm = "^1.23.0"
-fastapi = "^0.110.2"
-logging = "^0.4.9.6"
-uvicorn = "^0.29.0"
-gunicorn = "^22.0.0"
-aiofiles = "^24.1.0"
-pyserial = "^3.5"
-setuptools = "^71.0.4"
-async-timeout = "^4.0.3"
-redis = "^5.0.7"
-sentry-sdk = "^2.10.0"
+numpy = "^2.1.2"
+websockets = "^10.4"
 
 [build-system]
 requires = ["poetry-core"]
