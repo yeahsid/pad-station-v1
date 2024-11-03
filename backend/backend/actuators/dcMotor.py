@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 import logging
 import asyncio
-from backend.actuators.actuator import Actuator
+from backend.actuators.abstractActuator import AbstractActuator
 from backend.util.constants import BinaryPosition
 
 logger = logging.getLogger(__name__)
@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 CONSECUTIVE_READS = 2
 
 @dataclass
-class DcMotor(Actuator):
+class DcMotor(AbstractActuator):
     motor_enable_pin: str
     motor_in_pins: tuple[str, str]
     limit_switch_open_pin: str | None
@@ -66,6 +66,7 @@ class DcMotor(Actuator):
 
     async def move_motor_to_position(self, position: BinaryPosition, timeout: int):
         await self.spin_motor(position)
+        self.trigger_actuated_event(-1)
         limit_switch_pin = self.limit_switch_open_pin if position == BinaryPosition.OPEN else self.limit_switch_close_pin
         if limit_switch_pin is None:
             logger.warning(f"Motor {self.name} has no limit switch for {position.value} position. Running for {timeout} seconds")
@@ -77,4 +78,5 @@ class DcMotor(Actuator):
                 logger.warning(f"Motor {self.name} timed out after {timeout} seconds while moving to {position.value} position")
                 pass
         await self.stop_motor()
+        self.trigger_actuated_event(position.value)
         self.logger.info(f"Motor {self.name} moved to {position.value} position")

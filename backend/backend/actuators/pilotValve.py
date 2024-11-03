@@ -4,14 +4,14 @@ from backend.actuators.dcMotor import DcMotor
 from backend.util.constants import BinaryPosition
 from backend.actuators.relay import Relay
 import asyncio
+from backend.config import PILOT_VALVE_TIMEOUT
 
-PILOT_VALVE_TIMEOUT = 50
 
 @dataclass
 class PilotValve(DcMotor):
     ignitor_relay: Relay
     armed = False
-
+    
     logger = logging.getLogger(__name__)
 
     async def actuate_valve(self, position: BinaryPosition):

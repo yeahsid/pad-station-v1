@@ -1,15 +1,13 @@
 from dataclasses import dataclass
 import logging
 from backend.actuators.servo import Servo
-
-ACTIVE_VENT_CLOSED = 95000  # RICKY CHANGE THIS
-ACTIVE_VENT_OPEN = 111000  # RICKY CHANGE THIS
+from backend.config import ACTIVE_VENT_CLOSED_POSITION, ACTIVE_VENT_OPEN_POSITION
 
 @dataclass
 class ActiveVent(Servo):
     power_relay_pin: str
-    open_position: int = ACTIVE_VENT_OPEN
-    closed_position: int = ACTIVE_VENT_CLOSED
+    open_position: int = ACTIVE_VENT_OPEN_POSITION
+    closed_position: int = ACTIVE_VENT_CLOSED_POSITION
 
     logger = logging.getLogger(__name__)
 

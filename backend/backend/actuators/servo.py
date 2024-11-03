@@ -1,9 +1,9 @@
 from dataclasses import dataclass
 import logging
-from backend.actuators.actuator import Actuator
+from backend.actuators.abstractActuator import AbstractActuator
 
 @dataclass
-class Servo(Actuator):
+class Servo(AbstractActuator):
     pwm_pin: str
     default_position: int
     safe_position: int
@@ -41,4 +41,5 @@ class Servo(Actuator):
 
     async def actuate_servo(self, position: int):
         await self.labjack.write(f"{self.pwm_pin}_EF_CONFIG_A", position)
+        self.trigger_actuated_event(position)
         self.logger.info(f"Servo {self.name} actuated to position {position}")

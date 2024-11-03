@@ -1,14 +1,19 @@
 from enum import Enum
 
 class BinaryPosition(Enum):
-    OPEN = "open"
-    CLOSE = "close"
+    OPEN = 1
+    CLOSE = 0
+
+class DCMotorState(Enum):
+    OPEN = 1
+    CLOSE = 0
+    INTERMEDIATE = -1
 
 class HanbayValveState(Enum):
-    IN_POSITION = "in_position"
-    MOVING = "moving"
-    STALLED = "error"
-    UNKNOWN_STATE = "unknown_state"
+    IN_POSITION = 0
+    MOVING = 1
+    STALLED = -1
+    UNKNOWN_STATE = -2
 
 class HanbayValveEncodings:
     input_high_high_open = {
