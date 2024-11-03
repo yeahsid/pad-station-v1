@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 import logging
 from backend.control.labjack import LabJack
 import re
+from enum import Enum
 
 class AbstractAnalogSensor(ABC):
 
@@ -60,7 +61,7 @@ class AbstractDigitalSensor(ABC):
         pass
 
     @abstractmethod
-    async def read(self):
+    async def read(self) -> Enum:
         pass
 
 def extract_number_from_ain(ain_string):
