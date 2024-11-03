@@ -30,6 +30,9 @@ class AbstractActuator(ABC):
     def register_event_handler(self, handler):
         self.event_handlers.append(handler)
 
+    def unregister_event_handler(self, handler):
+        self.event_handlers.remove(handler)
+
     async def trigger_actuated_event(self, position):
         self.position = position 
         self.actuated_event.set()
