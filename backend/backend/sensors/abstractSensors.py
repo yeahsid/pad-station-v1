@@ -1,19 +1,18 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
 import logging
-import asyncio
 from backend.control.labjack import LabJack
-from backend.config import DIGITAL_SENSOR_UPDATE_RATE
+import re
 
 class AbstractAnalogSensor(ABC):
 
     logger = logging.getLogger(__name__)
 
-    def __init__(self, name: str, unit: str):
+    def __init__(self, name: str, unit: str, streaming_address = None):
         self.name = name
         self.unit = unit
         self.labjack = LabJack()  # Access the singleton instance directly
-        self.streaming_address = None
+        self.streaming_address = streaming_address # See https://support.labjack.com/docs/3-1-modbus-map-t-series-datasheet to find the addresses of the pins.
+        self.streaming_value = None
 
         try:
             self.setup()
@@ -63,6 +62,13 @@ class AbstractDigitalSensor(ABC):
     @abstractmethod
     async def read(self):
         pass
+
+def extract_number_from_ain(ain_string):
+    match = re.search(r'\d+', ain_string)
+    if match:
+        return int(match.group())
+    else:
+        raise ValueError("No number found in the string")
 
 
 

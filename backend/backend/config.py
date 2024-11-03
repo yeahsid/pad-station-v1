@@ -11,13 +11,12 @@ FRONTEND_UPDATE_RATE = 1 # Hz
 TARGET_SCAN_RATE = 10000 # Hz, stream scan rate
 DIGITAL_SENSOR_UPDATE_RATE = 1 # Hz
 
-
 ACTIVE_VENT_CLOSED_POSITION = 95000  # RICKY CHANGE THIS
 ACTIVE_VENT_OPEN_POSITION = 111000  # RICKY CHANGE THIS
 
 PILOT_VALVE_TIMEOUT = 50 # seconds
 
-PRESSURE_TRANSDUCER_CALIBRATION = (0.0, 1.0)  # (offset, scale)
+PRESSURE_TRANSDUCER_CALIBRATION = (-25.82, 54.87)  # (offset, scale)
 PRESSURE_TRANSDUCER_READ_VS = True 
 # If True scales the pressure transducer readings to account for the Vs pin voltage variation
 # If False assumes the Vs pin voltage is 4.7V
