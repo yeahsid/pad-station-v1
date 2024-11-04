@@ -22,6 +22,11 @@ pad_station_controller = PadStationController()
 
 @app.get("/")
 async def root():
+    if pad_station_controller.labjack:
+        return {"message": "LabJack connected successfully."}
+    else:
+        return {"message": "Failed to connect to LabJack."}
+
 
 @app.websocket("/ws/data")
 async def websocket_endpoint(websocket: WebSocket):
