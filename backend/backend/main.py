@@ -6,6 +6,7 @@ from backend.actuators.pilotValve import PilotValve
 from backend.actuators.activeVent import ActiveVent
 from backend.actuators.hanbayValve import HanbayValve
 from backend.actuators.relay import Relay
+from backend.util.config import LabJackPeripherals
 
 app = FastAPI()
 
@@ -42,67 +43,67 @@ async def websocket_endpoint(websocket: WebSocket):
 
 @app.post("/pilot-valve/open")
 async def open_pilot_valve():
-    pv: PilotValve = pad_station_controller.actuators["pilot_valve"]
+    pv: PilotValve = pad_station_controller.actuators[LabJackPeripherals.PILOT_VALVE.value]
     await pv.actuate_valve(BinaryPosition.OPEN)
     return {"status": "Pilot valve opened"}
 
 @app.post("/pilot-valve/close")
 async def close_pilot_valve():
-    pv: PilotValve = pad_station_controller.actuators["pilot_valve"]
+    pv: PilotValve = pad_station_controller.actuators[LabJackPeripherals.PILOT_VALVE.value]
     await pv.actuate_valve(BinaryPosition.CLOSE)
     return {"status": "Pilot valve closed"}
 
 @app.post("/active-vent/open")
 async def open_active_vent():
-    av: ActiveVent = pad_station_controller.actuators["active_vent"]
+    av: ActiveVent = pad_station_controller.actuators[LabJackPeripherals.ACTIVE_VENT.value]
     await av.move_to_open()
     return {"status": "Active vent opened"}
 
 @app.post("/active-vent/close")
 async def close_active_vent():
-    av: ActiveVent = pad_station_controller.actuators["active_vent"]
+    av: ActiveVent = pad_station_controller.actuators[LabJackPeripherals.ACTIVE_VENT.value]
     await av.move_to_close()
     return {"status": "Active vent closed"}
 
 @app.post("/fill-valve/open")
 async def open_fill_valve():
-    fv: HanbayValve = pad_station_controller.actuators["fill_valve"]
+    fv: HanbayValve = pad_station_controller.actuators[LabJackPeripherals.FILL_VALVE.value]
     await fv.actuate_valve(BinaryPosition.OPEN)
     return {"status": "Fill valve opened"}
 
 @app.post("/fill-valve/close")
 async def close_fill_valve():
-    fv: HanbayValve = pad_station_controller.actuators["fill_valve"]
+    fv: HanbayValve = pad_station_controller.actuators[LabJackPeripherals.FILL_VALVE.value]
     await fv.actuate_valve(BinaryPosition.CLOSE)
     return {"status": "Fill valve closed"}
 
 @app.post("/dump-valve/open")
 async def open_dump_valve():
-    dv: HanbayValve = pad_station_controller.actuators["dump_valve"]
+    dv: HanbayValve = pad_station_controller.actuators[LabJackPeripherals.DUMP_VALVE.value]
     await dv.actuate_valve(BinaryPosition.OPEN)
     return {"status": "Dump valve opened"}
 
 @app.post("/dump-valve/close")
 async def close_dump_valve():
-    dv: HanbayValve = pad_station_controller.actuators["dump_valve"]
+    dv: HanbayValve = pad_station_controller.actuators[LabJackPeripherals.DUMP_VALVE.value]
     await dv.actuate_valve(BinaryPosition.CLOSE)
     return {"status": "Dump valve closed"}
 
 @app.post("/relay/ignitor/pulse")
 async def pulse_ignitor_relay():
-    ir: Relay = pad_station_controller.actuators["ignitor_relay"]
+    ir: Relay = pad_station_controller.actuators[LabJackPeripherals.IGNITOR_RELAY.value]
     await ir.pulse(1)  # Assuming 1 second pulse time
     return {"status": "Ignitor relay pulsed"}
 
 @app.post("/relay/qd/pulse")
 async def pulse_qd_relay():
-    qd: Relay = pad_station_controller.actuators["qd_relay"]
+    qd: Relay = pad_station_controller.actuators[LabJackPeripherals.QD_RELAY.value]
     await qd.pulse(1)  # Assuming 1 second pulse time
     return {"status": "QD relay pulsed"}
 
 @app.post("/relay/extra/pulse")
 async def pulse_extra_relay():
-    er: Relay = pad_station_controller.actuators["extra_relay"]
+    er: Relay = pad_station_controller.actuators[LabJackPeripherals.EXTRA_RELAY.value]
     await er.pulse(1)  # Assuming 1 second pulse time
     return {"status": "Extra relay pulsed"}
 

@@ -27,7 +27,7 @@ class LabJackPeripherals(Enum):
     # Fill Box Valves
     FILL_VALVE = "Fill Valve"
     FILL_VALVE_INPUT_PINS = ("FIO4", "FIO5")
-    FILL_VALVE_OUTPUT_PINS = ("MI01", "MIO2")
+    FILL_VALVE_OUTPUT_PINS = ("MIO1", "MIO2")
     DUMP_VALVE = "Dump Valve"
     DUMP_VALVE_INPUT_PINS = ("FIO2", "FIO3")
     DUMP_VALVE_OUTPUT_PINS = ("FIO6", "FIO7")

@@ -16,8 +16,6 @@ from backend.util.constants import BinaryPosition
 import asyncio
 import logging
 
-
-
 class PadStationController:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
