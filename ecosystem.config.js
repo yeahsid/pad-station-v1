@@ -4,7 +4,7 @@ module.exports = {
   apps: [
     {
       name: 'backend',
-      script: 'backend\\main.py',
+      script: process.platform === 'win32' ? 'backend\\main.py' : 'backend/main.py',
       interpreter: process.platform === 'win32' 
         ? path.join(__dirname, 'backend', '.venv', 'Scripts', 'python.exe') 
         : path.join(__dirname, 'backend', '.venv', 'bin', 'python'),
