@@ -104,6 +104,17 @@
 	}
 
 	fetchMessage();
+
+	function getIndicatorClass(state, type) {
+		if (type === 'BinaryPosition') {
+			return state === 'OPEN' ? 'button_blue' : 'button_red';
+		} else if (type === 'DCmotorState') {
+			return state === 'RUNNING' ? 'green' : 'red';
+		} else if (type === 'HanbayValveState') {
+			return state === 'IN_POSITION' ? 'green' : 'red';
+		}
+		return 'yellow';
+	}
 </script>
 
 <style>
@@ -183,10 +194,19 @@
 		color: white;
 		font-weight: bold;
 	}
-	.indicator.open {
+	.indicator.button_blue {
+		background-color: bg-blue-500;
+	}
+	.indicator.button_red {
+		background-color: bg-red-500;
+	}
+	.indicator.green {
 		background-color: green;
 	}
-	.indicator.closed {
+	.indicator.yellow {
+		background-color: yellow;
+	}
+	.indicator.red {
 		background-color: red;
 	}
 </style>
@@ -200,8 +220,8 @@
 				<button class="button bg-blue-500 mr-2" on:click={openPilotValve}>Open</button>
 				<button class="button bg-red-500" on:click={closePilotValve}>Close</button>
 			</div>
-			<div class="indicator {indicators['pilot_valve'] === 'OPEN' ? 'open' : 'closed'}">
-				{indicators['pilot_valve']}
+			<div class="indicator {getIndicatorClass(indicators['Pilot Valve'], 'BinaryPosition')}">
+				{indicators['Pilot Valve']}
 			</div>
 		</div>
 		<div class="flex">
@@ -210,9 +230,6 @@
 				<button class="button bg-blue-500 mr-2" on:click={openActiveVent}>Open</button>
 				<button class="button bg-red-500" on:click={closeActiveVent}>Close</button>
 			</div>
-			<div class="indicator {indicators['active_vent'] === 'OPEN' ? 'open' : 'closed'}">
-				{indicators['active_vent']}
-			</div>
 		</div>
 		<div class="flex">
 			<h3 class="font-semibold text-lg mb-2">Fill Valve</h3>
@@ -220,8 +237,8 @@
 				<button class="button bg-blue-500 mr-2" on:click={openFillValve}>Open</button>
 				<button class="button bg-red-500" on:click={closeFillValve}>Close</button>
 			</div>
-			<div class="indicator {indicators['fill_valve'] === 'OPEN' ? 'open' : 'closed'}">
-				{indicators['fill_valve']}
+			<div class="indicator {getIndicatorClass(indicators['Fill Valve'], 'HanbayValveState')}">
+				{indicators['Fill Valve']}
 			</div>
 		</div>
 		<div class="flex">
@@ -230,8 +247,8 @@
 				<button class="button bg-blue-500 mr-2" on:click={openDumpValve}>Open</button>
 				<button class="button bg-red-500" on:click={closeDumpValve}>Close</button>
 			</div>
-			<div class="indicator {indicators['dump_valve'] === 'OPEN' ? 'open' : 'closed'}">
-				{indicators['dump_valve']}
+			<div class="indicator {indicators['Dump Valve'] === 'OPEN' ? 'open' : 'closed'}">
+				{indicators['Dump Valve']}
 			</div>
 		</div>
 		<div class="flex">
