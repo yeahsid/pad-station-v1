@@ -50,7 +50,7 @@ class LoadCellSensor:
         self.load_cells = {
             #"test_stand": load_cell(*LABJACK_PINS["load_cell"] , 1214127 , 34.6), # 7629, -3017 REAL
             "test_stand": load_cell(*LABJACK_PINS["load_cell"] , -19273.41, 0.873069067), # 7629, -3017 (RAIL MASS TEST - after getting rocket mass)
-            "test_stand": load_cell(*LABJACK_PINS["load_cell"] , -20000, 0.873069067), # 7629, -3017 (RAIL MASS TEST)
+            #"test_stand": load_cell(*LABJACK_PINS["load_cell"] , -20000, 0.873069067), # 7629, -3017 (RAIL MASS TEST)
             #"rail_mass": load_cell(*LABJACK_PINS["load_cell"], -12296.04489, 1.213464875) # 12422.3602484472 , 1.166149068
         }
         

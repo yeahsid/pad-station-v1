@@ -10,7 +10,7 @@ import asyncio
 logger = logging.getLogger(__name__)
 
 ACTIVE_VENT_CLOSED = 95000 # RICKY CHANGE THIS
-ACTIVE_VENT_OPEN = 111000 # RICKY CHANGE THIS
+ACTIVE_VENT_OPEN = 115000 # RICKY CHANGE THIS
 
 class ServoState(str, Enum):
     open = "open"
