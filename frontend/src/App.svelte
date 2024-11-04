@@ -2,6 +2,7 @@
 	let message = "";
 	const backendUrl = "http://localhost:8000";
 	const socket = new WebSocket(`${backendUrl.replace("http", "ws")}/ws/data`);
+	let indicators = {};
 
 	async function fetchMessage() {
 		const response = await fetch(`${backendUrl}/`);
@@ -16,7 +17,7 @@
 	socket.onmessage = function(event) {
 		const data = JSON.parse(event.data);
 		console.log("Received data:", data);
-		// Update your frontend with the received data
+		indicators = data; // Update indicators with received data
 	};
 
 	socket.onclose = function(event) {
@@ -41,6 +42,14 @@
 
 	function closePilotValve() {
 		sendRequest("/pilot-valve/close");
+	}
+
+	function armIgnition() {
+		sendRequest("/pilot-valve/arm-ignition");
+	}
+
+	function startIgnitionSequence() {
+		sendRequest("/pilot-valve/start-ignition-sequence");
 	}
 
 	function openActiveVent() {
@@ -160,6 +169,19 @@
 		background-color: #E6B700; /* Darker yellow hover */
 	}
 
+	.indicator {
+		margin-top: 10px;
+		padding: 5px;
+		border-radius: 5px;
+		color: white;
+		font-weight: bold;
+	}
+	.indicator.open {
+		background-color: green;
+	}
+	.indicator.closed {
+		background-color: red;
+	}
 </style>
 
 <main class="text-center p-8">
@@ -171,12 +193,18 @@
 				<button class="button bg-blue-500 mr-2" on:click={openPilotValve}>Open</button>
 				<button class="button bg-red-500" on:click={closePilotValve}>Close</button>
 			</div>
+			<div class="indicator {indicators['pilot_valve'] === 'OPEN' ? 'open' : 'closed'}">
+				{indicators['pilot_valve']}
+			</div>
 		</div>
 		<div class="flex">
 			<h3 class="font-semibold text-lg mb-2">Active Vent</h3>
 			<div class="flex justify-center">
 				<button class="button bg-blue-500 mr-2" on:click={openActiveVent}>Open</button>
 				<button class="button bg-red-500" on:click={closeActiveVent}>Close</button>
+			</div>
+			<div class="indicator {indicators['active_vent'] === 'OPEN' ? 'open' : 'closed'}">
+				{indicators['active_vent']}
 			</div>
 		</div>
 		<div class="flex">
@@ -185,12 +213,18 @@
 				<button class="button bg-blue-500 mr-2" on:click={openFillValve}>Open</button>
 				<button class="button bg-red-500" on:click={closeFillValve}>Close</button>
 			</div>
+			<div class="indicator {indicators['fill_valve'] === 'OPEN' ? 'open' : 'closed'}">
+				{indicators['fill_valve']}
+			</div>
 		</div>
 		<div class="flex">
 			<h3 class="font-semibold text-lg mb-2">Dump Valve</h3>
 			<div class="flex justify-center">
 				<button class="button bg-blue-500 mr-2" on:click={openDumpValve}>Open</button>
 				<button class="button bg-red-500" on:click={closeDumpValve}>Close</button>
+			</div>
+			<div class="indicator {indicators['dump_valve'] === 'OPEN' ? 'open' : 'closed'}">
+				{indicators['dump_valve']}
 			</div>
 		</div>
 		<div class="flex">
@@ -206,6 +240,13 @@
 			<div class="flex justify-center">
 				<button class="button bg-blue-500 mr-2" on:click={startStreaming}>Start Streaming</button>
 				<button class="button bg-red-500" on:click={stopStreaming}>Stop Streaming</button>
+			</div>
+		</div>
+		<div class="flex">
+			<h3 class="font-semibold text-lg mb-2">Ignition Sequence</h3>
+			<div class="flex justify-center">
+				<button class="button bg-yellow-500 mr-2" on:click={armIgnition}>Arm Ignition</button>
+				<button class="button bg-red-500" on:click={startIgnitionSequence}>Start Ignition Sequence</button>
 			</div>
 		</div>
 	</div>
