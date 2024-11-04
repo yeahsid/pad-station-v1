@@ -11,23 +11,25 @@ install_package_if_needed() {
     fi
 }
 
-# Install Node.js dependencies
-echo "Installing Node.js dependencies..."
+# Install Node.js dependencies in frontend
+echo "Installing Node.js dependencies in frontend..."
+cd frontend
 npm install
+cd ..
 
-# Install Python dependencies
-echo "Setting up Python virtual environment..."
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-
-# Install Poetry
-echo "Installing Poetry..."
+# Install Poetry in backend
+echo "Installing Poetry in backend..."
 install_package_if_needed poetry
 
-# Install Python dependencies with Poetry
-echo "Installing Python dependencies with Poetry..."
+# Configure Poetry to create virtual environment in project directory
+echo "Configuring Poetry to create virtual environment in project directory..."
+cd backend
+poetry config virtualenvs.in-project true
+
+# Install Python dependencies with Poetry in backend
+echo "Installing Python dependencies with Poetry in backend..."
 poetry install
+cd ..
 
 # Install PM2 globally
 echo "Installing PM2 globally..."

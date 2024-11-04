@@ -13,23 +13,25 @@ function Install-PackageIfNeeded {
     }
 }
 
-# Install Node.js dependencies
-Write-Host "Installing Node.js dependencies..."
+# Install Node.js dependencies in frontend
+Write-Host "Installing Node.js dependencies in frontend..."
+Set-Location -Path "frontend"
 npm install
+Set-Location -Path ".."
 
-# Install Python dependencies
-Write-Host "Setting up Python virtual environment..."
-python -m venv venv
-.\venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-
-# Install Poetry
-Write-Host "Installing Poetry..."
+# Install Poetry in backend
+Write-Host "Installing Poetry in backend..."
 Install-PackageIfNeeded poetry
 
-# Install Python dependencies with Poetry
-Write-Host "Installing Python dependencies with Poetry..."
+# Configure Poetry to create virtual environment in project directory
+Write-Host "Configuring Poetry to create virtual environment in project directory..."
+Set-Location -Path "backend"
+poetry config virtualenvs.in-project true
+
+# Install Python dependencies with Poetry in backend
+Write-Host "Installing Python dependencies with Poetry in backend..."
 poetry install
+Set-Location -Path ".."
 
 # Install PM2 globally
 Write-Host "Installing PM2 globally..."

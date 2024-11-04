@@ -11,8 +11,9 @@ uninstall_package_if_installed() {
     fi
 }
 
-# Deactivate and remove Python virtual environment
-echo "Removing Python virtual environment..."
+# Deactivate and remove Python virtual environment in backend
+echo "Removing Python virtual environment in backend..."
+cd backend
 if [ -d "venv" ]; then
     deactivate 2>/dev/null
     rm -rf venv
@@ -20,21 +21,24 @@ else
     echo "Python virtual environment not found."
 fi
 
-# Uninstall Poetry
-echo "Uninstalling Poetry..."
+# Uninstall Poetry in backend
+echo "Uninstalling Poetry in backend..."
 uninstall_package_if_installed poetry
+cd ..
 
 # Uninstall PM2 globally
 echo "Uninstalling PM2 globally..."
 uninstall_package_if_installed pm2
 
-# Remove Node.js dependencies
-echo "Removing Node.js dependencies..."
+# Remove Node.js dependencies in frontend
+echo "Removing Node.js dependencies in frontend..."
+cd frontend
 if [ -d "node_modules" ]; then
     rm -rf node_modules
 else
     echo "Node.js dependencies not found."
 fi
+cd ..
 
 # Remove PM2 processes and ecosystem file
 echo "Removing PM2 processes and ecosystem file..."
