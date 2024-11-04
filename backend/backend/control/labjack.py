@@ -4,7 +4,7 @@ from labjack import ljm
 from labjack.ljm import LJMError
 import numpy as np
 from datetime import datetime, timedelta
-from backend.util.config import TARGET_SCAN_RATE
+from backend.util.config import TARGET_SCAN_RATE, FRONTEND_UPDATE_RATE
 
 class LabJack:
     """
@@ -102,7 +102,7 @@ class LabJack:
         try:
             real_scan_rate: float = ljm.eStreamStart(
                 handle=self._handle, 
-                scansPerRead=TARGET_SCAN_RATE // 2, 
+                scansPerRead=TARGET_SCAN_RATE // FRONTEND_UPDATE_RATE, 
                 numAddresses=len(addresses),
                 aScanList=addresses,
                 scanRate=TARGET_SCAN_RATE

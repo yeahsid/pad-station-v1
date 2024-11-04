@@ -49,7 +49,14 @@ class StreamingLoggingController:
         self.event_csv_file = open(event_csv_path, mode='w', newline='')
         self.event_csv_writer = csv.writer(self.event_csv_file)
         self.event_csv_writer.writerow(["time", "actuator", "position"])
+
+        # Start the polling and logging in a separate task
+        asyncio.create_task(self._poll_and_log_stream(converters))
         
+        # Return a response indicating that streaming has started
+        return
+
+    async def _poll_and_log_stream(self, converters):
         while self.streaming:
             data = self.labjack.read_stream()
             
@@ -67,17 +74,17 @@ class StreamingLoggingController:
             
             # Send the last row of data (latest timestamp) to the frontend
             latest_data = converted_data[-1]
-            print(f"Latest data: {latest_data}")  # Replace with actual logging and sending to frontend
+            print(f"Latest data: {latest_data}, data shape = {converted_data.shape}")  # Replace with actual logging and sending to frontend
 
-            await asyncio.sleep(1 / self.labjack.real_scan_rate * 0.9)  # Adjust sleep time based on the scan rate
+            await asyncio.sleep(1 / self.labjack.real_scan_rate * 0.1)  # Adjust sleep time based on the scan rate
 
     async def stop_streaming(self):
+        self.streaming = False
         self.labjack.stop_stream()
 
         for sensor in self.analog_sensors:
             sensor.streaming_value = None
 
-        self.streaming = False
         if self.csv_file:
             self.csv_file.close()
         if self.event_csv_file:
