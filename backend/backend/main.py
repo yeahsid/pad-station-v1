@@ -7,13 +7,27 @@ from backend.actuators.activeVent import ActiveVent
 from backend.actuators.hanbayValve import HanbayValve
 from backend.actuators.relay import Relay
 from backend.util.config import LabJackPeripherals
+import logging
+import os
+
+# Configure logging
+
+os.makedirs("logs", exist_ok=True)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)-34s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler("logs/backend.log"),
+        logging.StreamHandler()
+    ]
+)
 
 app = FastAPI()
 
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8080"],
+    allow_origins=["http://localhost:8080", "http://padstation-prod.goblin-decibel.ts.net:8080/", "*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

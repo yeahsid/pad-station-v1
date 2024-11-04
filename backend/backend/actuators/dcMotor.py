@@ -51,15 +51,15 @@ class DcMotor(AbstractActuator):
 
     async def wait_for_limit_switch(self, position: BinaryPosition):
         count = 0
-        last_state: DCMotorState = await self.limit_switch_sensor.read(position)
+        last_state: DCMotorState = await self.limit_switch_sensor.read()
 
-        self.trigger_actuated_event(last_state.value)
+        await self.trigger_actuated_event(last_state.value)
 
         while True:
-            state: DCMotorState = await self.limit_switch_sensor.read(position)
+            state: DCMotorState = await self.limit_switch_sensor.read()
 
             if state != last_state:
-                self.trigger_actuated_event(state.value)
+                await self.trigger_actuated_event(state.value)
                 last_state = state
 
             if state.value == position.value:

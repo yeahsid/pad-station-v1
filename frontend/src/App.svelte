@@ -1,6 +1,13 @@
 <script>
 	let message = "";
-	const backendUrl = "http://localhost:8000";
+	let backendUrl;
+
+	if (window.location.hostname === "localhost") {
+        backendUrl = "http://localhost:8000";
+    } else {
+        backendUrl = "http://padstation-prod.goblin-decibel.ts.net:8000";
+    }
+
 	const socket = new WebSocket(`${backendUrl.replace("http", "ws")}/ws/data`);
 	let indicators = {};
 
