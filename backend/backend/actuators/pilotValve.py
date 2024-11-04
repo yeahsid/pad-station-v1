@@ -12,6 +12,9 @@ class PilotValve(DcMotor):
                  limit_switch_open_pin: str, limit_switch_close_pin: str, safe_position: BinaryPosition,
                  ignitor_relay: Relay, limit_switch_sensor: DcMotorLimitSwitchSensor):
         
+        self.ignitor_relay = ignitor_relay
+        self.armed = False
+
         super().__init__(
             name=name,
             motor_enable_pin=motor_enable_pin,
@@ -22,15 +25,10 @@ class PilotValve(DcMotor):
             safe_position=safe_position
         )
         
-        self.ignitor_relay = ignitor_relay
-        self.armed = False
-
     logger = logging.getLogger(__name__)
 
     async def setup(self):
         await super().setup()
-        await self.ignitor_relay.setup()
-        self.logger.info(f"Pilot Valve {self.name} setup complete")
 
     async def actuate_valve(self, position: BinaryPosition):
         await self.move_motor_to_position(position, PILOT_VALVE_TIMEOUT)

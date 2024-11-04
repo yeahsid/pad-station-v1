@@ -10,14 +10,14 @@ from backend.util.config import LabJackPeripherals
 import logging
 import os
 
-# Configure logging
 
-os.makedirs("logs", exist_ok=True)
+# Configure logging
+os.makedirs("backend/logs", exist_ok=True)
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     format='%(asctime)s - %(name)-34s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler("logs/backend.log"),
+        logging.FileHandler("backend/logs/backend.log"),
         logging.StreamHandler()
     ]
 )

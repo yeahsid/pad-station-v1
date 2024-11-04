@@ -28,7 +28,7 @@ class PressureTransducer(AbstractAnalogSensor):
     def convert_array(self, raw_value_array: np.ndarray) -> np.ndarray:
         # Convert the raw voltage array to pressure
         pressure_array = (raw_value_array * PRESSURE_TRANSDUCER_CALIBRATION[1]) + PRESSURE_TRANSDUCER_CALIBRATION[0]
-        return np.round(np.asarray(pressure_array), 2)
+        return pressure_array.round(2)
 
     async def get_raw_value(self) -> float:
         # Read the raw voltage value from the LabJack

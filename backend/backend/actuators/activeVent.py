@@ -8,11 +8,11 @@ class ActiveVent(Servo):
     def __init__(self, name: str, pwm_pin: str, default_position: int, 
                  safe_position: int, power_relay: Relay):
         
-        super().__init__(name, pwm_pin, default_position, safe_position)
-
         self.power_relay = power_relay
         self.open_position = ACTIVE_VENT_OPEN_POSITION
         self.closed_position = ACTIVE_VENT_CLOSED_POSITION
+        
+        super().__init__(name, pwm_pin, default_position, safe_position)
 
     logger = logging.getLogger(__name__)
 

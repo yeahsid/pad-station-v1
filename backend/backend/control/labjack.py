@@ -110,6 +110,7 @@ class LabJack:
             self.real_scan_rate = real_scan_rate
             self.next_read_start_time = datetime.now()
             self.streaming_addresses = addresses
+            self.logger.debug(f"Streaming started with scan rate: {real_scan_rate}")
             return real_scan_rate
             
         except LJMError as e:

@@ -6,6 +6,7 @@ import numpy as np
 import csv
 from datetime import datetime
 import logging
+import os
 
 class StreamingLoggingController:
 
@@ -25,7 +26,7 @@ class StreamingLoggingController:
 
     def write_actuator_event_to_csv(self, actuator_name, position):
         if self.streaming:
-            event_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            event_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
             self.event_csv_writer.writerow([event_time, actuator_name, position])
 
     async def start_streaming(self):
@@ -34,13 +35,18 @@ class StreamingLoggingController:
         header = ["time"] + [sensor.name for sensor in self.analog_sensors]
         converters = [lambda x: x] + [sensor.convert for sensor in self.analog_sensors]
 
+        streaming_log_path = os.path.join(os.getcwd(), "backend/streaming")
+        os.makedirs(streaming_log_path, exist_ok=True)
+        streaming_csv_path = os.path.join(streaming_log_path, f"streaming_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv")
+        event_csv_path = os.path.join(streaming_log_path, f"event_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv")
+
         # Open the CSV file and write the header
-        self.csv_file = open(f"streaming_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv", mode='w', newline='')
+        self.csv_file = open(streaming_csv_path, mode='w', newline='')
         self.csv_writer = csv.writer(self.csv_file)
         self.csv_writer.writerow(header)
 
         # Open the event CSV file and write the header
-        self.event_csv_file = open(f"event_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv", mode='w', newline='')
+        self.event_csv_file = open(event_csv_path, mode='w', newline='')
         self.event_csv_writer = csv.writer(self.event_csv_file)
         self.event_csv_writer.writerow(["time", "actuator", "position"])
         
@@ -53,6 +59,9 @@ class StreamingLoggingController:
             for i, converter in enumerate(converters):
                 converted_data[:, i] = converter(data[:, i])
             
+            # Format timestamps to include milliseconds
+            converted_data[:, 0] = [timestamp.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3] for timestamp in converted_data[:, 0]]
+            
             # Write the converted data to the CSV file
             self.csv_writer.writerows(converted_data)
             
@@ -60,7 +69,7 @@ class StreamingLoggingController:
             latest_data = converted_data[-1]
             print(f"Latest data: {latest_data}")  # Replace with actual logging and sending to frontend
 
-            await asyncio.sleep(1 / self.labjack.real_scan_rate - 0.05)  # Adjust sleep time based on the scan rate
+            await asyncio.sleep(1 / self.labjack.real_scan_rate * 0.9)  # Adjust sleep time based on the scan rate
 
     async def stop_streaming(self):
         self.labjack.stop_stream()

@@ -38,7 +38,7 @@ class AbstractAnalogSensor(ABC):
         if isinstance(raw_value, float):
             return self.convert_single(raw_value)
         elif isinstance(raw_value, np.ndarray):
-            return self.convert_array(raw_value)
+            return self.convert_array(raw_value.astype(float))
         else:
             raise TypeError("Unsupported type for raw_value")
 
