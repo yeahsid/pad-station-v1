@@ -3,6 +3,7 @@ import logging
 from backend.control.labjack import LabJack
 import re
 from enum import Enum
+import asyncio
 
 class AbstractAnalogSensor(ABC):
 
@@ -16,7 +17,13 @@ class AbstractAnalogSensor(ABC):
         self.streaming_value = None
 
         try:
-            self.setup()
+            try:
+                # Check for an existing event loop
+                loop = asyncio.get_running_loop()
+                loop.create_task(self.setup())  # Schedule setup in the running loop
+            except RuntimeError:
+                # If no loop is running, use asyncio.run()
+                asyncio.run(self.setup())
             self.logger.info(f"Sensor {self.name} setup complete")
         except Exception as e:
             self.logger.error(f"Sensor {self.name} setup failed: {e}")
@@ -50,7 +57,13 @@ class AbstractDigitalSensor(ABC):
         self.labjack = LabJack()  # Access the singleton instance directly
 
         try:
-            self.setup()
+            try:
+                # Check for an existing event loop
+                loop = asyncio.get_running_loop()
+                loop.create_task(self.setup())  # Schedule setup in the running loop
+            except RuntimeError:
+                # If no loop is running, use asyncio.run()
+                asyncio.run(self.setup())
             self.logger.info(f"Sensor {self.name} setup complete")
         except Exception as e:
             self.logger.error(f"Sensor {self.name} setup failed: {e}")

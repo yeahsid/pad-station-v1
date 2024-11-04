@@ -1,32 +1,36 @@
-from dataclasses import dataclass
 import logging
 from backend.actuators.dcMotor import DcMotor
 from backend.util.constants import BinaryPosition
 from backend.actuators.relay import Relay
 import asyncio
 from backend.util.config import PILOT_VALVE_TIMEOUT
+from backend.sensors.dcMotorLimitSwitchSensor import DcMotorLimitSwitchSensor
 
-@dataclass
 class PilotValve(DcMotor):
-    name: str
-    motor_enable_pin: str
-    motor_in_pins: tuple[str, str]
-    limit_switch_open_pin: str
-    limit_switch_close_pin: str
-    ignitor_relay: Relay
-    armed: bool = False
 
-    def __post_init__(self):
+    def __init__(self, name: str, motor_enable_pin: str, motor_in_pins: tuple[str, str], 
+                 limit_switch_open_pin: str, limit_switch_close_pin: str, safe_position: BinaryPosition,
+                 ignitor_relay: Relay, limit_switch_sensor: DcMotorLimitSwitchSensor):
+        
         super().__init__(
-            name=self.name, 
-            motor_enable_pin=self.motor_enable_pin, 
-            motor_in_pins=self.motor_in_pins, 
-            limit_switch_open_pin=self.limit_switch_open_pin, 
-            limit_switch_close_pin=self.limit_switch_close_pin, 
-            safe_position=BinaryPosition.CLOSE
+            name=name,
+            motor_enable_pin=motor_enable_pin,
+            motor_in_pins=motor_in_pins,
+            limit_switch_open_pin=limit_switch_open_pin,
+            limit_switch_close_pin=limit_switch_close_pin,
+            limit_switch_sensor=limit_switch_sensor,
+            safe_position=safe_position
         )
+        
+        self.ignitor_relay = ignitor_relay
+        self.armed = False
 
     logger = logging.getLogger(__name__)
+
+    async def setup(self):
+        await super().setup()
+        await self.ignitor_relay.setup()
+        self.logger.info(f"Pilot Valve {self.name} setup complete")
 
     async def actuate_valve(self, position: BinaryPosition):
         await self.move_motor_to_position(position, PILOT_VALVE_TIMEOUT)
@@ -53,6 +57,6 @@ class PilotValve(DcMotor):
         self.logger.info("Aborting ignition sequence")
         await asyncio.gather(
             self.ignitor_relay.reset(),
-            await self.move_motor_to_position(BinaryPosition.CLOSE, PILOT_VALVE_TIMEOUT)
+            self.move_motor_to_position(BinaryPosition.CLOSE, PILOT_VALVE_TIMEOUT)
         )
         self.logger.info("Ignition sequence aborted")

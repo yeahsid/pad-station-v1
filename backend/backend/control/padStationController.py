@@ -113,6 +113,7 @@ class PadStationController:
                 LabJackPeripherals.PILOT_VALVE_LIMIT_SWITCH_TOP_PIN.value,
                 LabJackPeripherals.PILOT_VALVE_LIMIT_SWITCH_BOTTOM_PIN.value,
                 safe_position=BinaryPosition.CLOSE,
+                limit_switch_sensor=self.digital_sensors[LabJackPeripherals.PILOT_VALVE.value],
                 ignitor_relay=relays[LabJackPeripherals.IGNITOR_RELAY.value]
             ),
             LabJackPeripherals.ACTIVE_VENT.value: ActiveVent(

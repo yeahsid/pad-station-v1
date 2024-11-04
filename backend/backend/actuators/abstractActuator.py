@@ -14,7 +14,13 @@ class AbstractActuator(ABC):
         self.event_handlers = []
 
         try:
-            asyncio.run(self.setup())
+            try:
+                # Check for an existing event loop
+                loop = asyncio.get_running_loop()
+                loop.create_task(self.setup())  # Schedule setup in the running loop
+            except RuntimeError:
+                # If no loop is running, use asyncio.run()
+                asyncio.run(self.setup())
             self.logger.info(f"{self.name} setup complete")
         except Exception as e:
             self.logger.error(f"{self.name} setup failed: {e}")
