@@ -23,7 +23,7 @@ class PadStationController:
         self.digital_sensors: dict[str, AbstractDigitalSensor] = self._initialize_digital_sensors()
         self.analog_sensors: dict[str, AbstractAnalogSensor] = self._initialize_analog_sensors()
         self.actuators: dict[str, AbstractActuator] = self._initialize_actuators()
-        self.streaming_controller = StreamingLoggingController(self.actuators, self.analog_sensors, self.digital_sensors)
+        self.streaming_controller = StreamingLoggingController(self.actuators.values(), self.analog_sensors.values(), self.digital_sensors.values())
         self.actuated_event = asyncio.Event()
 
         for actuator in self.actuators.values():

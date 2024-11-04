@@ -4,6 +4,7 @@ import logging
 from backend.sensors.abstractSensors import AbstractAnalogSensor
 from backend.util.config import PRESSURE_TRANSDUCER_CALIBRATION
 from backend.sensors.abstractSensors import extract_number_from_ain
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -19,10 +20,15 @@ class PressureTransducer(AbstractAnalogSensor):
     async def setup(self):
         pass  # No setup required for pressure transducer
 
-    def convert(self, raw_value: float) -> float:
+    def convert_single(self, raw_value: float) -> float:
         # Convert the raw voltage value to pressure
         pressure = (raw_value * PRESSURE_TRANSDUCER_CALIBRATION[1]) + PRESSURE_TRANSDUCER_CALIBRATION[0]
-        return round(pressure, 2)
+        return np.round(pressure, 2)
+    
+    def convert_array(self, raw_value_array: np.ndarray) -> np.ndarray:
+        # Convert the raw voltage array to pressure
+        pressure_array = (raw_value_array * PRESSURE_TRANSDUCER_CALIBRATION[1]) + PRESSURE_TRANSDUCER_CALIBRATION[0]
+        return np.round(np.asarray(pressure_array), 2)
 
     async def get_raw_value(self) -> float:
         # Read the raw voltage value from the LabJack

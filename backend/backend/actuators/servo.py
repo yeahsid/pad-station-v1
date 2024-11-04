@@ -18,9 +18,11 @@ class Servo(AbstractActuator):
     async def setup(self):
         # Configure PWM Functionality
         # Should be 80 Hz signal? Ask Ben McDonald so he can tell you what to do
-        # Disable clock source
-        await self.labjack.write("DIO_EF_CLOCK0_ENABLE", 0)
-        await self.labjack.write("DIO_EF_CLOCK0_ENABLE", 1)
+        # 80 MHz / 1 / 1000000 = 80 Hz (within the 50-330Hz range of the servo)
+        await self.labjack.write("DIO_EF_CLOCK0_ENABLE", 0) # Disable clock source
+        await self.labjack.write("DIO_EF_CLOCK0_DIVISOR", 1) # Dont divide the clock?
+        await self.labjack.write("DIO_EF_CLOCK0_ROLL_VALUE", 1000000) # 1 million ticks of clock before it rolls over
+        await self.labjack.write("DIO_EF_CLOCK0_ENABLE", 1) # Enable clock source
 
         # Configure EF (Extended Features) Channel Registers:
         # Disable the EF system for initial configuration

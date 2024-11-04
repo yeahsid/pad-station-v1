@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 import logging
+import numpy as np
 from backend.sensors.abstractSensors import AbstractAnalogSensor, extract_number_from_ain
 
 logger = logging.getLogger(__name__)
@@ -20,8 +21,11 @@ class Thermocouple(AbstractAnalogSensor):
         await self.labjack.write(f"{self.pin}_EF_CONFIG_D", 1.0) # CJC Coefficient  
         await self.labjack.write(f"{self.pin}_EF_CONFIG_E", 0.0) # CJC Offset
 
-    def convert(self, raw_value: float) -> float:
-        return round(raw_value, 2)
+    def convert_single(self, raw_value: float) -> float:
+        return np.round(raw_value, 2)
+    
+    def convert_array(self, raw_value_array: np.ndarray) -> np.ndarray:
+        return raw_value_array.round(2)
 
     async def get_raw_value(self) -> float:
         temperature = await self.labjack.read(f"{self.pin}_EF_READ_A")

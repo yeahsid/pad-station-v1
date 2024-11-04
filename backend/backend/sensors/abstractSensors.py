@@ -4,6 +4,7 @@ from backend.control.labjack import LabJack
 import re
 from enum import Enum
 import asyncio
+import numpy as np
 
 class AbstractAnalogSensor(ABC):
 
@@ -33,8 +34,20 @@ class AbstractAnalogSensor(ABC):
     async def setup(self):
         pass
 
+    def convert(self, raw_value: float | np.ndarray) -> float | np.ndarray:
+        if isinstance(raw_value, float):
+            return self.convert_single(raw_value)
+        elif isinstance(raw_value, np.ndarray):
+            return self.convert_array(raw_value)
+        else:
+            raise TypeError("Unsupported type for raw_value")
+
     @abstractmethod
-    def convert(self, raw_value: float) -> float:
+    def convert_single(self, raw_value: float) -> float:
+        pass
+
+    @abstractmethod
+    def convert_array(self, raw_value_array: np.ndarray) -> np.ndarray:
         pass
 
     @abstractmethod
