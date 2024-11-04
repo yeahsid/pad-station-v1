@@ -1,6 +1,4 @@
 <script>
-	export let name;
-
 	let message = "";
 	const backendUrl = "http://localhost:8000";
 	const socket = new WebSocket(`${backendUrl.replace("http", "ws")}/ws/data`);
@@ -92,52 +90,123 @@
 	fetchMessage();
 </script>
 
-<main>
-	<h1>Hello {name}!</h1>
-	<p>Visit the <a href="https://svelte.dev/tutorial">Svelte tutorial</a> to learn how to build Svelte apps.</p>
-	<p>{message}</p>
-	<div>
-		<h2>Control Panel</h2>
-		<button on:click={openPilotValve}>Open Pilot Valve</button>
-		<button on:click={closePilotValve}>Close Pilot Valve</button>
-		<button on:click={openActiveVent}>Open Active Vent</button>
-		<button on:click={closeActiveVent}>Close Active Vent</button>
-		<button on:click={openFillValve}>Open Fill Valve</button>
-		<button on:click={closeFillValve}>Close Fill Valve</button>
-		<button on:click={openDumpValve}>Open Dump Valve</button>
-		<button on:click={closeDumpValve}>Close Dump Valve</button>
-		<button on:click={pulseIgnitorRelay}>Pulse Ignitor Relay</button>
-		<button on:click={pulseQdRelay}>Pulse QD Relay</button>
-		<button on:click={pulseExtraRelay}>Pulse Extra Relay</button>
-		<button on:click={startStreaming}>Start Streaming</button>
-		<button on:click={stopStreaming}>Stop Streaming</button>
-	</div>
-</main>
-
 <style>
 	main {
-		text-align: center;
-		padding: 1em;
-		max-width: 240px;
-		margin: 0 auto;
+		background-color: #f9f9f9;
+		border-radius: 10px;
+		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+		margin: auto;
+		padding: 20px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
 	}
 
-	h1 {
-		color: #ff3e00;
-		text-transform: uppercase;
-		font-size: 4em;
-		font-weight: 100;
+	h2 {
+		color: #333;
 	}
 
-	@media (min-width: 640px) {
-		main {
-			max-width: none;
-		}
+	h3 {
+		color: #555;
 	}
 
-	button {
-		margin: 0.5em;
-		padding: 0.5em 1em;
-		font-size: 1em;
+	.grid {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 20px;
 	}
+
+	.flex {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.button {
+		border-radius: 8px;
+		padding: 10px 20px;
+		color: white;
+		font-weight: bold;
+		border: none;
+		cursor: pointer;
+		transition: background-color 0.3s, transform 0.3s;
+	}
+
+	.button:hover {
+		transform: scale(1.05);
+	}
+
+	.bg-blue-500 {
+		background-color: #2890ff; /* Brighter blue */
+	}
+
+	.bg-blue-500:hover {
+		background-color: #0056b3; /* Darker blue hover */
+	}
+
+	.bg-red-500 {
+		background-color: #da644a; /* Brighter red */
+	}
+
+	.bg-red-500:hover {
+		background-color: #C0392B; /* Darker red hover */
+	}
+
+	.bg-yellow-500 {
+		background-color: #FFC300; /* Brighter yellow */
+	}
+
+	.bg-yellow-500:hover {
+		background-color: #E6B700; /* Darker yellow hover */
+	}
+
 </style>
+
+<main class="text-center p-8">
+	<h2 class="text-3xl font-bold mb-6">Pad Station Control Panel</h2>
+	<div class="grid">
+		<div class="flex">
+			<h3 class="font-semibold text-lg mb-2">Pilot Valve</h3>
+			<div class="flex justify-center">
+				<button class="button bg-blue-500 mr-2" on:click={openPilotValve}>Open</button>
+				<button class="button bg-red-500" on:click={closePilotValve}>Close</button>
+			</div>
+		</div>
+		<div class="flex">
+			<h3 class="font-semibold text-lg mb-2">Active Vent</h3>
+			<div class="flex justify-center">
+				<button class="button bg-blue-500 mr-2" on:click={openActiveVent}>Open</button>
+				<button class="button bg-red-500" on:click={closeActiveVent}>Close</button>
+			</div>
+		</div>
+		<div class="flex">
+			<h3 class="font-semibold text-lg mb-2">Fill Valve</h3>
+			<div class="flex justify-center">
+				<button class="button bg-blue-500 mr-2" on:click={openFillValve}>Open</button>
+				<button class="button bg-red-500" on:click={closeFillValve}>Close</button>
+			</div>
+		</div>
+		<div class="flex">
+			<h3 class="font-semibold text-lg mb-2">Dump Valve</h3>
+			<div class="flex justify-center">
+				<button class="button bg-blue-500 mr-2" on:click={openDumpValve}>Open</button>
+				<button class="button bg-red-500" on:click={closeDumpValve}>Close</button>
+			</div>
+		</div>
+		<div class="flex">
+			<h3 class="font-semibold text-lg mb-2">Relays</h3>
+			<div class="flex justify-center">
+				<button class="button bg-yellow-500 mr-2" on:click={pulseIgnitorRelay}>Pulse Ignitor</button>
+				<button class="button bg-yellow-500 mr-2" on:click={pulseQdRelay}>Pulse QD</button>
+				<button class="button bg-yellow-500" on:click={pulseExtraRelay}>Pulse Extra</button>
+			</div>
+		</div>
+		<div class="flex">
+			<h3 class="font-semibold text-lg mb-2">Streaming</h3>
+			<div class="flex justify-center">
+				<button class="button bg-blue-500 mr-2" on:click={startStreaming}>Start Streaming</button>
+				<button class="button bg-red-500" on:click={stopStreaming}>Stop Streaming</button>
+			</div>
+		</div>
+	</div>
+</main>
