@@ -114,7 +114,7 @@
 		} else if (type === 'DCmotorState') {
 			if (state === 'OPEN') {
 				return 'button_blue';
-			} else if (state === 'CLOSED') {
+			} else if (state === 'CLOSE') {
 				return 'button_red';
 			} else {
 				return 'button_yellow';
