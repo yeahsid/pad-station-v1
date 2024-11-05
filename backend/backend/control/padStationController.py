@@ -15,6 +15,7 @@ from backend.util.config import *
 from backend.util.constants import BinaryPosition
 import asyncio
 import logging
+import time
 
 class PadStationController:
     def __init__(self):
@@ -23,8 +24,9 @@ class PadStationController:
         self.digital_sensors: dict[str, AbstractDigitalSensor] = self._initialize_digital_sensors()
         self.analog_sensors: dict[str, AbstractAnalogSensor] = self._initialize_analog_sensors()
         self.actuators: dict[str, AbstractActuator] = self._initialize_actuators()
-        self.streaming_controller = StreamingLoggingController(self.actuators.values(), self.analog_sensors.values(), self.digital_sensors.values())
         self.actuated_event = asyncio.Event()
+        self.streaming_controller = StreamingLoggingController(self.actuators.values(), self.analog_sensors.values(), self.digital_sensors.values(), self.actuated_event)
+
 
         for actuator in self.actuators.values():
             actuator.register_event_handler(self.actuated_event_handler)
@@ -131,18 +133,32 @@ class PadStationController:
         await self.streaming_controller.stop_streaming()
 
     async def gather_and_compile_data_frontend(self):
+        start = time.time()
         # Wait for the event or timeout
+        waiting_actuated_event_time = time.time()
         try:
+            start = time.time()
             await asyncio.wait_for(self.actuated_event.wait(), timeout=1 / FRONTEND_UPDATE_RATE)
+            waiting_actuated_event_time = time.time()
+            self.logger.debug(f"Waited for actuated event for {waiting_actuated_event_time - start} seconds")
         except asyncio.TimeoutError:
             pass
+            waiting_actuated_event_time = time.time()
+            self.logger.debug(f"Timeout for actuated event for {waiting_actuated_event_time - start} seconds")
         finally:
             self.actuated_event.clear()
-
+            clearing_actuated_event_time = time.time()
+            self.logger.debug(f"Clearing actuated event took {clearing_actuated_event_time - waiting_actuated_event_time} seconds")
+        
         # Compile data from sensors and actuators
         compiled_data = {}
         for sensor in self.analog_sensors.values():
             compiled_data[sensor.name] = await sensor.read()
+        analog_sensor_time = time.time()
+        self.logger.debug(f"Reading analog sensors took {analog_sensor_time - waiting_actuated_event_time} seconds")
+
         for sensor in self.digital_sensors.values():
             compiled_data[sensor.name] = (await sensor.read()).name
+        digital_sensor_time = time.time()
+        self.logger.debug(f"Reading digital sensors took {digital_sensor_time - analog_sensor_time} seconds")
         return compiled_data

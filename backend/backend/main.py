@@ -81,7 +81,9 @@ async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     try:
         while True:
-            data = await pad_station_controller.gather_and_compile_data_frontend()
+            # Create a separate task for gathering and compiling data
+            data_task = asyncio.create_task(pad_station_controller.gather_and_compile_data_frontend())
+            data = await data_task
             await websocket.send_json(data)
     except WebSocketDisconnect:
         logger.warning("Data WebSocket connection closed.")

@@ -10,11 +10,12 @@ import os
 
 class StreamingLoggingController:
 
-    def __init__(self, actuators: list[AbstractActuator], analog_sensors: list[AbstractAnalogSensor], digital_sensors: list[AbstractDigitalSensor]):
+    def __init__(self, actuators: list[AbstractActuator], analog_sensors: list[AbstractAnalogSensor], digital_sensors: list[AbstractDigitalSensor], stream_scan_complete_event: asyncio.Event):
         self.labjack = LabJack()  # Access the singleton instance directly
         self.actuators = actuators
         self.analog_sensors = analog_sensors
         self.digital_sensors = digital_sensors
+        self.stream_scan_complete_event = stream_scan_complete_event
 
         self.streaming = False
         self.stream_csv_file = None
@@ -80,7 +81,8 @@ class StreamingLoggingController:
             for i, sensor in enumerate(self.analog_sensors):
                 sensor.set_streaming(latest_data[i + 1])
 
-            await asyncio.sleep(1 / self.labjack.real_scan_rate * 0.1)  # Adjust sleep time based on the scan rate
+            self.stream_scan_complete_event.set()
+            await asyncio.sleep(1 / self.labjack.real_scan_rate)  # Adjust sleep time based on the scan rate
 
     async def stop_streaming(self):
         self.streaming = False
