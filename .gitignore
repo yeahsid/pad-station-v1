@@ -4,9 +4,6 @@ node_modules/
 # Build directories
 */public/build/
 
-# Svelte files
-*.svelte
-
 # Virtual environment
 venv/
 /venv/

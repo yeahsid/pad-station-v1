@@ -1,4 +1,4 @@
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI, WebSocket, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from backend.control.padStationController import PadStationController
 from backend.util.constants import BinaryPosition
@@ -9,7 +9,7 @@ from backend.actuators.relay import Relay
 from backend.util.config import LabJackPeripherals
 import logging
 import os
-
+import asyncio
 
 # Configure logging
 os.makedirs("backend/logs", exist_ok=True)
@@ -54,6 +54,20 @@ async def websocket_endpoint(websocket: WebSocket):
         print(f"WebSocket connection closed: {e}")
     finally:
         await websocket.close()
+
+@app.websocket("/ws/logs")
+async def websocket_logs(websocket: WebSocket):
+    await websocket.accept()
+    log_file_path = "backend/logs/backend.log"
+    with open(log_file_path, "r") as log_file:
+        log_file.seek(0, os.SEEK_END)  # Move to the end of the file
+        while True:
+            line = log_file.readline()
+            line = line[63:]
+            if line:
+                await websocket.send_text(line)
+            else:
+                await asyncio.sleep(0.1)  # Sleep briefly to avoid busy-waiting
 
 @app.post("/pilot-valve/open")
 async def open_pilot_valve():
@@ -130,3 +144,9 @@ async def start_streaming():
 async def stop_streaming():
     await pad_station_controller.stop_streaming()
     return {"status": "Streaming stopped"}
+
+@app.get("/logs")
+async def get_logs():
+    with open("backend/logs/backend.log", "r") as log_file:
+        lines = log_file.readlines()
+        return {"logs": lines[-10:]}

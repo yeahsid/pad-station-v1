@@ -1,4 +1,7 @@
 <script>
+	import LogPanel from './components/LogPanel.svelte';
+	import Controls from './components/Controls.svelte';
+
 	let message = "";
 	let backendUrl;
 
@@ -109,15 +112,62 @@
 		if (type === 'BinaryPosition') {
 			return state === 'OPEN' ? 'button_blue' : 'button_red';
 		} else if (type === 'DCmotorState') {
-			return state === 'RUNNING' ? 'green' : 'red';
+			if (state === 'OPEN') {
+				return 'button_blue';
+			} else if (state === 'CLOSED') {
+				return 'button_red';
+			} else {
+				return 'button_yellow';
+			}
 		} else if (type === 'HanbayValveState') {
-			return state === 'IN_POSITION' ? 'green' : 'red';
+			if (state === 'IN_POSITION') {
+				return 'button_blue';
+			} else if (state === 'MOVING') {
+				return 'button_yellow';
+			} else if (state === 'STALLED') {
+				return 'button_red';
+			} else {
+				return 'button_grey';
+			}
 		}
 		return 'yellow';
+	}
+
+	let backend_logs = [];
+
+	const logSocket = new WebSocket(`${backendUrl.replace("http", "ws")}/ws/logs`);
+
+	logSocket.onmessage = function(event) {
+		const log = event.data;
+		backend_logs = [...backend_logs, log].slice(-10); // Keep only the last 10 logs
+	};
+
+	logSocket.onerror = function(error) {
+		console.error("WebSocket error:", error);
+	};
+
+	function getLogClass(log) {
+		if (log.startsWith("INFO")) {
+			return "log-info";
+		} else if (log.startsWith("WARNING")) {
+			return "log-warning";
+		} else if (log.startsWith("ERROR")) {
+			return "log-error";
+		}
+		return "";
 	}
 </script>
 
 <style>
+	:root {
+		--blue-500: #2890ff;
+		--blue-500-hover: #0056b3;
+		--red-500: #da644a;
+		--red-500-hover: #C0392B;
+		--yellow-500: #FFC300;
+		--yellow-500-hover: #E6B700;
+	}
+
 	main {
 		background-color: #f9f9f9;
 		border-radius: 10px;
@@ -125,153 +175,43 @@
 		margin: auto;
 		padding: 20px;
 		display: flex;
-		flex-direction: column;
-		align-items: center;
+		flex-direction: row;
+		align-items: flex-start;
 		justify-content: center;
 	}
 
-	h2 {
-		color: #333;
-	}
-
-	h3 {
-		color: #555;
-	}
-
-	.grid {
-		display: grid;
-		grid-template-columns: repeat(2, 1fr);
-		gap: 20px;
-	}
-
-	.flex {
+	.main-container {
 		display: flex;
-		flex-direction: column;
 	}
 
-	.button {
-		border-radius: 8px;
-		padding: 10px 20px;
-		color: white;
-		font-weight: bold;
-		border: none;
-		cursor: pointer;
-		transition: background-color 0.3s, transform 0.3s;
-	}
-
-	.button:hover {
-		transform: scale(1.05);
-	}
-
-	.bg-blue-500 {
-		background-color: #2890ff; /* Brighter blue */
-	}
-
-	.bg-blue-500:hover {
-		background-color: #0056b3; /* Darker blue hover */
-	}
-
-	.bg-red-500 {
-		background-color: #da644a; /* Brighter red */
-	}
-
-	.bg-red-500:hover {
-		background-color: #C0392B; /* Darker red hover */
-	}
-
-	.bg-yellow-500 {
-		background-color: #FFC300; /* Brighter yellow */
-	}
-
-	.bg-yellow-500:hover {
-		background-color: #E6B700; /* Darker yellow hover */
-	}
-
-	.indicator {
-		margin-top: 10px;
-		padding: 5px;
-		border-radius: 5px;
-		color: white;
-		font-weight: bold;
-	}
-	.indicator.button_blue {
-		background-color: bg-blue-500;
-	}
-	.indicator.button_red {
-		background-color: bg-red-500;
-	}
-	.indicator.green {
-		background-color: green;
-	}
-	.indicator.yellow {
-		background-color: yellow;
-	}
-	.indicator.red {
-		background-color: red;
+	.title {
+		text-align: center;
+		width: 100%;
 	}
 </style>
 
+<h2 class="text-3xl font-bold mb-6 title">Pad Station Control Panel</h2>
 <main class="text-center p-8">
-	<h2 class="text-3xl font-bold mb-6">Pad Station Control Panel</h2>
-	<div class="grid">
-		<div class="flex">
-			<h3 class="font-semibold text-lg mb-2">Pilot Valve</h3>
-			<div class="flex justify-center">
-				<button class="button bg-blue-500 mr-2" on:click={openPilotValve}>Open</button>
-				<button class="button bg-red-500" on:click={closePilotValve}>Close</button>
-			</div>
-			<div class="indicator {getIndicatorClass(indicators['Pilot Valve'], 'BinaryPosition')}">
-				{indicators['Pilot Valve']}
-			</div>
-		</div>
-		<div class="flex">
-			<h3 class="font-semibold text-lg mb-2">Active Vent</h3>
-			<div class="flex justify-center">
-				<button class="button bg-blue-500 mr-2" on:click={openActiveVent}>Open</button>
-				<button class="button bg-red-500" on:click={closeActiveVent}>Close</button>
-			</div>
-		</div>
-		<div class="flex">
-			<h3 class="font-semibold text-lg mb-2">Fill Valve</h3>
-			<div class="flex justify-center">
-				<button class="button bg-blue-500 mr-2" on:click={openFillValve}>Open</button>
-				<button class="button bg-red-500" on:click={closeFillValve}>Close</button>
-			</div>
-			<div class="indicator {getIndicatorClass(indicators['Fill Valve'], 'HanbayValveState')}">
-				{indicators['Fill Valve']}
-			</div>
-		</div>
-		<div class="flex">
-			<h3 class="font-semibold text-lg mb-2">Dump Valve</h3>
-			<div class="flex justify-center">
-				<button class="button bg-blue-500 mr-2" on:click={openDumpValve}>Open</button>
-				<button class="button bg-red-500" on:click={closeDumpValve}>Close</button>
-			</div>
-			<div class="indicator {indicators['Dump Valve'] === 'OPEN' ? 'open' : 'closed'}">
-				{indicators['Dump Valve']}
-			</div>
-		</div>
-		<div class="flex">
-			<h3 class="font-semibold text-lg mb-2">Relays</h3>
-			<div class="flex justify-center">
-				<button class="button bg-yellow-500 mr-2" on:click={pulseIgnitorRelay}>Pulse Ignitor</button>
-				<button class="button bg-yellow-500 mr-2" on:click={pulseQdRelay}>Pulse QD</button>
-				<button class="button bg-yellow-500" on:click={pulseExtraRelay}>Pulse Extra</button>
-			</div>
-		</div>
-		<div class="flex">
-			<h3 class="font-semibold text-lg mb-2">Streaming</h3>
-			<div class="flex justify-center">
-				<button class="button bg-blue-500 mr-2" on:click={startStreaming}>Start Streaming</button>
-				<button class="button bg-red-500" on:click={stopStreaming}>Stop Streaming</button>
-			</div>
-		</div>
-		<div class="flex">
-			<h3 class="font-semibold text-lg mb-2">Ignition Sequence</h3>
-			<div class="flex justify-center">
-				<button class="button bg-yellow-500 mr-2" on:click={armIgnition}>Arm Ignition</button>
-				<button class="button bg-red-500" on:click={startIgnitionSequence}>Start Ignition Sequence</button>
-			</div>
-		</div>
+	<div class="main-container">
+		<LogPanel {backend_logs} {getLogClass} />
+		<Controls
+			{indicators}
+			{getIndicatorClass}
+			{openPilotValve}
+			{closePilotValve}
+			{openActiveVent}
+			{closeActiveVent}
+			{openFillValve}
+			{closeFillValve}
+			{openDumpValve}
+			{closeDumpValve}
+			{pulseIgnitorRelay}
+			{pulseQdRelay}
+			{pulseExtraRelay}
+			{startStreaming}
+			{stopStreaming}
+			{armIgnition}
+			{startIgnitionSequence}
+		/>
 	</div>
 </main>
