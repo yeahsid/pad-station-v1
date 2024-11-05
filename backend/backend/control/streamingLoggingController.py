@@ -7,6 +7,8 @@ import csv
 from datetime import datetime
 import logging
 import os
+import time
+from concurrent.futures import ThreadPoolExecutor
 
 class StreamingLoggingController:
 
@@ -24,6 +26,7 @@ class StreamingLoggingController:
         self.event_csv_writer = None
 
         self.logger = logging.getLogger(__name__)
+        self.executor = ThreadPoolExecutor(max_workers=1)
 
     def write_actuator_event_to_csv(self, actuator_name, position):
         if self.streaming:
@@ -55,12 +58,13 @@ class StreamingLoggingController:
         self.event_csv_writer = csv.writer(self.event_csv_file)
         self.event_csv_writer.writerow(["time", "actuator", "position"])
 
-        # Start the polling and logging in a separate task
-        asyncio.create_task(self._poll_and_log_stream(converters))
+        # Start the polling and logging in a separate thread
+        loop = asyncio.get_event_loop()
+        loop.run_in_executor(self.executor, self._poll_and_log_stream, converters)
         
         self.logger.info(f"Streaming started at: {scan_rate:.2f} Hz")
 
-    async def _poll_and_log_stream(self, converters):
+    def _poll_and_log_stream(self, converters):
         while self.streaming:
             data = self.labjack.read_stream()
             
@@ -82,7 +86,7 @@ class StreamingLoggingController:
                 sensor.set_streaming(latest_data[i + 1])
 
             self.stream_scan_complete_event.set()
-            await asyncio.sleep(1 / self.labjack.real_scan_rate)  # Adjust sleep time based on the scan rate
+            time.sleep(1 / self.labjack.real_scan_rate)  # Adjust sleep time based on the scan rate
 
     async def stop_streaming(self):
         self.streaming = False
