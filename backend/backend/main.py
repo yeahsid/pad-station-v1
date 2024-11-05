@@ -11,15 +11,45 @@ import logging
 import os
 import asyncio
 import re
+from typing import Set
+
+class WebSocketHandler(logging.Handler):
+    def __init__(self):
+        super().__init__()
+        self.active_websockets: Set[WebSocket] = set()
+
+    def add_websocket(self, websocket: WebSocket):
+        self.active_websockets.add(websocket)
+
+    def remove_websocket(self, websocket: WebSocket):
+        self.active_websockets.discard(websocket)
+
+    def emit(self, record: logging.LogRecord):
+        message = self.format(record)
+        asyncio.create_task(self.send_to_websockets(message))
+
+    async def send_to_websockets(self, message: str):
+        websockets = list(self.active_websockets)
+        for websocket in websockets:
+            try:
+                await websocket.send_text(message)
+            except Exception:
+                self.remove_websocket(websocket)
 
 # Configure logging
 os.makedirs("backend/logs", exist_ok=True)
+websocket_handler = WebSocketHandler()
+websocket_handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(levelname)s - %(message)s')
+websocket_handler.setFormatter(formatter)
+
 logging.basicConfig(
     level=logging.DEBUG,
     format='%(asctime)s - %(name)-34s - %(levelname)s - %(message)s',
     handlers=[
         logging.FileHandler("backend/logs/backend.log"),
-        logging.StreamHandler()
+        logging.StreamHandler(),
+        websocket_handler  # Add the custom WebSocketHandler
     ]
 )
 
@@ -59,32 +89,13 @@ async def websocket_endpoint(websocket: WebSocket):
 @app.websocket("/ws/logs")
 async def websocket_logs(websocket: WebSocket):
     await websocket.accept()
-    log_file_path = "backend/logs/backend.log"
-    # Define a regex pattern to match the log line
-    log_pattern = re.compile(r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3} - [\w\.]+\s+- (\w+)\s+-\s+(.+)$')
-    with open(log_file_path, "r") as log_file:
-        log_file.seek(0, os.SEEK_END)  # Move to the end of the file
-        try:
-            while True:
-                line = log_file.readline()
-                if line:
-                    line = line.strip()
-                    # Use regex to parse the log line
-                    match = log_pattern.match(line)
-                    if match:
-                        level = match.group(1)
-                        message = match.group(2)
-                        # Only send if level is higher than DEBUG
-                        if level != "DEBUG":
-                            await websocket.send_text(f"{level} - {message}")
-                else:
-                    try:
-                        await asyncio.wait_for(websocket.receive_text(), timeout=1.0)
-                    except asyncio.TimeoutError:
-                        pass
-                    await asyncio.sleep(0.1)  # Sleep briefly to avoid busy-waiting
-        except WebSocketDisconnect:
-            logger.warning("Logs WebSocket connection closed.")
+    websocket_handler.add_websocket(websocket)
+    try:
+        while True:
+            await websocket.receive_text()  # Keep the connection open
+    except WebSocketDisconnect:
+        websocket_handler.remove_websocket(websocket)
+        logger.warning("Logs WebSocket connection closed.")
 
 @app.post("/pilot-valve/open")
 async def open_pilot_valve():
