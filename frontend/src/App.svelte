@@ -13,6 +13,7 @@
 
 	const socket = new WebSocket(`${backendUrl.replace("http", "ws")}/ws/data`);
 	let indicators = {};
+	let isStreaming = false; // Initialize the streaming state
 
 	async function fetchMessage() {
 		const response = await fetch(`${backendUrl}/`);
@@ -109,12 +110,30 @@
 		sendRequest("/relay/extra/pulse");
 	}
 
-	function startStreaming() {
-		sendRequest("/streaming/start");
+	async function startStreaming() {
+		try {
+			const response = await fetch(`${backendUrl}/streaming/start`, { method: "POST" });
+			const data = await response.json();
+			console.log(data);
+			if (data.status === "Streaming started") {
+				isStreaming = true; // Update the streaming state
+			}
+		} catch (error) {
+			console.error('Error starting streaming:', error);
+		}
 	}
 
-	function stopStreaming() {
-		sendRequest("/streaming/stop");
+	async function stopStreaming() {
+		try {
+			const response = await fetch(`${backendUrl}/streaming/stop`, { method: "POST" });
+			const data = await response.json();
+			console.log(data);
+			if (data.status === "Streaming stopped") {
+				isStreaming = false; // Update the streaming state
+			}
+		} catch (error) {
+			console.error('Error stopping streaming:', error);
+		}
 	}
 
 	fetchMessage();
@@ -228,8 +247,9 @@
 			{stopStreaming}
 			{armIgnition}
 			{startIgnitionSequence}
-				{abortIgnition}
+			{abortIgnition}
 			{ignitionArmed}
+			{isStreaming}
 		/>
 	</div>
 </main>

@@ -10,6 +10,7 @@ from backend.util.config import LabJackPeripherals
 import logging
 import os
 import asyncio
+import re
 
 # Configure logging
 os.makedirs("backend/logs", exist_ok=True)
@@ -59,14 +60,23 @@ async def websocket_endpoint(websocket: WebSocket):
 async def websocket_logs(websocket: WebSocket):
     await websocket.accept()
     log_file_path = "backend/logs/backend.log"
+    # Define a regex pattern to match the log line
+    log_pattern = re.compile(r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3} - [\w\.]+\s+- (\w+)\s+-\s+(.+)$')
     with open(log_file_path, "r") as log_file:
         log_file.seek(0, os.SEEK_END)  # Move to the end of the file
         try:
             while True:
                 line = log_file.readline()
-                line = line[63:]
                 if line:
-                    await websocket.send_text(line)
+                    line = line.strip()
+                    # Use regex to parse the log line
+                    match = log_pattern.match(line)
+                    if match:
+                        level = match.group(1)
+                        message = match.group(2)
+                        # Only send if level is higher than DEBUG
+                        if level != "DEBUG":
+                            await websocket.send_text(f"{level} - {message}")
                 else:
                     try:
                         await asyncio.wait_for(websocket.receive_text(), timeout=1.0)

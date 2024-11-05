@@ -15,6 +15,7 @@ class AbstractAnalogSensor(ABC):
         self.unit = unit
         self.labjack = LabJack()  # Access the singleton instance directly
         self.streaming_address = streaming_address # See https://support.labjack.com/docs/3-1-modbus-map-t-series-datasheet to find the addresses of the pins.
+        self.is_streaming = False
         self.streaming_value = None
 
         try:
@@ -54,9 +55,18 @@ class AbstractAnalogSensor(ABC):
     async def get_raw_value(self) -> float:
         pass
 
+    def set_streaming(self, value: float|None = None):
+        self.is_streaming = True
+        if value:
+            self.streaming_value = value
+
+    def deactivate_streaming(self):
+        self.is_streaming = False
+        self.streaming_value = None
+
     async def read(self) -> float:
-        if self.streaming_value:
-            return self.streaming_value
+        if self.is_streaming:
+            return self.streaming_value if self.streaming_value else 0
         
         raw_value = await self.get_raw_value()
         return self.convert(raw_value)
@@ -96,9 +106,3 @@ def extract_number_from_ain(ain_string):
         return int(match.group())
     else:
         raise ValueError("No number found in the string")
-
-
-
-
-
-

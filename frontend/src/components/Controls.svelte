@@ -18,6 +18,7 @@
 	export let startIgnitionSequence;
 	export let ignitionArmed;
 	export let abortIgnition;
+	export let isStreaming; // Add this export
 </script>
 
 <div class="controls">
@@ -72,6 +73,10 @@
 			<div class="flex justify-center">
 				<button class="button bg-blue-500 mr-2" on:click={startStreaming}>Start Streaming</button>
 				<button class="button bg-red-500" on:click={stopStreaming}>Stop Streaming</button>
+			</div>
+			<!-- Add streaming indicator -->
+			<div class="indicator {isStreaming ? 'button_green' : 'button_grey'}">
+				{isStreaming ? 'Streaming Active' : 'Streaming Inactive'}
 			</div>
 		</div>
 		<div class="flex">
@@ -193,5 +198,13 @@
 	.disabled-button {
 		background-color: grey;
 		cursor: not-allowed;
+	}
+
+	.button_green {
+		background-color: var(--green-500);
+	}
+
+	.button_grey {
+		background-color: grey;
 	}
 </style>

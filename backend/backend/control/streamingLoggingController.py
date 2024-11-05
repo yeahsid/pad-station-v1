@@ -17,7 +17,7 @@ class StreamingLoggingController:
         self.digital_sensors = digital_sensors
 
         self.streaming = False
-        self.csv_file = None
+        self.stream_csv_file = None
         self.csv_writer = None
         self.event_csv_file = None
         self.event_csv_writer = None
@@ -30,8 +30,12 @@ class StreamingLoggingController:
             self.event_csv_writer.writerow([event_time, actuator_name, position])
 
     async def start_streaming(self):
-        scan_rate = self.labjack.start_stream([sensor.streaming_address for sensor in self.analog_sensors])
         self.streaming = True
+        for sensor in self.analog_sensors:
+            sensor.set_streaming()
+            
+        scan_rate = self.labjack.start_stream([sensor.streaming_address for sensor in self.analog_sensors])
+
         header = ["time"] + [sensor.name for sensor in self.analog_sensors]
         converters = [lambda x: x] + [sensor.convert for sensor in self.analog_sensors]
 
@@ -41,8 +45,8 @@ class StreamingLoggingController:
         event_csv_path = os.path.join(streaming_log_path, f"event_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv")
 
         # Open the CSV file and write the header
-        self.csv_file = open(streaming_csv_path, mode='w', newline='')
-        self.csv_writer = csv.writer(self.csv_file)
+        self.stream_csv_file = open(streaming_csv_path, mode='w', newline='')
+        self.csv_writer = csv.writer(self.stream_csv_file)
         self.csv_writer.writerow(header)
 
         # Open the event CSV file and write the header
@@ -73,7 +77,8 @@ class StreamingLoggingController:
             
             # Send the last row of data (latest timestamp) to the frontend
             latest_data = converted_data[-1]
-            print(f"Latest data: {latest_data}, data shape = {converted_data.shape}")  # Replace with actual logging and sending to frontend
+            for i, sensor in enumerate(self.analog_sensors):
+                sensor.set_streaming(latest_data[i + 1])
 
             await asyncio.sleep(1 / self.labjack.real_scan_rate * 0.1)  # Adjust sleep time based on the scan rate
 
@@ -82,11 +87,16 @@ class StreamingLoggingController:
         self.labjack.stop_stream()
 
         for sensor in self.analog_sensors:
-            sensor.streaming_value = None
+            sensor.deactivate_streaming()
 
-        if self.csv_file:
-            self.csv_file.close()
+        if self.stream_csv_file:
+            self.stream_csv_file.close()
         if self.event_csv_file:
             self.event_csv_file.close()
 
-        self.logger.info(f"Streaming stopped and logs saved to: {self.csv_file.name}")
+        stream_file_name = os.path.basename(self.stream_csv_file.name)
+        event_file_name = os.path.basename(self.event_csv_file.name)
+
+        self.logger.info(f"Streaming stopped")
+        self.logger.info(f"Streaming log saved to: {stream_file_name}")
+        self.logger.info(f"Event log saved to: {event_file_name}")

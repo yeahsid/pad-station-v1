@@ -17,9 +17,9 @@ class DcMotorLimitSwitchSensor(AbstractDigitalSensor):
     async def read(self) -> DCMotorState:
         ls_open = await self.labjack.read(self.limit_switch_open_pin)
         ls_close = await self.labjack.read(self.limit_switch_close_pin)
-        if ls_open == 1 and ls_close == 0:
+        if ls_open == 0 and ls_close == 1: # 0 if pressed, 1 if not pressed
             return DCMotorState.OPEN
-        elif ls_open == 0 and ls_close == 1:
+        elif ls_open == 1 and ls_close == 0:
             return DCMotorState.CLOSE
         else:
             return DCMotorState.INTERMEDIATE
