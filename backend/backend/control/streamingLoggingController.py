@@ -30,7 +30,7 @@ class StreamingLoggingController:
             self.event_csv_writer.writerow([event_time, actuator_name, position])
 
     async def start_streaming(self):
-        self.labjack.start_stream([sensor.streaming_address for sensor in self.analog_sensors])
+        scan_rate = self.labjack.start_stream([sensor.streaming_address for sensor in self.analog_sensors])
         self.streaming = True
         header = ["time"] + [sensor.name for sensor in self.analog_sensors]
         converters = [lambda x: x] + [sensor.convert for sensor in self.analog_sensors]
@@ -53,8 +53,7 @@ class StreamingLoggingController:
         # Start the polling and logging in a separate task
         asyncio.create_task(self._poll_and_log_stream(converters))
         
-        # Return a response indicating that streaming has started
-        return
+        self.logger.info(f"Streaming started at: {scan_rate:.2f} Hz")
 
     async def _poll_and_log_stream(self, converters):
         while self.streaming:
@@ -89,3 +88,5 @@ class StreamingLoggingController:
             self.csv_file.close()
         if self.event_csv_file:
             self.event_csv_file.close()
+
+        self.logger.info(f"Streaming stopped and logs saved to: {self.csv_file.name}")

@@ -16,6 +16,8 @@
 	export let stopStreaming;
 	export let armIgnition;
 	export let startIgnitionSequence;
+	export let ignitionArmed;
+	export let abortIgnition;
 </script>
 
 <div class="controls">
@@ -75,8 +77,25 @@
 		<div class="flex">
 			<h3 class="font-semibold text-lg mb-2">Ignition Sequence</h3>
 			<div class="flex justify-center">
-				<button class="button bg-yellow-500 mr-2" on:click={armIgnition}>Arm Ignition</button>
-				<button class="button bg-red-500" on:click={startIgnitionSequence}>Start Ignition Sequence</button>
+					<button
+						class="button mr-2 {ignitionArmed ? 'bg-red-500' : 'bg-yellow-500'}"
+						on:click={armIgnition}>
+						{ignitionArmed ? 'Disarm Ignition' : 'Arm Ignition'}
+					</button>
+					<button
+						class="button bg-green-500 mr-2"
+						on:click={startIgnitionSequence}
+						class:disabled-button={!ignitionArmed}
+						disabled={!ignitionArmed}>
+						Start Ignition Sequence
+					</button>
+					<button
+						class="button bg-red-500"
+						on:click={abortIgnition}
+						class:disabled-button={!ignitionArmed}
+						disabled={!ignitionArmed}>
+						Abort Ignition
+					</button>
 			</div>
 		</div>
 	</div>
@@ -91,7 +110,7 @@
 
 	.grid {
 		display: grid;
-		grid-template-columns: repeat(2, 1fr);
+		grid-template-columns: repeat(4, 1fr);
 		gap: 20px;
 	}
 
@@ -138,6 +157,14 @@
 		background-color: var(--yellow-500-hover);
 	}
 
+	.bg-green-500 {
+		background-color: var(--green-500);
+	}
+
+	.bg-green-500:hover {
+		background-color: var(--green-500-hover);
+	}
+
 	.indicator {
 		margin-top: 10px;
 		padding: 5px;
@@ -161,5 +188,10 @@
 
 	.indicator.button_grey {
 		background-color: grey;
+	}
+
+	.disabled-button {
+		background-color: grey;
+		cursor: not-allowed;
 	}
 </style>

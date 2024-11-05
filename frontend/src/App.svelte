@@ -54,12 +54,23 @@
 		sendRequest("/pilot-valve/close");
 	}
 
-	function armIgnition() {
-		sendRequest("/pilot-valve/arm-ignition");
+	async function armIgnition() {
+		try {
+			const response = await fetch(`${backendUrl}/ignition/arm`, { method: 'POST' });
+			const data = await response.json();
+			ignitionArmed = data.armed;  // Update the armed status
+			console.log(data.status);
+		} catch (error) {
+			console.error('Error:', error);
+		}
 	}
 
 	function startIgnitionSequence() {
-		sendRequest("/pilot-valve/start-ignition-sequence");
+		sendRequest("/ignition/start");
+	}
+
+	function abortIgnition() {
+		sendRequest("/ignition/abort");
 	}
 
 	function openActiveVent() {
@@ -156,6 +167,9 @@
 		}
 		return "";
 	}
+
+	let ignitionArmed = false;
+
 </script>
 
 <style>
@@ -166,6 +180,8 @@
 		--red-500-hover: #C0392B;
 		--yellow-500: #FFC300;
 		--yellow-500-hover: #E6B700;
+		--green-500: #2ecc71;
+		--green-500-hover: #27ae60;
 	}
 
 	main {
@@ -212,6 +228,8 @@
 			{stopStreaming}
 			{armIgnition}
 			{startIgnitionSequence}
+				{abortIgnition}
+			{ignitionArmed}
 		/>
 	</div>
 </main>

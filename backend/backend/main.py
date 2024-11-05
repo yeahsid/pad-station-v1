@@ -88,6 +88,27 @@ async def close_pilot_valve():
     await pv.actuate_valve(BinaryPosition.CLOSE)
     return {"status": "Pilot valve closed"}
 
+@app.post("/ignition/arm")
+async def toggle_ignition_arm():
+    pv: PilotValve = pad_station_controller.actuators[LabJackPeripherals.PILOT_VALVE.value]
+    if not pv.armed:
+        await pv.arm()
+    else:
+        await pv.disarm()
+    return {"status": f"Ignition {'armed' if pv.armed else 'disarmed'}", "armed": pv.armed}
+
+@app.post("/ignition/start")
+async def start_ignition_sequence():
+    pv: PilotValve = pad_station_controller.actuators[LabJackPeripherals.PILOT_VALVE.value]
+    await pv.ignition_sequence()
+    return {"status": "Ignition sequence started"}
+
+@app.post("/ignition/abort")
+async def abort_ignition_sequence():
+    pv: PilotValve = pad_station_controller.actuators[LabJackPeripherals.PILOT_VALVE.value]
+    await pv.abort_ignition_sequence()
+    return {"status": "Ignition sequence aborted"}
+
 @app.post("/active-vent/open")
 async def open_active_vent():
     av: ActiveVent = pad_station_controller.actuators[LabJackPeripherals.ACTIVE_VENT.value]
@@ -151,9 +172,3 @@ async def start_streaming():
 async def stop_streaming():
     await pad_station_controller.stop_streaming()
     return {"status": "Streaming stopped"}
-
-@app.get("/logs")
-async def get_logs():
-    with open("backend/logs/backend.log", "r") as log_file:
-        lines = log_file.readlines()
-        return {"logs": lines[-10:]}

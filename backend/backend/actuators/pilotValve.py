@@ -49,12 +49,12 @@ class PilotValve(DcMotor):
         await self.ignitor_relay.fire()
         await self.move_motor_to_position(BinaryPosition.OPEN, PILOT_VALVE_TIMEOUT)
         await self.ignitor_relay.reset()
+        self.armed = False
         self.logger.info("Ignition sequence complete")
 
     async def abort_ignition_sequence(self):
         self.logger.info("Aborting ignition sequence")
-        await asyncio.gather(
-            self.ignitor_relay.reset(),
-            self.move_motor_to_position(BinaryPosition.CLOSE, PILOT_VALVE_TIMEOUT)
-        )
+        await self.ignitor_relay.reset()
+        await self.move_motor_to_position(BinaryPosition.CLOSE, PILOT_VALVE_TIMEOUT)
+        self.armed = False
         self.logger.info("Ignition sequence aborted")
