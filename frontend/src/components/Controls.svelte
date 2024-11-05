@@ -1,14 +1,14 @@
 <script>
 	export let indicators;
 	export let getIndicatorClass;
-	export let openPilotValve;
-	export let closePilotValve;
-	export let openActiveVent;
-	export let closeActiveVent;
 	export let openFillValve;
 	export let closeFillValve;
 	export let openDumpValve;
 	export let closeDumpValve;
+	export let openPilotValve;
+	export let closePilotValve;
+	export let openActiveVent;
+	export let closeActiveVent;
 	export let pulseIgnitorRelay;
 	export let pulseQdRelay;
 	export let pulseExtraRelay;
@@ -23,23 +23,6 @@
 
 <div class="controls">
 	<div class="grid">
-		<div class="flex">
-			<h3 class="font-semibold text-lg mb-2">Pilot Valve</h3>
-			<div class="flex justify-center">
-				<button class="button bg-blue-500 mr-2" on:click={openPilotValve}>Open</button>
-				<button class="button bg-red-500" on:click={closePilotValve}>Close</button>
-			</div>
-			<div class="indicator {getIndicatorClass(indicators['Pilot Valve'], 'DCmotorState')}">
-				{indicators['Pilot Valve']}
-			</div>
-		</div>
-		<div class="flex">
-			<h3 class="font-semibold text-lg mb-2">Active Vent</h3>
-			<div class="flex justify-center">
-				<button class="button bg-blue-500 mr-2" on:click={openActiveVent}>Open</button>
-				<button class="button bg-red-500" on:click={closeActiveVent}>Close</button>
-			</div>
-		</div>
 		<div class="flex">
 			<h3 class="font-semibold text-lg mb-2">Fill Valve</h3>
 			<div class="flex justify-center">
@@ -61,22 +44,28 @@
 			</div>
 		</div>
 		<div class="flex">
+			<h3 class="font-semibold text-lg mb-2">Pilot Valve</h3>
+			<div class="flex justify-center">
+				<button class="button bg-blue-500 mr-2" on:click={openPilotValve}>Open</button>
+				<button class="button bg-red-500" on:click={closePilotValve}>Close</button>
+			</div>
+			<div class="indicator {getIndicatorClass(indicators['Pilot Valve'], 'DCmotorState')}">
+				{indicators['Pilot Valve']}
+			</div>
+		</div>
+		<div class="flex">
+			<h3 class="font-semibold text-lg mb-2">Active Vent</h3>
+			<div class="flex justify-center">
+				<button class="button bg-blue-500 mr-2" on:click={openActiveVent}>Open</button>
+				<button class="button bg-red-500" on:click={closeActiveVent}>Close</button>
+			</div>
+		</div>
+		<div class="flex">
 			<h3 class="font-semibold text-lg mb-2">Relays</h3>
 			<div class="flex justify-center">
 				<button class="button bg-yellow-500 mr-2" on:click={pulseIgnitorRelay}>Pulse Ignitor</button>
 				<button class="button bg-yellow-500 mr-2" on:click={pulseQdRelay}>Pulse QD</button>
 				<button class="button bg-yellow-500" on:click={pulseExtraRelay}>Pulse Extra</button>
-			</div>
-		</div>
-		<div class="flex">
-			<h3 class="font-semibold text-lg mb-2">Streaming</h3>
-			<div class="flex justify-center">
-				<button class="button bg-blue-500 mr-2" on:click={startStreaming}>Start Streaming</button>
-				<button class="button bg-red-500" on:click={stopStreaming}>Stop Streaming</button>
-			</div>
-			<!-- Add streaming indicator -->
-			<div class="indicator {isStreaming ? 'button_green' : 'button_grey'}">
-				{isStreaming ? 'Streaming Active' : 'Streaming Inactive'}
 			</div>
 		</div>
 		<div class="flex">
@@ -101,6 +90,17 @@
 						disabled={!ignitionArmed}>
 						Abort Ignition
 					</button>
+			</div>
+		</div>
+		<div class="flex">
+			<h3 class="font-semibold text-lg mb-2">Streaming</h3>
+			<div class="flex justify-center">
+				<button class="button bg-blue-500 mr-2" on:click={startStreaming}>Start Streaming</button>
+				<button class="button bg-red-500" on:click={stopStreaming}>Stop Streaming</button>
+			</div>
+			<!-- Add streaming indicator -->
+			<div class="indicator {isStreaming ? 'button_green' : 'button_grey'}">
+				{isStreaming ? 'Streaming Active' : 'Streaming Inactive'}
 			</div>
 		</div>
 	</div>

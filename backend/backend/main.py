@@ -39,7 +39,7 @@ class WebSocketHandler(logging.Handler):
 # Configure logging
 os.makedirs("backend/logs", exist_ok=True)
 websocket_handler = WebSocketHandler()
-websocket_handler.setLevel(logging.DEBUG)
+websocket_handler.setLevel(logging.INFO)
 formatter = logging.Formatter('%(levelname)s - %(message)s')
 websocket_handler.setFormatter(formatter)
 

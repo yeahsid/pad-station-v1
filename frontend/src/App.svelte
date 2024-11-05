@@ -1,6 +1,7 @@
 <script>
 	import LogPanel from './components/LogPanel.svelte';
 	import Controls from './components/Controls.svelte';
+	import SensorsPanel from './components/SensorsPanel.svelte'; // Import the new component
 
 	let message = "";
 	let backendUrl;
@@ -219,6 +220,12 @@
 		display: flex;
 	}
 
+	.vertical-container {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+
 	.title {
 		text-align: center;
 		width: 100%;
@@ -229,27 +236,30 @@
 <main class="text-center p-8">
 	<div class="main-container">
 		<LogPanel {backend_logs} {getLogClass} />
-		<Controls
-			{indicators}
-			{getIndicatorClass}
-			{openPilotValve}
-			{closePilotValve}
-			{openActiveVent}
-			{closeActiveVent}
-			{openFillValve}
-			{closeFillValve}
-			{openDumpValve}
-			{closeDumpValve}
-			{pulseIgnitorRelay}
-			{pulseQdRelay}
-			{pulseExtraRelay}
-			{startStreaming}
-			{stopStreaming}
-			{armIgnition}
-			{startIgnitionSequence}
-			{abortIgnition}
-			{ignitionArmed}
-			{isStreaming}
-		/>
+		<div class="vertical-container">
+			<SensorsPanel {indicators} /> <!-- Move the SensorsPanel component to the top -->
+			<Controls
+				{indicators}
+				{getIndicatorClass}
+				{openFillValve}
+				{closeFillValve}
+				{openDumpValve}
+				{closeDumpValve}
+				{openPilotValve}
+				{closePilotValve}
+				{openActiveVent}
+				{closeActiveVent}
+				{pulseIgnitorRelay}
+				{pulseQdRelay}
+				{pulseExtraRelay}
+				{startStreaming}
+				{stopStreaming}
+				{armIgnition}
+				{startIgnitionSequence}
+				{abortIgnition}
+				{ignitionArmed}
+				{isStreaming}
+			/>
+		</div>
 	</div>
 </main>
