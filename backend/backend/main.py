@@ -1,4 +1,4 @@
-from fastapi import FastAPI, WebSocket, BackgroundTasks
+from fastapi import FastAPI, WebSocket, BackgroundTasks, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from backend.control.padStationController import PadStationController
 from backend.util.constants import BinaryPosition
@@ -21,6 +21,8 @@ logging.basicConfig(
         logging.StreamHandler()
     ]
 )
+
+logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
@@ -50,10 +52,8 @@ async def websocket_endpoint(websocket: WebSocket):
         while True:
             data = await pad_station_controller.gather_and_compile_data_frontend()
             await websocket.send_json(data)
-    except Exception as e:
-        print(f"WebSocket connection closed: {e}")
-    finally:
-        await websocket.close()
+    except WebSocketDisconnect:
+        logger.warning("Data WebSocket connection closed.")
 
 @app.websocket("/ws/logs")
 async def websocket_logs(websocket: WebSocket):
@@ -61,13 +61,20 @@ async def websocket_logs(websocket: WebSocket):
     log_file_path = "backend/logs/backend.log"
     with open(log_file_path, "r") as log_file:
         log_file.seek(0, os.SEEK_END)  # Move to the end of the file
-        while True:
-            line = log_file.readline()
-            line = line[63:]
-            if line:
-                await websocket.send_text(line)
-            else:
-                await asyncio.sleep(0.1)  # Sleep briefly to avoid busy-waiting
+        try:
+            while True:
+                line = log_file.readline()
+                line = line[63:]
+                if line:
+                    await websocket.send_text(line)
+                else:
+                    try:
+                        await asyncio.wait_for(websocket.receive_text(), timeout=1.0)
+                    except asyncio.TimeoutError:
+                        pass
+                    await asyncio.sleep(0.1)  # Sleep briefly to avoid busy-waiting
+        except WebSocketDisconnect:
+            logger.warning("Logs WebSocket connection closed.")
 
 @app.post("/pilot-valve/open")
 async def open_pilot_valve():

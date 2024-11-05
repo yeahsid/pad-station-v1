@@ -36,13 +36,13 @@ class Servo(AbstractActuator):
         # Enable the EF system after completing configuration
         await self.labjack.write(f"{self.pwm_pin}_EF_ENABLE", 1)
 
-        self.logger.info(f"Servo {self.name} setup complete")
+        self.logger.info(f"{self.name} servo setup complete")
 
     async def move_to_safe_position(self):
         await self.actuate_servo(self.safe_position)
-        self.logger.info(f"Servo {self.name} moved to safe position")
+        self.logger.info(f"{self.name} servo moved to safe position")
 
     async def actuate_servo(self, position: int):
         await self.labjack.write(f"{self.pwm_pin}_EF_CONFIG_A", position)
         self.trigger_actuated_event(position)
-        self.logger.info(f"Servo {self.name} actuated to position {position}")
+        self.logger.info(f"{self.name} servo actuated to position {position}")

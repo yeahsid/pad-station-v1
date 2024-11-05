@@ -30,22 +30,22 @@ class DcMotor(AbstractActuator):
 
     async def move_to_safe_position(self):
         await self.move_motor_to_position(self.safe_position, timeout=50)
-        self.logger.info(f"Motor {self.name} moved to safe position")
+        self.logger.info(f"{self.name} motor moved to safe position")
 
     async def stop_motor(self):
         await self.labjack.write(self.motor_enable_pin, 0)
-        self.logger.info(f"Motor {self.name} stopped")
+        self.logger.info(f"{self.name} motor stopped")
 
     async def spin_motor(self, position: BinaryPosition):
         await self.labjack.write(self.motor_enable_pin, 1)
         if position == BinaryPosition.OPEN:
             await self.labjack.write(self.motor_in_pins[0], 1)
             await self.labjack.write(self.motor_in_pins[1], 0)
-            self.logger.info(f"Motor {self.name} spinning to open")
+            self.logger.info(f"{self.name} motor spinning to open")
         elif position == BinaryPosition.CLOSE:
             await self.labjack.write(self.motor_in_pins[0], 0)
             await self.labjack.write(self.motor_in_pins[1], 1)
-            self.logger.info(f"Motor {self.name} spinning to close")
+            self.logger.info(f"{self.name} motor spinning to close")
         else:
             raise ValueError(f"Invalid position: {position}. Must be '{BinaryPosition.OPEN}' or '{BinaryPosition.CLOSE}'")
 
@@ -79,8 +79,8 @@ class DcMotor(AbstractActuator):
         try:
             await asyncio.wait_for(self.wait_for_limit_switch(position), timeout=timeout)
         except asyncio.TimeoutError:
-            logger.warning(f"Motor {self.name} timed out after {timeout} seconds while moving to {position.name} position")
+            logger.warning(f"{self.name} motor timed out after {timeout} seconds while moving to {position.name} position")
             pass
 
         await self.stop_motor()
-        self.logger.info(f"Motor {self.name} moved to {position.name} position")
+        self.logger.info(f"{self.name} motor moved to {position.name} position")

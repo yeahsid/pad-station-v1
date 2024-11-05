@@ -32,7 +32,7 @@ class HanbayValve(AbstractActuator):
 
     async def move_to_safe_position(self):
         await self.actuate_valve(self.safe_position)
-        self.logger.info(f"Valve {self.name} moved to safe position")
+        self.logger.info(f"{self.name} moved to safe position")
 
     async def actuate_valve(self, position: BinaryPosition):
         await self.labjack.write(self.input_pins[0], self.valve_inputs[position][0])
@@ -45,7 +45,7 @@ class HanbayValve(AbstractActuator):
             state = await self.output_state_sensor.read()
 
             if state != last_state:
-                self.logger.info(f"Valve {self.name} state changed to {state}")
+                self.logger.info(f"{self.name} state changed to {state}")
                 await self.trigger_actuated_event(state)
                 last_state = state
 
@@ -53,4 +53,4 @@ class HanbayValve(AbstractActuator):
                 await self.trigger_actuated_event(state)
                 break           
 
-        self.logger.info(f"HanbayValve {self.name} actuated to {position}")
+        self.logger.info(f"{self.name} actuated to {position}")
