@@ -11,12 +11,13 @@ class LoadCell(AbstractAnalogSensor):
     name: str
     signal_pos: str
     signal_neg: str
+    streaming_enabled: bool
     calibration: tuple[float, float] = LOAD_CELL_CALIBRATION
     tare_reading: float = 0.0
 
     def __post_init__(self):
         modbus_address = int(extract_number_from_ain(self.signal_pos)) * 2  # Convert signal_pos to Modbus address
-        super().__init__(self.name, "N", modbus_address)
+        super().__init__(self.name, "N", self.streaming_enabled, modbus_address)
 
     async def setup(self):
         await self.labjack.write(f"{self.signal_pos}_RANGE", 0.1)

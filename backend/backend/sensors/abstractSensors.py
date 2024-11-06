@@ -11,10 +11,11 @@ class AbstractAnalogSensor(ABC):
 
     logger = logging.getLogger(__name__)
 
-    def __init__(self, name: str, unit: str, streaming_address = None):
+    def __init__(self, name: str, unit: str, streaming_enabled: bool, streaming_address: int|None = None):
         self.name = name
         self.unit = unit
         self.labjack = LabJack()  # Access the singleton instance directly
+        self.streaming_enabled = streaming_enabled
         self.streaming_address = streaming_address # See https://support.labjack.com/docs/3-1-modbus-map-t-series-datasheet to find the addresses of the pins.
         self.is_streaming = False
         self.streaming_value = None

@@ -9,10 +9,11 @@ logger = logging.getLogger(__name__)
 class Thermocouple(AbstractAnalogSensor):
     name: str
     pin: str
+    streaming_enabled: bool
 
     def __post_init__(self):
         modbus_address = extract_number_from_ain(self.pin) * 2  # Convert AIN to Modbus address
-        super().__init__(self.name, "Celsius", modbus_address)
+        super().__init__(self.name, "Celsius", self.streaming_enabled, modbus_address)
 
     async def setup(self):
         await self.labjack.write(f"{self.pin}_EF_INDEX", 22) # Type K thermocouple

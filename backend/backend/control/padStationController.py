@@ -56,28 +56,34 @@ class PadStationController:
         sensors = {
             LabJackPeripherals.SUPPLY_PRESSURE_TRANSDUCER.value: PressureTransducer(
                 LabJackPeripherals.SUPPLY_PRESSURE_TRANSDUCER.value, 
-                LabJackPeripherals.SUPPLY_PRESSURE_TRANSDUCER_PIN.value
+                LabJackPeripherals.SUPPLY_PRESSURE_TRANSDUCER_PIN.value,
+                LabJackPeripherals.SUPPLY_PRESSURE_TRANSDUCER_STREAMING_ENABLED.value
             ),
             LabJackPeripherals.FILL_PRESSURE_TRANSDUCER.value: PressureTransducer(
                 LabJackPeripherals.FILL_PRESSURE_TRANSDUCER.value, 
-                LabJackPeripherals.FILL_PRESSURE_TRANSDUCER_PIN.value
+                LabJackPeripherals.FILL_PRESSURE_TRANSDUCER_PIN.value,
+                LabJackPeripherals.FILL_PRESSURE_TRANSDUCER_STREAMING_ENABLED.value
             ),
             LabJackPeripherals.EXTERNAL_PRESSURE_TRANSDUCER_1.value: PressureTransducer(
                 LabJackPeripherals.EXTERNAL_PRESSURE_TRANSDUCER_1.value, 
-                LabJackPeripherals.EXTERNAL_PRESSURE_TRANSDUCER_1_PIN.value
+                LabJackPeripherals.EXTERNAL_PRESSURE_TRANSDUCER_1_PIN.value,
+                LabJackPeripherals.EXTERNAL_PRESSURE_TRANSDUCER_1_STREAMING_ENABLED.value
             ),
             LabJackPeripherals.EXTERNAL_PRESSURE_TRANSDUCER_2.value: PressureTransducer(
                 LabJackPeripherals.EXTERNAL_PRESSURE_TRANSDUCER_2.value, 
-                LabJackPeripherals.EXTERNAL_PRESSURE_TRANSDUCER_2_PIN.value
+                LabJackPeripherals.EXTERNAL_PRESSURE_TRANSDUCER_2_PIN.value,
+                LabJackPeripherals.EXTERNAL_PRESSURE_TRANSDUCER_2_STREAMING_ENABLED.value
             ),
             LabJackPeripherals.LOAD_CELL.value: LoadCell(
                 LabJackPeripherals.LOAD_CELL.value, 
                 LabJackPeripherals.LOAD_CELL_PINS.value[0], 
-                LabJackPeripherals.LOAD_CELL_PINS.value[1]
+                LabJackPeripherals.LOAD_CELL_PINS.value[1],
+                LabJackPeripherals.LOAD_CELL_STREAMING_ENABLED.value
             ),
             LabJackPeripherals.THERMOCOUPLE.value: Thermocouple(
                 LabJackPeripherals.THERMOCOUPLE.value, 
-                LabJackPeripherals.THERMOCOUPLE_PIN.value
+                LabJackPeripherals.THERMOCOUPLE_PIN.value,
+                LabJackPeripherals.THERMOCOUPLE_STREAMING_ENABLED.value
             )
         }
         return sensors

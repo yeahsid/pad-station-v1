@@ -20,6 +20,8 @@ class StreamingLoggingController:
         self.stream_scan_complete_event = stream_scan_complete_event
 
         self.streaming = False
+        self.streaming_sensors = []
+
         self.stream_csv_file = None
         self.csv_writer = None
         self.event_csv_file = None
@@ -37,11 +39,13 @@ class StreamingLoggingController:
         self.streaming = True
         for sensor in self.analog_sensors:
             sensor.set_streaming()
-            
-        scan_rate = self.labjack.start_stream([sensor.streaming_address for sensor in self.analog_sensors])
+        
+        self.streaming_sensors = [sensor for sensor in self.analog_sensors if sensor.streaming_enabled]
 
-        header = ["time"] + [sensor.name for sensor in self.analog_sensors]
-        converters = [lambda x: x] + [sensor.convert for sensor in self.analog_sensors]
+        scan_rate = self.labjack.start_stream([sensor.streaming_address for sensor in self.streaming_sensors])
+
+        header = ["time"] + [sensor.name for sensor in self.streaming_sensors]
+        converters = [lambda x: x] + [sensor.convert for sensor in self.streaming_sensors]
 
         streaming_log_path = os.path.join(os.getcwd(), "streaming")
         os.makedirs(streaming_log_path, exist_ok=True)
@@ -82,7 +86,7 @@ class StreamingLoggingController:
             
             # Send the last row of data (latest timestamp) to the frontend
             latest_data = converted_data[-1]
-            for i, sensor in enumerate(self.analog_sensors):
+            for i, sensor in enumerate(self.streaming_sensors):
                 sensor.set_streaming(latest_data[i + 1])
 
             self.stream_scan_complete_event.set()
