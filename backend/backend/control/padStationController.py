@@ -18,6 +18,19 @@ import logging
 import time
 
 class PadStationController:
+    """
+    Manages the overall operation of the Pad Station, including actuators and sensors.
+    
+    Attributes:
+        logger (logging.Logger): Logger instance.
+        labjack (LabJack): Singleton instance for LabJack device interaction.
+        digital_sensors (dict[str, AbstractDigitalSensor]): Dictionary of digital sensors.
+        analog_sensors (dict[str, AbstractAnalogSensor]): Dictionary of analog sensors.
+        actuators (dict[str, AbstractActuator]): Dictionary of actuators.
+        actuated_event (asyncio.Event): Event triggered when an actuator is actuated.
+        streaming_controller (StreamingLoggingController): Controller for streaming and logging.
+    """
+
     def __init__(self):
         self.logger = logging.getLogger(__name__)
         self.labjack = LabJack()
@@ -27,15 +40,28 @@ class PadStationController:
         self.actuated_event = asyncio.Event()
         self.streaming_controller = StreamingLoggingController(self.actuators.values(), self.analog_sensors.values(), self.digital_sensors.values(), self.actuated_event)
 
-
+        # Register event handlers for all actuators
         for actuator in self.actuators.values():
             actuator.register_event_handler(self.actuated_event_handler)
 
     async def actuated_event_handler(self, actuator: AbstractActuator, position):
+        """
+        Handles actuator events by writing them to the event CSV and setting the event.
+        
+        Args:
+            actuator (AbstractActuator): The actuator that was actuated.
+            position (int): The new position of the actuator.
+        """
         self.streaming_controller.write_actuator_event_to_csv(actuator.name, position)
         self.actuated_event.set()
 
     def _initialize_digital_sensors(self):
+        """
+        Initializes all digital sensors used in the Pad Station.
+        
+        Returns:
+            dict[str, AbstractDigitalSensor]: Dictionary of initialized digital sensors.
+        """
         return {
             LabJackPeripherals.FILL_VALVE.value: HanbayValveFeedbackSensor(
                 LabJackPeripherals.FILL_VALVE.value, 
@@ -53,6 +79,12 @@ class PadStationController:
         }
     
     def _initialize_analog_sensors(self):
+        """
+        Initializes all analog sensors used in the Pad Station.
+        
+        Returns:
+            dict[str, AbstractAnalogSensor]: Dictionary of initialized analog sensors.
+        """
         sensors = {
             LabJackPeripherals.SUPPLY_PRESSURE_TRANSDUCER.value: PressureTransducer(
                 LabJackPeripherals.SUPPLY_PRESSURE_TRANSDUCER.value, 
@@ -89,6 +121,12 @@ class PadStationController:
         return sensors
     
     def _initialize_actuators(self):
+        """
+        Initializes all actuators used in the Pad Station.
+        
+        Returns:
+            dict[str, AbstractActuator]: Dictionary of initialized actuators.
+        """
         relays = {
             LabJackPeripherals.IGNITOR_RELAY.value: Relay(LabJackPeripherals.IGNITOR_RELAY.value, LabJackPeripherals.IGNITOR_RELAY_PIN.value),
             LabJackPeripherals.ACTIVE_VENT_RELAY.value: Relay(LabJackPeripherals.ACTIVE_VENT_RELAY.value, LabJackPeripherals.ACTIVE_VENT_RELAY_PIN.value),
@@ -133,12 +171,24 @@ class PadStationController:
         return {**relays, **valves}
 
     async def start_streaming(self):
+        """
+        Initiates the streaming of sensor data.
+        """
         await self.streaming_controller.start_streaming()
 
     async def stop_streaming(self):
+        """
+        Stops the streaming of sensor data.
+        """
         await self.streaming_controller.stop_streaming()
 
     async def gather_and_compile_data_frontend(self):
+        """
+        Gathers data from all sensors and compiles it for the frontend.
+        
+        Returns:
+            dict: Compiled sensor data.
+        """
         start = time.time()
         # Wait for the event or timeout
         waiting_actuated_event_time = time.time()

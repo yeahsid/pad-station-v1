@@ -1,29 +1,27 @@
 """
-This module defines the LabJack pin configuration for the pad station application.
-
-The `LabJackPins` enum maps pin names to their corresponding LabJack pin numbers.
-
+This module defines the LabJack pin configuration and calibration constants for the PadStation backend.
+It includes enumerations for peripheral devices and their corresponding pin assignments.
 """
 
 from enum import Enum
 
-FRONTEND_UPDATE_RATE = 1 # Hz
-TARGET_SCAN_RATE = 999 # Hz, stream scan rate
-DIGITAL_SENSOR_UPDATE_RATE = 1 # Hz
+FRONTEND_UPDATE_RATE = 1  # Hz
+TARGET_SCAN_RATE = 999    # Hz, stream scan rate
+DIGITAL_SENSOR_UPDATE_RATE = 1  # Hz
 
 ACTIVE_VENT_CLOSED_POSITION = 95000  # RICKY CHANGE THIS
-ACTIVE_VENT_OPEN_POSITION = 111000  # RICKY CHANGE THIS
+ACTIVE_VENT_OPEN_POSITION = 111000   # RICKY CHANGE THIS
 
-PILOT_VALVE_TIMEOUT = 50 # seconds
+PILOT_VALVE_TIMEOUT = 50  # seconds
 
 PRESSURE_TRANSDUCER_CALIBRATION = (-25.82, 54.87)  # (offset, scale)
-PRESSURE_TRANSDUCER_READ_VS = True 
+PRESSURE_TRANSDUCER_READ_VS = False 
 # If True scales the pressure transducer readings to account for the Vs pin voltage variation
 # If False assumes the Vs pin voltage is 4.7V
 LOAD_CELL_CALIBRATION = (0.0, 1.0)  # (offset, scale)
 
-
 class LabJackPeripherals(Enum):
+    """Enumeration of LabJack peripheral devices and their pin configurations."""
     # Fill Box Valves
     FILL_VALVE = "Fill Valve"
     FILL_VALVE_INPUT_PINS = ("FIO4", "FIO5")
@@ -32,7 +30,6 @@ class LabJackPeripherals(Enum):
     DUMP_VALVE_INPUT_PINS = ("FIO2", "FIO3")
     DUMP_VALVE_OUTPUT_PINS = ("FIO6", "FIO7")
     
-
     # Pilot Valve
     PILOT_VALVE = "Pilot Valve"
     PILOT_VALVE_MOTOR_ENABLE_PIN = "EIO3"
@@ -61,7 +58,7 @@ class LabJackPeripherals(Enum):
     FILL_PRESSURE_TRANSDUCER = "Fill Pressure Transducer"
     FILL_PRESSURE_TRANSDUCER_PIN = "AIN4"
     FILL_PRESSURE_TRANSDUCER_STREAMING_ENABLED = True
-    PRESSURE_TRANSDUCER_Vs_PIN = "AIN13" # THIS IS NOT PLUGGED IN
+    PRESSURE_TRANSDUCER_Vs_PIN = "AIN13"  # THIS IS NOT PLUGGED IN
 
     # External Sensors
     EXTERNAL_PRESSURE_TRANSDUCER_1 = "External Pressure Transducer 1"
@@ -72,7 +69,7 @@ class LabJackPeripherals(Enum):
     EXTERNAL_PRESSURE_TRANSDUCER_2_STREAMING_ENABLED = False
     THERMOCOUPLE = "Thermocouple"
     THERMOCOUPLE_PIN = "AIN2"
-    THERMOCOUPLE_STREAMING_ENABLED = False # Not possible to use EF functions when streaming
+    THERMOCOUPLE_STREAMING_ENABLED = False  # Not possible to use EF functions when streaming
     LOAD_CELL = "Load Cell"
     LOAD_CELL_PINS = ("AIN8", "AIN9")
     LOAD_CELL_STREAMING_ENABLED = True

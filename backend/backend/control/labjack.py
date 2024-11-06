@@ -8,8 +8,8 @@ from backend.util.config import TARGET_SCAN_RATE, FRONTEND_UPDATE_RATE
 
 class LabJack:
     """
-    A class to interface with the LabJack device.
-
+    Singleton class to interface with the LabJack device for hardware control and data acquisition.
+    
     Attributes:
         logger (logging.Logger): Logger for the class.
         _handle (int): Handle for the LabJack device.
@@ -21,11 +21,17 @@ class LabJack:
     _instance = None
 
     def __new__(cls, *args, **kwargs):
+        """
+        Ensures only one instance of LabJack exists (Singleton pattern).
+        """
         if cls._instance is None:
             cls._instance = super(LabJack, cls).__new__(cls)
         return cls._instance
 
     def __init__(self):
+        """
+        Initializes the LabJack device connection if not already initialized.
+        """
         if not hasattr(self, '_initialized'):
             self._handle = ljm.openS("T7", "TCP", "192.168.0.5")
             self.logger.info("LabJack device connected")
@@ -44,15 +50,15 @@ class LabJack:
     async def _access_pin(self, pin: str, action: Callable, value: Optional[int] = None) -> int:
         """
         Private method to access a pin on the LabJack device.
-
+        
         Args:
             pin (str): The name of the pin to access.
             action (Callable): The action to perform on the pin (read or write).
             value (Optional[int]): The value to write to the pin (optional).
-
+        
         Returns:
             int: The value read from the pin (for read actions) or the result of the write action.
-
+        
         Raises:
             LJMError: If an error occurs while accessing the pin.
         """
@@ -68,7 +74,7 @@ class LabJack:
     async def write(self, pin: str, value: int):
         """
         Writes a value to a pin on the LabJack device.
-
+        
         Args:
             pin (str): The name of the pin to write to.
             value (int): The value to write to the pin.
@@ -78,10 +84,10 @@ class LabJack:
     async def read(self, pin: str) -> int | float:
         """
         Reads a value from a pin on the LabJack device.
-
+        
         Args:
             pin (str): The name of the pin to read from.
-
+        
         Returns:
             int | float: The value read from the pin.
         """
@@ -91,18 +97,23 @@ class LabJack:
     def start_stream(self, addresses: list[int]) -> float:
         """
         Starts streaming data from the LabJack device.
-
+        
         Args:
             addresses (list[int]): The MODBUS addresses of the pins to stream data from. 
-            See https://support.labjack.com/docs/3-1-modbus-map-t-series-datasheet to find the addresses of the pins.
-
+                See https://support.labjack.com/docs/3-1-modbus-map-t-series-datasheet for address mapping.
+        
         Returns:
             float: The actual scan rate achieved by the LabJack device.
+        
+        Raises:
+            LJMError: If an error occurs while starting the stream.
         """
         try:
+            # Calculate the number of scans per read based on target and frontend rates
+            scans_per_read = TARGET_SCAN_RATE // FRONTEND_UPDATE_RATE
             real_scan_rate: float = ljm.eStreamStart(
                 handle=self._handle, 
-                scansPerRead=TARGET_SCAN_RATE // FRONTEND_UPDATE_RATE, 
+                scansPerRead=scans_per_read, 
                 numAddresses=len(addresses),
                 aScanList=addresses,
                 scanRate=TARGET_SCAN_RATE
@@ -112,43 +123,49 @@ class LabJack:
             self.streaming_addresses = addresses
             self.logger.debug(f"Streaming started with scan rate: {real_scan_rate}")
             return real_scan_rate
-            
+                
         except LJMError as e:
             self.logger.error(str(e))
             raise e
         
     def read_stream(self) -> np.ndarray:
         """
-        Reads data from the LabJack device.
-
+        Reads streaming data from the LabJack device.
+        
         Returns:
             np.ndarray: The streaming data read from the LabJack device with timestamps.
-            The returned array has the following structure:
                 - Each row corresponds to a scan.
                 - The first column contains the timestamps for each scan.
-                - The subsequent columns contain the data for each channel in the order specified by `self.streaming_addresses`.
-
+                - Subsequent columns contain data for each channel as per `self.streaming_addresses`.
+        
         Raises:
             ValueError: If the number of data points is not a multiple of the number of channels.
             LJMError: If an error occurs while reading the stream.
         """
         try:
+            # Retrieve streaming data and backlog information from LabJack
             data, deviceScanBacklog, ljmScanBacklog = ljm.eStreamRead(self._handle)
             self.logger.debug(f"Device scan backlog: {deviceScanBacklog}, LJM scan backlog: {ljmScanBacklog}")
             
-            # Reshape the interleaved data
+            # Determine the number of channels being streamed
             num_channels = len(self.streaming_addresses)
+            
+            # Validate that the data length matches expected channels
             if len(data) % num_channels != 0:
                 raise ValueError("Number of data points is not a multiple of the number of channels")
             num_scans = len(data) // num_channels
 
+            # Reshape the flat data array into a 2D array with scans and channels
             data = np.array(data).reshape((num_scans, num_channels))
 
-            # Generate timestamps for each scan
-            timestamps = [self.next_read_start_time + timedelta(seconds=i / self.real_scan_rate) for i in range(num_scans)]
+            # Generate precise timestamps for each scan based on the scan rate
+            timestamps = [
+                self.next_read_start_time + timedelta(seconds=i / self.real_scan_rate) 
+                for i in range(num_scans)
+            ]
             self.next_read_start_time = timestamps[-1] + timedelta(seconds=1 / self.real_scan_rate)
 
-            # Add timestamps as the first column
+            # Combine timestamps with the sensor data
             data_with_timestamps = np.column_stack((timestamps, data))
             return data_with_timestamps
         except LJMError as e:
@@ -158,6 +175,9 @@ class LabJack:
     def stop_stream(self):
         """
         Stops streaming data from the LabJack device.
+        
+        Raises:
+            LJMError: If an error occurs while stopping the stream.
         """
         try:
             ljm.eStreamStop(self._handle)
