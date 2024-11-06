@@ -4,10 +4,9 @@ module.exports = {
   apps: [
     {
       name: 'backend',
-      script: process.platform === 'win32' ? 'backend\\main.py' : 'backend/main.py',
-      interpreter: process.platform === 'win32' 
-        ? path.join(__dirname, 'backend', '.venv', 'Scripts', 'python.exe') 
-        : path.join(__dirname, 'backend', '.venv', 'bin', 'python'),
+      script: 'uvicorn',
+      args: 'backend.main:app --reload --host 0.0.0.0 --port 8000',
+      interpreter: path.join(__dirname, 'backend', '.venv', 'bin', 'python'),
       cwd: path.join(__dirname, 'backend'),
       watch: true,
       env: {

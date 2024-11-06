@@ -4,10 +4,6 @@ node_modules/
 # Build directories
 */public/build/
 
-# Virtual environment
-venv/
-/venv/
-
 # Python cache
 __pycache__/
 *.py[cod]
@@ -16,6 +12,8 @@ __pycache__/
 */dist/
 /logs/
 
-backend/logs/
+# Backend
+/backend/logs/
+/backend/streaming/
+*/backend/.venv/
 .vscode/
-backend/streaming/

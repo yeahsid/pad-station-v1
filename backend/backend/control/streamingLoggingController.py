@@ -43,7 +43,7 @@ class StreamingLoggingController:
         header = ["time"] + [sensor.name for sensor in self.analog_sensors]
         converters = [lambda x: x] + [sensor.convert for sensor in self.analog_sensors]
 
-        streaming_log_path = os.path.join(os.getcwd(), "backend/streaming")
+        streaming_log_path = os.path.join(os.getcwd(), "streaming")
         os.makedirs(streaming_log_path, exist_ok=True)
         streaming_csv_path = os.path.join(streaming_log_path, f"streaming_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv")
         event_csv_path = os.path.join(streaming_log_path, f"event_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv")

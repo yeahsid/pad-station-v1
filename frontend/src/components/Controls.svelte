@@ -51,7 +51,7 @@
 		<div class="flex">
 			<h3 class="font-semibold text-lg mb-2">Pilot Valve</h3>
 			<div class="flex justify-center">
-				<button class="button bg-blue-500 mr-2" ozn:click={openPilotValve}>Open</button>
+				<button class="button bg-blue-500 mr-2" on:click={openPilotValve}>Open</button>
 				<button class="button bg-red-500" on:click={closePilotValve}>Close</button>
 			</div>
 			<div class="indicator {getIndicatorClass(indicators['Pilot Valve'], 'DCmotorState')}">

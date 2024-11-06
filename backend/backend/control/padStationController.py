@@ -139,26 +139,26 @@ class PadStationController:
         try:
             start = time.time()
             await asyncio.wait_for(self.actuated_event.wait(), timeout=1 / FRONTEND_UPDATE_RATE)
-            waiting_actuated_event_time = time.time()
-            self.logger.debug(f"Waited for actuated event for {waiting_actuated_event_time - start} seconds")
+            # waiting_actuated_event_time = time.time()
+            # self.logger.debug(f"Waited for actuated event for {waiting_actuated_event_time - start} seconds")
         except asyncio.TimeoutError:
             pass
-            waiting_actuated_event_time = time.time()
-            self.logger.debug(f"Timeout for actuated event for {waiting_actuated_event_time - start} seconds")
+            # waiting_actuated_event_time = time.time()
+            # self.logger.debug(f"Timeout for actuated event for {waiting_actuated_event_time - start} seconds")
         finally:
             self.actuated_event.clear()
-            clearing_actuated_event_time = time.time()
-            self.logger.debug(f"Clearing actuated event took {clearing_actuated_event_time - waiting_actuated_event_time} seconds")
+            # clearing_actuated_event_time = time.time()
+            # self.logger.debug(f"Clearing actuated event took {clearing_actuated_event_time - waiting_actuated_event_time} seconds")
         
         # Compile data from sensors and actuators
         compiled_data = {}
         for sensor in self.analog_sensors.values():
             compiled_data[sensor.name] = await sensor.read()
-        analog_sensor_time = time.time()
-        self.logger.debug(f"Reading analog sensors took {analog_sensor_time - waiting_actuated_event_time} seconds")
+        # analog_sensor_time = time.time()
+        # self.logger.debug(f"Reading analog sensors took {analog_sensor_time - waiting_actuated_event_time} seconds")
 
         for sensor in self.digital_sensors.values():
             compiled_data[sensor.name] = (await sensor.read()).name
-        digital_sensor_time = time.time()
-        self.logger.debug(f"Reading digital sensors took {digital_sensor_time - analog_sensor_time} seconds")
+        # digital_sensor_time = time.time()
+        # self.logger.debug(f"Reading digital sensors took {digital_sensor_time - analog_sensor_time} seconds")
         return compiled_data
