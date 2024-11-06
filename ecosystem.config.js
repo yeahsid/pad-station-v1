@@ -5,10 +5,10 @@ module.exports = {
     {
       name: 'backend',
       script: 'uvicorn',
-      args: 'backend.main:app --reload --host 0.0.0.0 --port 8000',
+      args: 'backend.main:app --host 0.0.0.0 --port 8000',
       interpreter: path.join(__dirname, 'backend', '.venv', 'bin', 'python'),
       cwd: path.join(__dirname, 'backend'),
-      watch: true,
+      watch: false,
       env: {
         PYTHON_ENV: 'development'
       },

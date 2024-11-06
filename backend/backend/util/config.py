@@ -8,7 +8,7 @@ The `LabJackPins` enum maps pin names to their corresponding LabJack pin numbers
 from enum import Enum
 
 FRONTEND_UPDATE_RATE = 1 # Hz
-TARGET_SCAN_RATE = 199 # Hz, stream scan rate
+TARGET_SCAN_RATE = 999 # Hz, stream scan rate
 DIGITAL_SENSOR_UPDATE_RATE = 1 # Hz
 
 ACTIVE_VENT_CLOSED_POSITION = 95000  # RICKY CHANGE THIS

@@ -47,7 +47,7 @@ logging.basicConfig(
     level=logging.DEBUG,
     format='%(asctime)s - %(name)-34s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler("backend/logs/backend.log"),
+        logging.FileHandler("logs/backend.log"),
         logging.StreamHandler(),
         websocket_handler  # Add the custom WebSocketHandler
     ]
