@@ -15,5 +15,5 @@ __pycache__/
 # Backend
 /backend/logs/
 /backend/streaming/
-*/backend/.venv/
+**/backend/.venv/
 .vscode/
