@@ -19,6 +19,11 @@
 	export let ignitionArmed;
 	export let abortIgnition;
 	export let isStreaming; // Add this export
+
+	let lastFillValveAction = '';
+	let lastDumpValveAction = '';
+	let lastActiveVentAction = ''; // Add this state variable
+
 </script>
 
 <div class="controls">
@@ -26,8 +31,8 @@
 		<div class="flex">
 			<h3 class="font-semibold text-lg mb-2">Fill Valve</h3>
 			<div class="flex justify-center">
-				<button class="button bg-blue-500 mr-2" on:click={openFillValve}>Open</button>
-				<button class="button bg-red-500" on:click={closeFillValve}>Close</button>
+				<button class="button bg-blue-500 mr-2 {lastFillValveAction === 'open' ? 'active' : ''}" on:click={() => { openFillValve(); lastFillValveAction = 'open'; }}>Open</button>
+				<button class="button bg-red-500 {lastFillValveAction === 'close' ? 'active' : ''}" on:click={() => { closeFillValve(); lastFillValveAction = 'close'; }}>Close</button>
 			</div>
 			<div class="indicator {getIndicatorClass(indicators['Fill Valve'], 'HanbayValveState')}">
 				{indicators['Fill Valve']}
@@ -36,8 +41,8 @@
 		<div class="flex">
 			<h3 class="font-semibold text-lg mb-2">Dump Valve</h3>
 			<div class="flex justify-center">
-				<button class="button bg-blue-500 mr-2" on:click={openDumpValve}>Open</button>
-				<button class="button bg-red-500" on:click={closeDumpValve}>Close</button>
+				<button class="button bg-blue-500 mr-2 {lastDumpValveAction === 'open' ? 'active' : ''}" on:click={() => { openDumpValve(); lastDumpValveAction = 'open'; }}>Open</button>
+				<button class="button bg-red-500 {lastDumpValveAction === 'close' ? 'active' : ''}" on:click={() => { closeDumpValve(); lastDumpValveAction = 'close'; }}>Close</button>
 			</div>
 			<div class="indicator {getIndicatorClass(indicators['Dump Valve'], 'HanbayValveState')}">
 				{indicators['Dump Valve']}
@@ -46,7 +51,7 @@
 		<div class="flex">
 			<h3 class="font-semibold text-lg mb-2">Pilot Valve</h3>
 			<div class="flex justify-center">
-				<button class="button bg-blue-500 mr-2" on:click={openPilotValve}>Open</button>
+				<button class="button bg-blue-500 mr-2" ozn:click={openPilotValve}>Open</button>
 				<button class="button bg-red-500" on:click={closePilotValve}>Close</button>
 			</div>
 			<div class="indicator {getIndicatorClass(indicators['Pilot Valve'], 'DCmotorState')}">
@@ -56,8 +61,8 @@
 		<div class="flex">
 			<h3 class="font-semibold text-lg mb-2">Active Vent</h3>
 			<div class="flex justify-center">
-				<button class="button bg-blue-500 mr-2" on:click={openActiveVent}>Open</button>
-				<button class="button bg-red-500" on:click={closeActiveVent}>Close</button>
+				<button class="button bg-blue-500 mr-2 {lastActiveVentAction === 'open' ? 'active' : ''}" on:click={() => { openActiveVent(); lastActiveVentAction = 'open'; }}>Open</button>
+				<button class="button bg-red-500 {lastActiveVentAction === 'close' ? 'active' : ''}" on:click={() => { closeActiveVent(); lastActiveVentAction = 'close'; }}>Close</button>
 			</div>
 		</div>
 		<div class="flex">
@@ -126,12 +131,13 @@
 
 	.button {
 		border-radius: 8px;
-		padding: 10px 20px;
+		padding: 8px 18px; /* Adjust padding to account for border */
 		color: white;
 		font-weight: bold;
-		border: none;
+		border: 2px solid transparent; /* Add transparent border */
 		cursor: pointer;
 		transition: background-color 0.3s, transform 0.3s;
+		box-sizing: border-box; /* Ensure border does not expand button size */
 	}
 
 	.button:hover {
@@ -206,5 +212,9 @@
 
 	.button_grey {
 		background-color: grey;
+	}
+
+	.active {
+		border-color: #000; /* Change border color when active */
 	}
 </style>
