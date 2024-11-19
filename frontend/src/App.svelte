@@ -5,10 +5,14 @@
 
 	let message = "";
 	let backendUrl;
+	let hostname = window.location.hostname;
+	console.log("Hostname:", hostname);
 
-	if (window.location.hostname === "localhost") {
+	if (hostname === "localhost") {
         backendUrl = "http://localhost:8000";
-    } else {
+    } else if (hostname === "padstation-prod.local" || hostname === "padstation-prod") {
+		backendUrl = "http://localhost:8000";
+	} else {
         backendUrl = "http://padstation-prod.goblin-decibel.ts.net:8000";
     }
 
