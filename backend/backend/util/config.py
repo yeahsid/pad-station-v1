@@ -73,3 +73,20 @@ class LabJackPeripherals(Enum):
     LOAD_CELL = "Load Cell"
     LOAD_CELL_PINS = ("AIN8", "AIN9")
     LOAD_CELL_STREAMING_ENABLED = True
+
+class MotorControllerParams(Enum):
+    SERIAL_COM_PORT = "COM11"
+    SERIAL_BAUD_RATE = 9600
+
+    SELF_DEV_ID = 0x0
+    TOP_BOARD_DEV_ID = 0x1
+    BOTTOM_BOARD_DEV_ID = 0x2
+
+class MotorControllerPeripherals(Enum):
+    PRESSURE_TRANSDUCER_1 = "Tank Pressure Transducer"
+    PRESSURE_TRANSDUCER_1_DEV_ID = 1
+    PRESSURE_TRANSDUCER_1_PT_ID = 0
+
+    PRESSURE_TRANSDUCER_2 = "Combustion Chamber Pressure Transducer"
+    PRESSURE_TRANSDUCER_2_DEV_ID = 2
+    PRESSURE_TRANSDUCER_2_PT_ID = 0

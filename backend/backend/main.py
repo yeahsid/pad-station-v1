@@ -8,17 +8,20 @@ the API endpoints for controlling actuators and handling WebSocket connections.
 from fastapi import FastAPI, WebSocket, BackgroundTasks, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from backend.control.padStationController import PadStationController
+from backend.control.motorController import MotorController
 from backend.util.constants import BinaryPosition
 from backend.actuators.pilotValve import PilotValve
 from backend.actuators.activeVent import ActiveVent
 from backend.actuators.hanbayValve import HanbayValve
 from backend.actuators.relay import Relay
-from backend.util.config import LabJackPeripherals
+from backend.util.config import LabJackPeripherals, MotorControllerParams
+
 import logging
 import os
 import asyncio
 import re
 from typing import Set
+from contextlib import asynccontextmanager
 
 class WebSocketHandler(logging.Handler):
     """
@@ -70,6 +73,12 @@ class WebSocketHandler(logging.Handler):
             except Exception:
                 self.remove_websocket(websocket)
 
+@asynccontextmanager
+async def lifespan_handler(app: FastAPI):
+    global motor_controller
+    
+    motor_controller = await MotorController.get_connection()  # at some point document why this needs to be async
+
 # Configure logging
 os.makedirs("logs", exist_ok=True)
 websocket_handler = WebSocketHandler()
@@ -89,7 +98,7 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-app = FastAPI()
+app = FastAPI(lifespan=lifespan_handler)
 
 # Configure CORS
 app.add_middleware(
@@ -101,6 +110,7 @@ app.add_middleware(
 )
 
 pad_station_controller = PadStationController()
+motor_controller: MotorController  # defined later via the lifespan manager when we have an event loop running
 
 @app.get("/")
 async def root():
@@ -114,6 +124,7 @@ async def root():
         return {"message": "LabJack connected successfully."}
     else:
         return {"message": "Failed to connect to LabJack."}
+    
 
 @app.websocket("/ws/data")
 async def websocket_endpoint(websocket: WebSocket):
