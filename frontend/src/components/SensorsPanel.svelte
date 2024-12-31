@@ -5,7 +5,7 @@
 <div class="sensors-panel">
 	<div class="sensor">
 		<h4>Supply PT (Bar)</h4>
-		<p class="sensor-value">{indicators['Supply Pressure Transducer']}</p>
+		<p class="sensor-value">{indicators['Tank Pressure Transducer']}</p>
 	</div>
 	<div class="sensor">
 		<h4>Fill PT (Bar)</h4>

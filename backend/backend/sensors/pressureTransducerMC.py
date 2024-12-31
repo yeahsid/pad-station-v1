@@ -1,6 +1,6 @@
 from backend.util.config import FRONTEND_UPDATE_RATE
-from papiris import iris
-from papiris.iris.packet_types import *
+from backend.papiris import iris
+from backend.papiris.iris.packet_types import *
 
 
 class PressureTransducerMC:
@@ -36,7 +36,8 @@ class PressureTransducerMC:
         """
 
         response_struct: PRESSURE_READ_ResponseStruct
-        _, response_struct = self.iris.send_request(
+        
+        _, response_struct = await self.iris.send_request(
             request_struct=self.request_struct,
             priority=iris.IrisPacketPriority.IRIS_PACKET_PRIORITY_LOW,
             other_dev_id=self.device_dev_id,

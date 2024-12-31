@@ -1,6 +1,6 @@
-from papiris import iris
-from papiris.iris.packet_types import *
-from papiris.hardware import IrisSerial
+from backend.papiris import iris
+from backend.papiris.iris.packet_types import *
+from backend.papiris.hardware import IrisSerial
 
 from backend.util.config import MotorControllerParams, MotorControllerPeripherals
 from backend.sensors.pressureTransducerMC import PressureTransducerMC
@@ -12,12 +12,12 @@ class MotorController:
     def __init__(self, serial_interface: IrisSerial):
         self.logger = logging.getLogger(__name__)
         
-        self.iris = iris.Iris(MotorControllerParams.SELF_DEV_ID, serial_interface)
+        self.iris = iris.Iris(MotorControllerParams.SELF_DEV_ID.value, serial_interface)
         self.sensors = self._initialize_sensors()
     
     @classmethod
     async def get_connection(cls):
-        serial_interface = await IrisSerial.get_connection(MotorControllerParams.SERIAL_COM_PORT, MotorControllerParams.SERIAL_BAUD_RATE)
+        serial_interface = await IrisSerial.get_connection(MotorControllerParams.SERIAL_COM_PORT.value, MotorControllerParams.SERIAL_BAUD_RATE.value)
 
         return cls(serial_interface)
 
@@ -43,6 +43,5 @@ class MotorController:
         compiled_data = {}
         for sensor in self.sensors.values():
             compiled_data[sensor.name] = await sensor.get_reading()
-        
+
         return compiled_data
-        

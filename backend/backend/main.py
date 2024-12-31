@@ -79,6 +79,8 @@ async def lifespan_handler(app: FastAPI):
     
     motor_controller = await MotorController.get_connection()  # at some point document why this needs to be async
 
+    yield
+
 # Configure logging
 os.makedirs("logs", exist_ok=True)
 websocket_handler = WebSocketHandler()
@@ -109,7 +111,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-pad_station_controller = PadStationController()
+try:
+    pad_station_controller = PadStationController()
+except:
+    pass
+
 motor_controller: MotorController  # defined later via the lifespan manager when we have an event loop running
 
 @app.get("/")
@@ -138,9 +144,12 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         while True:
             # Create a separate task for gathering and compiling data
-            data_task = asyncio.create_task(pad_station_controller.gather_and_compile_data_frontend())
-            data = await data_task
-            await websocket.send_json(data)
+            # data_task_lj = asyncio.create_task(pad_station_controller.gather_and_compile_data_frontend())
+            data_task_mc = asyncio.create_task(motor_controller.gather_and_compile_data_frontend())
+            # data_lj = await data_task_lj
+            data_mc = await data_task_mc
+
+            await websocket.send_json(data_mc)
     except WebSocketDisconnect:
         logger.warning("Data WebSocket connection closed.")
 
@@ -340,7 +349,7 @@ async def start_streaming():
     Returns:
         dict: Status message.
     """
-    await pad_station_controller.start_streaming()
+    #await pad_station_controller.start_streaming()
     return {"status": "Streaming started"}
 
 @app.post("/streaming/stop")

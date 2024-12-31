@@ -75,7 +75,7 @@ class LabJackPeripherals(Enum):
     LOAD_CELL_STREAMING_ENABLED = True
 
 class MotorControllerParams(Enum):
-    SERIAL_COM_PORT = "COM11"
+    SERIAL_COM_PORT = "/dev/tty.usbserial-B001A43L"
     SERIAL_BAUD_RATE = 9600
 
     SELF_DEV_ID = 0x0
