@@ -80,3 +80,7 @@ class AbstractSystemController(ABC):
         # make sure padstation sets the sensors_read event flag when it's done as streaming controller
         # will not do it anymore
         pass
+    
+    @abstractmethod
+    def end_sensor_streaming(self):
+        pass

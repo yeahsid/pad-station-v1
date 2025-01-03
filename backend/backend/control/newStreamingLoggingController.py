@@ -83,3 +83,16 @@ class StreamingLoggingController:
             self.sys_controller.update_sensors_from_stream(latest_data)
 
             time.sleep(1 / self.scan_rate)
+
+    async def stop_streaming(self):
+        self.sys_controller.end_sensor_streaming()
+        self.streaming = False
+
+        if self.stream_csv_file:
+            self.stream_csv_file.close()
+        if self.event_csv_file:
+            self.event_csv_file.close()
+        
+        self.logger.info("Streaming stopped")
+        self.logger.info(f"Sensor stream log saved to: {self.stream_csv_file.name}")
+        self.logger.info(f"Event log saved to: {self.event_csv_file.name}")
