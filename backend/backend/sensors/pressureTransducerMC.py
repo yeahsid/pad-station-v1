@@ -1,9 +1,12 @@
 from backend.util.config import FRONTEND_UPDATE_RATE
-from backend.papiris import iris
-from backend.papiris.iris.packet_types import *
+from backend.sensors.abstractMotorControllerSensors import AbstractAnalogSensorMC
+from backend.papiris.iris import iris_packet_definitions as packets
+from backend.papiris.iris import IrisPacketPriority
+
+import numpy as np
 
 
-class PressureTransducerMC:
+class PressureTransducerMC(AbstractAnalogSensorMC):
     """
     Represents a Pressure Transducer sensor for measuring pressure.
 
@@ -15,19 +18,18 @@ class PressureTransducerMC:
         tare_reading (float): Tare value to zero the sensor.
     """
 
-    def __init__(self, name: str, iris_instance: iris.Iris, target_device_id: int, target_pt_id: int):
+    def __init__(self, *args, **kwargs):
         """Initialize the PressureTransducer sensor with Modbus address."""
-        self.name = name
-        self.iris = iris_instance
-        self.device_dev_id = target_device_id
-        self.request_struct = PRESSURE_READ_RequestStruct()
-        self.request_struct.pt_select = target_pt_id
+        super().__init__(*args, **kwargs)
+
+        self.request_struct = packets.PRESSURE_READ_RequestStruct
+        self.request_struct.pt_select = self.target_sens_id
 
     async def setup(self):
-        """Setup method for PressureTransducer. No setup required."""
+        """Setup method for PressureTransducerMC. No setup required."""
         pass  # No setup required for pressure transducer
-
-    async def get_reading(self) -> float:
+    
+    async def get_raw_value(self) -> float:
         """
         Retrieve the pressure reading from the target device.
 
@@ -35,13 +37,19 @@ class PressureTransducerMC:
             float: The pressure reading.
         """
 
-        response_struct: PRESSURE_READ_ResponseStruct
+        response_struct: packets.PRESSURE_READ_ResponseStruct
         
         _, response_struct = await self.iris.send_request(
             request_struct=self.request_struct,
-            priority=iris.IrisPacketPriority.IRIS_PACKET_PRIORITY_LOW,
+            priority=IrisPacketPriority.IRIS_PACKET_PRIORITY_LOW,
             other_dev_id=self.device_dev_id,
             response_timeout=1 / FRONTEND_UPDATE_RATE
         )
 
         return response_struct.pressure
+
+    def convert_single(self, raw_value: float) -> float:
+        return raw_value  # no conversions required
+
+    def convert_array(self, raw_value_array: np.ndarray) -> np.ndarray:
+        return raw_value_array  # no conversions required

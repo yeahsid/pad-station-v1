@@ -111,11 +111,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-try:
-    pad_station_controller = PadStationController()
-except:
-    pass
 
+pad_station_controller = PadStationController()
 motor_controller: MotorController  # defined later via the lifespan manager when we have an event loop running
 
 @app.get("/")
@@ -349,7 +346,7 @@ async def start_streaming():
     Returns:
         dict: Status message.
     """
-    #await pad_station_controller.start_streaming()
+    await pad_station_controller.start_streaming()
     return {"status": "Streaming started"}
 
 @app.post("/streaming/stop")

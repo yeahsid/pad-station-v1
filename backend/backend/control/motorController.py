@@ -1,5 +1,4 @@
 from backend.papiris import iris
-from backend.papiris.iris.packet_types import *
 from backend.papiris.hardware import IrisSerial
 
 from backend.util.config import MotorControllerParams, MotorControllerPeripherals
@@ -12,7 +11,7 @@ class MotorController:
     def __init__(self, serial_interface: IrisSerial):
         self.logger = logging.getLogger(__name__)
         
-        self.iris = iris.Iris(MotorControllerParams.SELF_DEV_ID.value, serial_interface)
+        self.iris = iris.Iris.create_instance(MotorControllerParams.SELF_DEV_ID.value, serial_interface)
         self.sensors = self._initialize_sensors()
     
     @classmethod
