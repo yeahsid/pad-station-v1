@@ -7,7 +7,7 @@ from numpy import ndarray
 
 
 class AbstractSystemController(ABC):
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         self.logger = logging.getLogger(__name__)  # TODO: check which name this is actually getting
         self.digital_sensors: ... = self._initialize_digital_sensors()
         self.analog_sensors: dict[str, AbstractAnalogSensor] = self._initialize_analog_sensors()

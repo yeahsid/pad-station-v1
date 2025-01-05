@@ -1,4 +1,5 @@
 from backend.sensors.abstractSensors import AbstractDigitalSensor
+
 from dataclasses import dataclass
 from backend.util.constants import DCMotorState
 

@@ -82,6 +82,8 @@ class MotorControllerParams(Enum):
     TOP_BOARD_DEV_ID = 0x1
     BOTTOM_BOARD_DEV_ID = 0x2
 
+    SENSOR_POLL_RATE = 3
+
 class MotorControllerPeripherals(Enum):
     PRESSURE_TRANSDUCER_1 = "Tank Pressure Transducer"
     PRESSURE_TRANSDUCER_1_DEV_ID = 1

@@ -107,6 +107,36 @@ class AbstractAnalogSensor(ABC):
             self.is_streaming = False
             self.streaming_value = None
 
+class AbstractDigitalSensor(ABC):
+    logger = logging.getLogger(__name__)
+
+    def __init__(self, name: str):
+        self.name = name
+    
+        try:
+            try:
+                # Check for an existing event loop
+                loop = asyncio.get_running_loop()
+                loop.create_task(self.setup())  # Schedule setup in the running loop
+            except RuntimeError:
+                # If no loop is running, use asyncio.run()
+                asyncio.run(self.setup())
+            self.logger.info(f"Sensor {self.name} setup complete")
+        except Exception as e:
+            self.logger.error(f"Sensor {self.name} setup failed: {e}")
+            raise e
+    
+    @abstractmethod
+    async def setup(self):
+        """Abstract method to setup the sensor."""
+        pass
+
+    @abstractmethod
+    async def read(self) -> Enum:
+        """Abstract method to read the sensor state."""
+        pass
+
+
 class AbstractAnalogSensorLJ(ABC):
     """
     Abstract base class for analog sensors.
@@ -219,48 +249,6 @@ class AbstractAnalogSensorLJ(ABC):
         
         raw_value = await self.get_raw_value()
         return self.convert(raw_value)
-
-class AbstractDigitalSensorLJ(ABC):
-    """
-    Abstract base class for digital sensors.
-
-    Attributes:
-        name (str): The name of the sensor.
-    """
-    logger = logging.getLogger(__name__)
-
-    def __init__(self, name: str):
-        """
-        Initialize the AbstractDigitalSensor.
-
-        Args:
-            name (str): The name of the sensor.
-        """
-        self.name = name
-        self.labjack = LabJack()  # Access the singleton instance directly
-
-        try:
-            try:
-                # Check for an existing event loop
-                loop = asyncio.get_running_loop()
-                loop.create_task(self.setup())  # Schedule setup in the running loop
-            except RuntimeError:
-                # If no loop is running, use asyncio.run()
-                asyncio.run(self.setup())
-            self.logger.info(f"Sensor {self.name} setup complete")
-        except Exception as e:
-            self.logger.error(f"Sensor {self.name} setup failed: {e}")
-            raise e
-
-    @abstractmethod
-    async def setup(self):
-        """Abstract method to setup the sensor."""
-        pass
-
-    @abstractmethod
-    async def read(self) -> Enum:
-        """Abstract method to read the sensor state."""
-        pass
 
 def extract_number_from_ain(ain_string):
     """

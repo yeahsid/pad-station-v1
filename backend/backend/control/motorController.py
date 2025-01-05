@@ -2,17 +2,20 @@ from backend.papiris import iris
 from backend.papiris.hardware import IrisSerial
 
 from backend.util.config import MotorControllerParams, MotorControllerPeripherals
+from backend.sensors.abstractSensors import AbstractAnalogSensor
 from backend.sensors.pressureTransducerMC import PressureTransducerMC
+from backend.control.abstractSystemController import AbstractSystemController
 
 import asyncio
 import logging
+from datetime import datetime
+import numpy as np
 
-class MotorController:
-    def __init__(self, serial_interface: IrisSerial):
-        self.logger = logging.getLogger(__name__)
-        
+class MotorController(AbstractSystemController):
+    def __init__(self, serial_interface: IrisSerial):        
         self.iris = iris.Iris.create_instance(MotorControllerParams.SELF_DEV_ID.value, serial_interface)
-        self.sensors = self._initialize_sensors()
+        
+        super().__init__()
     
     @classmethod
     async def get_connection(cls):
@@ -20,7 +23,7 @@ class MotorController:
 
         return cls(serial_interface)
 
-    def _initialize_sensors(self):
+    def _initialize_analog_sensors(self):
         sensors = {
             MotorControllerPeripherals.PRESSURE_TRANSDUCER_1.value: PressureTransducerMC(
                 MotorControllerPeripherals.PRESSURE_TRANSDUCER_1.value,
@@ -28,19 +31,93 @@ class MotorController:
                 MotorControllerPeripherals.PRESSURE_TRANSDUCER_1_DEV_ID.value,
                 MotorControllerPeripherals.PRESSURE_TRANSDUCER_1_PT_ID.value
             ),
-            # MotorControllerPeripherals.PRESSURE_TRANSDUCER_2.value: PressureTransducerMC(
-            #     MotorControllerPeripherals.PRESSURE_TRANSDUCER_2.value,
-            #     self.iris,
-            #     MotorControllerPeripherals.PRESSURE_TRANSDUCER_2_DEV_ID.value,
-            #     MotorControllerPeripherals.PRESSURE_TRANSDUCER_2_PT_ID.value
-            # )
         }
 
         return sensors
 
+    def _initialize_digital_sensors(self):
+        pass
+
+    def _initialize_actuators(self):
+        pass
+
+    def start_sensor_streaming(self):
+        streaming_sensors = []
+
+        for sensor in self.analog_sensors.values():
+            if sensor.streaming_enabled:
+                sensor.set_streaming()
+                streaming_sensors.append(sensor)
+        
+        asyncio.create_task(self._sensor_polling_task(streaming_sensors))
+
+        return streaming_sensors, (1 / MotorControllerParams.SENSOR_POLL_RATE)
+        
+    async def _sensor_polling_task(sensors: list[AbstractAnalogSensor]):
+        while True:
+            for sensor in sensors:
+                value = sensor.convert_single(sensor.get_raw_value())
+                sensor.set_streaming(value)
+            
+            await asyncio.sleep(1 / MotorControllerParams.SENSOR_POLL_RATE)
+
+    def read_stream(self):
+        data = [sensor.read() for sensor in self.analog_sensors.values() if sensor.is_streaming]
+        timestamp = datetime.now()
+
+        array = np.array([[timestamp, *data]])
+
+        return data
+
+    def update_sensors_from_stream(self, data):
+        pass
+
+    def end_sensor_streaming(self):
+        for sensor in self.analog_sensors.values():
+            if sensor.is_streaming:
+                sensor.deactivate_streaming()
+
     async def gather_and_compile_data_frontend(self):
         compiled_data = {}
         for sensor in self.sensors.values():
-            compiled_data[sensor.name] = await sensor.get_reading()
+            compiled_data[sensor.name] = await sensor.read()
 
         return compiled_data
+
+# class MotorController:
+#     def __init__(self, serial_interface: IrisSerial):
+#         self.logger = logging.getLogger(__name__)
+        
+#         self.iris = iris.Iris.create_instance(MotorControllerParams.SELF_DEV_ID.value, serial_interface)
+#         self.sensors = self._initialize_sensors()
+    
+#     @classmethod
+#     async def get_connection(cls):
+#         serial_interface = await IrisSerial.get_connection(MotorControllerParams.SERIAL_COM_PORT.value, MotorControllerParams.SERIAL_BAUD_RATE.value)
+
+#         return cls(serial_interface)
+
+#     def _initialize_sensors(self):
+#         sensors = {
+#             MotorControllerPeripherals.PRESSURE_TRANSDUCER_1.value: PressureTransducerMC(
+#                 MotorControllerPeripherals.PRESSURE_TRANSDUCER_1.value,
+#                 self.iris,
+#                 MotorControllerPeripherals.PRESSURE_TRANSDUCER_1_DEV_ID.value,
+#                 MotorControllerPeripherals.PRESSURE_TRANSDUCER_1_PT_ID.value
+#             ),
+#             # MotorControllerPeripherals.PRESSURE_TRANSDUCER_2.value: PressureTransducerMC(
+#             #     MotorControllerPeripherals.PRESSURE_TRANSDUCER_2.value,
+#             #     self.iris,
+#             #     MotorControllerPeripherals.PRESSURE_TRANSDUCER_2_DEV_ID.value,
+#             #     MotorControllerPeripherals.PRESSURE_TRANSDUCER_2_PT_ID.value
+#             # )
+#         }
+
+#         return sensors
+
+#     async def gather_and_compile_data_frontend(self):
+#         compiled_data = {}
+#         for sensor in self.sensors.values():
+#             compiled_data[sensor.name] = await sensor.get_reading()
+
+#         return compiled_data
