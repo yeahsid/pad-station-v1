@@ -9,6 +9,7 @@ from fastapi import FastAPI, WebSocket, BackgroundTasks, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from backend.control.padStationController import PadStationController
 from backend.control.motorController import MotorController
+from backend.control.newStreamingLoggingController import StreamingLoggingController
 from backend.util.constants import BinaryPosition
 from backend.actuators.pilotValve import PilotValve
 from backend.actuators.activeVent import ActiveVent
@@ -76,8 +77,10 @@ class WebSocketHandler(logging.Handler):
 @asynccontextmanager
 async def lifespan_handler(app: FastAPI):
     global motor_controller
+    global mc_logging_controller
     
     motor_controller = await MotorController.get_connection()  # at some point document why this needs to be async
+    mc_logging_controller = StreamingLoggingController(motor_controller)
 
     yield
 
@@ -113,7 +116,11 @@ app.add_middleware(
 
 
 pad_station_controller = PadStationController()
+pad_logging_controller = StreamingLoggingController(pad_station_controller)
+
 motor_controller: MotorController  # defined later via the lifespan manager when we have an event loop running
+mc_logging_controller: StreamingLoggingController
+
 
 @app.get("/")
 async def root():
@@ -141,12 +148,12 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         while True:
             # Create a separate task for gathering and compiling data
-            # data_task_lj = asyncio.create_task(pad_station_controller.gather_and_compile_data_frontend())
+            data_task_lj = asyncio.create_task(pad_station_controller.gather_and_compile_data_frontend())
             data_task_mc = asyncio.create_task(motor_controller.gather_and_compile_data_frontend())
-            # data_lj = await data_task_lj
+            data_lj = await data_task_lj
             data_mc = await data_task_mc
 
-            await websocket.send_json(data_mc)
+            await websocket.send_json(data_mc.update(data_lj))
     except WebSocketDisconnect:
         logger.warning("Data WebSocket connection closed.")
 
@@ -346,7 +353,7 @@ async def start_streaming():
     Returns:
         dict: Status message.
     """
-    await pad_station_controller.start_streaming()
+    await pad_logging_controller.start_streaming()
     return {"status": "Streaming started"}
 
 @app.post("/streaming/stop")
@@ -357,5 +364,5 @@ async def stop_streaming():
     Returns:
         dict: Status message.
     """
-    await pad_station_controller.stop_streaming()
+    await pad_logging_controller.stop_streaming()
     return {"status": "Streaming stopped"}

@@ -5,6 +5,8 @@ from backend.util.config import MotorControllerParams, MotorControllerPeripheral
 from backend.sensors.abstractSensors import AbstractAnalogSensor
 from backend.sensors.pressureTransducerMC import PressureTransducerMC
 from backend.control.abstractSystemController import AbstractSystemController
+from backend.control.newStreamingLoggingController import StreamingLoggingController
+
 
 import asyncio
 import logging
@@ -14,7 +16,7 @@ import numpy as np
 class MotorController(AbstractSystemController):
     def __init__(self, serial_interface: IrisSerial):        
         self.iris = iris.Iris.create_instance(MotorControllerParams.SELF_DEV_ID.value, serial_interface)
-        
+
         super().__init__()
     
     @classmethod
@@ -24,6 +26,7 @@ class MotorController(AbstractSystemController):
         return cls(serial_interface)
 
     def _initialize_analog_sensors(self):
+        # pt and tc
         sensors = {
             MotorControllerPeripherals.PRESSURE_TRANSDUCER_1.value: PressureTransducerMC(
                 MotorControllerPeripherals.PRESSURE_TRANSDUCER_1.value,
@@ -36,9 +39,11 @@ class MotorController(AbstractSystemController):
         return sensors
 
     def _initialize_digital_sensors(self):
+        # limit switches will be in here
         pass
 
     def _initialize_actuators(self):
+        # pv and active vent
         pass
 
     def start_sensor_streaming(self):
@@ -56,7 +61,7 @@ class MotorController(AbstractSystemController):
     async def _sensor_polling_task(sensors: list[AbstractAnalogSensor]):
         while True:
             for sensor in sensors:
-                value = sensor.convert_single(sensor.get_raw_value())
+                value = sensor.convert_single(await sensor.get_raw_value())
                 sensor.set_streaming(value)
             
             await asyncio.sleep(1 / MotorControllerParams.SENSOR_POLL_RATE)
