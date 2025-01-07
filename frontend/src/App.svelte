@@ -13,7 +13,7 @@
     } else if (hostname === "padstation-prod.local" || hostname === "padstation-prod") {
 		backendUrl = "http://localhost:8000";
 	} else {
-        backendUrl = "http://192.168.0.28:8000";
+        backendUrl = "http://localhost:8080";
     }
 
 	const socket = new WebSocket(`${backendUrl.replace("http", "ws")}/ws/data`);

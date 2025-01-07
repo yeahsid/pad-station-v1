@@ -10,14 +10,15 @@ from backend.sensors.pressureTransducer import PressureTransducer
 from backend.sensors.loadCell import LoadCell
 from backend.sensors.thermocouple import Thermocouple
 from backend.control.labjack import LabJack
-from backend.control.streamingLoggingController import StreamingLoggingController
+from backend.control.abstractSystemController import AbstractSystemController
+from backend.control.newStreamingLoggingController import StreamingLoggingController
 from backend.util.config import *
 from backend.util.constants import BinaryPosition
 import asyncio
 import logging
 import time
 
-class PadStationController:
+class PadStationController(AbstractSystemController):
     """
     Manages the overall operation of the Pad Station, including actuators and sensors.
     
@@ -32,28 +33,9 @@ class PadStationController:
     """
 
     def __init__(self):
-        self.logger = logging.getLogger(__name__)
         self.labjack = LabJack()
-        self.digital_sensors: dict[str, AbstractDigitalSensor] = self._initialize_digital_sensors()
-        self.analog_sensors: dict[str, AbstractAnalogSensor] = self._initialize_analog_sensors()
-        self.actuators: dict[str, AbstractActuator] = self._initialize_actuators()
-        self.actuated_event = asyncio.Event()
-        self.streaming_controller = StreamingLoggingController(self.actuators.values(), self.analog_sensors.values(), self.digital_sensors.values(), self.actuated_event)
 
-        # Register event handlers for all actuators
-        for actuator in self.actuators.values():
-            actuator.register_event_handler(self.actuated_event_handler)
-
-    async def actuated_event_handler(self, actuator: AbstractActuator, position):
-        """
-        Handles actuator events by writing them to the event CSV and setting the event.
-        
-        Args:
-            actuator (AbstractActuator): The actuator that was actuated.
-            position (int): The new position of the actuator.
-        """
-        self.streaming_controller.write_actuator_event_to_csv(actuator.name, position)
-        self.actuated_event.set()
+        super().__init__()
 
     def _initialize_digital_sensors(self):
         """
@@ -170,17 +152,37 @@ class PadStationController:
         }
         return {**relays, **valves}
 
-    async def start_streaming(self):
+    async def start_sensor_streaming(self):
         """
         Initiates the streaming of sensor data.
         """
-        await self.streaming_controller.start_streaming()
+        streaming_sensors = []
 
-    async def stop_streaming(self):
+        for sensor in self.analog_sensors.values():
+            if sensor.streaming_enabled:
+                sensor.set_streaming()
+                streaming_sensors.append(sensor)
+
+        self.streaming_sensors = streaming_sensors
+        scan_rate = self.labjack.start_stream([sensor.streaming_address for sensor in self.streaming_sensors])
+
+        return self.streaming_sensors, scan_rate
+
+    async def end_sensor_streaming(self):
         """
         Stops the streaming of sensor data.
         """
-        await self.streaming_controller.stop_streaming()
+        self.labjack.stop_stream()
+
+        for sensor in self.analog_sensors:
+            sensor.deactivate_streaming()
+
+    def read_stream(self):
+        return self.labjack.read_stream()
+
+    def update_sensors_from_stream(self, data):
+        for i, sensor in enumerate(self.streaming_sensors):
+            sensor.set_streaming(data[i + 1])
 
     async def gather_and_compile_data_frontend(self):
         """
@@ -189,22 +191,13 @@ class PadStationController:
         Returns:
             dict: Compiled sensor data.
         """
-        start = time.time()
-        # Wait for the event or timeout
-        waiting_actuated_event_time = time.time()
+
         try:
-            start = time.time()
             await asyncio.wait_for(self.actuated_event.wait(), timeout=1 / FRONTEND_UPDATE_RATE)
-            # waiting_actuated_event_time = time.time()
-            # self.logger.debug(f"Waited for actuated event for {waiting_actuated_event_time - start} seconds")
         except asyncio.TimeoutError:
             pass
-            # waiting_actuated_event_time = time.time()
-            # self.logger.debug(f"Timeout for actuated event for {waiting_actuated_event_time - start} seconds")
         finally:
             self.actuated_event.clear()
-            # clearing_actuated_event_time = time.time()
-            # self.logger.debug(f"Clearing actuated event took {clearing_actuated_event_time - waiting_actuated_event_time} seconds")
         
         # Compile data from sensors and actuators
         compiled_data = {}

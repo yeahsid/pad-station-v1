@@ -24,6 +24,9 @@ class StreamingLoggingController:
         self.logger = logging.getLogger(__name__)
         self.executor = ThreadPoolExecutor(max_workers=1)
 
+        for actuator in self.sys_controller.actuators.values():
+            actuator.register_event_handler(self.handle_actuator_event)
+
     async def start_streaming(self):
         scan_rate = self.sys_controller.start_sensor_streaming()
 
@@ -61,6 +64,9 @@ class StreamingLoggingController:
 
         self.logger.info(f"Streaming started at: {scan_rate:.2f} Hz")
     
+    async def handle_actuator_event(self, actuator, state):
+        ...
+
     def _poll_and_log_stream(self, converters):
         while self.is_streaming:
             data = self.sys_controller.read_stream()

@@ -4,9 +4,11 @@ from backend.papiris.hardware import IrisSerial
 from backend.util.config import MotorControllerParams, MotorControllerPeripherals
 from backend.sensors.abstractSensors import AbstractAnalogSensor
 from backend.sensors.pressureTransducerMC import PressureTransducerMC
+from backend.sensors.thermocoupleMC import ThermocoupleMC
 from backend.control.abstractSystemController import AbstractSystemController
 from backend.control.newStreamingLoggingController import StreamingLoggingController
-
+from backend.actuators.dcMotorMC import DcMotor
+from backend.util.constants import BinaryPosition
 
 import asyncio
 import logging
@@ -30,10 +32,18 @@ class MotorController(AbstractSystemController):
         sensors = {
             MotorControllerPeripherals.PRESSURE_TRANSDUCER_1.value: PressureTransducerMC(
                 MotorControllerPeripherals.PRESSURE_TRANSDUCER_1.value,
+                None,
                 self.iris,
                 MotorControllerPeripherals.PRESSURE_TRANSDUCER_1_DEV_ID.value,
-                MotorControllerPeripherals.PRESSURE_TRANSDUCER_1_PT_ID.value
+                MotorControllerPeripherals.PRESSURE_TRANSDUCER_1_SENS_ID.value
             ),
+            MotorControllerPeripherals.THERMOCOUPLE_1.value: ThermocoupleMC(
+                MotorControllerPeripherals.THERMOCOUPLE_1.value,
+                None,
+                self.iris,
+                MotorControllerPeripherals.THERMOCOUPLE_1_DEV_ID.value,
+                MotorControllerPeripherals.THERMOCOUPLE_1_SENS_ID.value
+            )
         }
 
         return sensors
@@ -44,7 +54,16 @@ class MotorController(AbstractSystemController):
 
     def _initialize_actuators(self):
         # pv and active vent
-        pass
+        actuators = {
+            MotorControllerPeripherals.PILOT_VALVE.value: DcMotor(
+                MotorControllerPeripherals.PILOT_VALVE.value,
+                MotorControllerPeripherals.PILOT_VALVE_DEV_ID.value,
+                MotorControllerPeripherals.PILOT_VALVE_ACT_ID.value,
+                BinaryPosition.CLOSE
+            )
+        }
+        
+        return actuators
 
     def start_sensor_streaming(self):
         streaming_sensors = []
@@ -72,7 +91,7 @@ class MotorController(AbstractSystemController):
 
         array = np.array([[timestamp, *data]])
 
-        return data
+        return array
 
     def update_sensors_from_stream(self, data):
         pass
@@ -84,7 +103,7 @@ class MotorController(AbstractSystemController):
 
     async def gather_and_compile_data_frontend(self):
         compiled_data = {}
-        for sensor in self.sensors.values():
+        for sensor in self.analog_sensors.values():
             compiled_data[sensor.name] = await sensor.read()
 
         return compiled_data

@@ -25,7 +25,7 @@
 	</div>
 	<div class="sensor">
 		<h4>Thermocouple (C)</h4>
-		<p class="sensor-value">{indicators['Thermocouple']}</p>
+		<p class="sensor-value">{indicators['Tank Temperature']}</p>
 	</div>
 </div>
 

@@ -26,7 +26,7 @@ class AbstractActuator(ABC):
             name (str): Name of the actuator.
         """
         self.name = name
-        self.labjack = LabJack()
+        #self.labjack = LabJack()
         self.actuated_event = asyncio.Event()
         self.position = None
         self.event_handlers = []

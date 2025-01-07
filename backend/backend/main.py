@@ -7,7 +7,7 @@ the API endpoints for controlling actuators and handling WebSocket connections.
 
 from fastapi import FastAPI, WebSocket, BackgroundTasks, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from backend.control.padStationController import PadStationController
+# from backend.control.padStationController import PadStationController
 from backend.control.motorController import MotorController
 from backend.control.newStreamingLoggingController import StreamingLoggingController
 from backend.util.constants import BinaryPosition
@@ -15,7 +15,8 @@ from backend.actuators.pilotValve import PilotValve
 from backend.actuators.activeVent import ActiveVent
 from backend.actuators.hanbayValve import HanbayValve
 from backend.actuators.relay import Relay
-from backend.util.config import LabJackPeripherals, MotorControllerParams
+from backend.util.config import LabJackPeripherals, MotorControllerParams, MotorControllerPeripherals
+from backend.actuators.dcMotorMC import DcMotor
 
 import logging
 import os
@@ -114,9 +115,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-pad_station_controller = PadStationController()
-pad_logging_controller = StreamingLoggingController(pad_station_controller)
+try:
+    pad_station_controller = PadStationController()
+    pad_logging_controller = StreamingLoggingController(pad_station_controller)
+except:
+    pass
 
 motor_controller: MotorController  # defined later via the lifespan manager when we have an event loop running
 mc_logging_controller: StreamingLoggingController
@@ -148,12 +151,12 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         while True:
             # Create a separate task for gathering and compiling data
-            data_task_lj = asyncio.create_task(pad_station_controller.gather_and_compile_data_frontend())
+            # data_task_lj = asyncio.create_task(pad_station_controller.gather_and_compile_data_frontend())
             data_task_mc = asyncio.create_task(motor_controller.gather_and_compile_data_frontend())
-            data_lj = await data_task_lj
+            # data_lj = await data_task_lj
             data_mc = await data_task_mc
 
-            await websocket.send_json(data_mc.update(data_lj))
+            await websocket.send_json(data_mc)
     except WebSocketDisconnect:
         logger.warning("Data WebSocket connection closed.")
 
@@ -182,8 +185,12 @@ async def open_pilot_valve():
     Returns:
         dict: Status message.
     """
-    pv: PilotValve = pad_station_controller.actuators[LabJackPeripherals.PILOT_VALVE.value]
-    await pv.actuate_valve(BinaryPosition.OPEN)
+    #pv: PilotValve = pad_station_controller.actuators[LabJackPeripherals.PILOT_VALVE.value]
+    #await pv.actuate_valve(BinaryPosition.OPEN)
+
+    motor: DcMotor = motor_controller.actuators[MotorControllerPeripherals.PILOT_VALVE.value]
+
+    await motor.spin_motor(BinaryPosition.OPEN)
     return {"status": "Pilot valve opened"}
 
 @app.post("/pilot-valve/close")
@@ -194,8 +201,9 @@ async def close_pilot_valve():
     Returns:
         dict: Status message.
     """
-    pv: PilotValve = pad_station_controller.actuators[LabJackPeripherals.PILOT_VALVE.value]
-    await pv.actuate_valve(BinaryPosition.CLOSE)
+    motor: DcMotor = motor_controller.actuators[MotorControllerPeripherals.PILOT_VALVE.value]
+
+    await motor.spin_motor(BinaryPosition.CLOSE)
     return {"status": "Pilot valve closed"}
 
 @app.post("/ignition/arm")

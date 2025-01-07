@@ -1,4 +1,4 @@
-from backend.sensors.abstractSensors import AbstractAnalogSensor, AbstractDigitalsensor
+from backend.sensors.abstractSensors import AbstractAnalogSensor, AbstractDigitalSensor
 from backend.actuators.abstractActuator import AbstractActuator
 
 from abc import ABC, abstractmethod
@@ -15,8 +15,12 @@ class AbstractSystemController(ABC):
 
         self.streaming_sensors: list[AbstractAnalogSensor] = []
 
+    # @abstractmethod
+    # async def actuated_event_handler(self, actuator: AbstractActuator, state):
+    #     ...
+
     @abstractmethod
-    def _initialize_digital_sensors(self) -> dict[str, AbstractDigitalsensor]:
+    def _initialize_digital_sensors(self) -> dict[str, AbstractDigitalSensor]:
         """
         Initializes all digital sensors used in the system.
         

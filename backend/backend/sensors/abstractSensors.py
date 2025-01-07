@@ -7,7 +7,7 @@ import asyncio
 import numpy as np
 import threading
 
-class AbstractAnalogSensor(ABC):
+class AbstractAnalogSensor:
     """
     Abstract base class for all analog sensors.
 
@@ -53,6 +53,11 @@ class AbstractAnalogSensor(ABC):
         Returns:
             float | np.ndarray: Converted sensor data.
         """
+        try:
+            raw_value = float(raw_value)
+        except ValueError:
+            pass
+
         if isinstance(raw_value, float):
             return self.convert_single(raw_value)
         elif isinstance(raw_value, np.ndarray):

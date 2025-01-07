@@ -6,7 +6,7 @@ from backend.papiris.iris import IrisPacketPriority
 import numpy as np
 
 
-class PressureTransducerMC(AbstractAnalogSensorMC):
+class ThermocoupleMC(AbstractAnalogSensorMC):
     """
     Represents a Pressure Transducer sensor for measuring pressure.
 
@@ -22,8 +22,8 @@ class PressureTransducerMC(AbstractAnalogSensorMC):
         """Initialize the PressureTransducer sensor with Modbus address."""
         super().__init__(*args, **kwargs)
 
-        self.request_struct = packets.PRESSURE_READ_RequestStruct()
-        self.request_struct.pt_select = self.target_sens_id
+        self.request_struct = packets.THERMOCOUPLE_READ_RequestStruct()
+        self.request_struct.tc_select = self.target_sens_id
 
     async def setup(self):
         """Setup method for PressureTransducerMC. No setup required."""
@@ -37,7 +37,7 @@ class PressureTransducerMC(AbstractAnalogSensorMC):
             float: The pressure reading.
         """
 
-        response_struct: packets.PRESSURE_READ_ResponseStruct
+        response_struct: packets.THERMOCOUPLE_READ_ResponseStruct
         
         _, response_struct = await self.iris.send_request(
             request_struct=self.request_struct,
@@ -46,7 +46,7 @@ class PressureTransducerMC(AbstractAnalogSensorMC):
             response_timeout=1 / FRONTEND_UPDATE_RATE
         )
 
-        return response_struct.pressure
+        return response_struct.tc_temp
 
     def convert_single(self, raw_value: float) -> float:
         return raw_value  # no conversions required
