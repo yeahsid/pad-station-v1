@@ -65,7 +65,7 @@ class StreamingLoggingController:
         self.logger.info(f"Streaming started at: {scan_rate:.2f} Hz")
     
     async def handle_actuator_event(self, actuator, state):
-        ...
+        self.event_csv_writer.writerow([datetime.now().strftime('%Y%m%d_%H%M%S'), actuator.name, state])
 
     def _poll_and_log_stream(self, converters):
         while self.is_streaming:

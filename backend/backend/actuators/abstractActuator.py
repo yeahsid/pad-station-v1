@@ -26,7 +26,6 @@ class AbstractActuator(ABC):
             name (str): Name of the actuator.
         """
         self.name = name
-        self.actuated_event = asyncio.Event()
         self.position = None
         self.event_handlers = []
 
@@ -84,13 +83,5 @@ class AbstractActuator(ABC):
             position (int): The new position of the actuator.
         """
         self.position = position 
-        self.actuated_event.set()
         for handler in self.event_handlers:
             await handler(self, position)
-
-    async def event_handler(self):
-        """
-        Waits for the actuated event to be set.
-        """
-        await self.actuated_event.wait()  # Wait for the event to be set
-        # self.logger.info(f"Event has been set! Arguments: {self.event_args}")

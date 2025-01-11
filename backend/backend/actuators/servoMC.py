@@ -60,4 +60,7 @@ class ServoMotor(AbstractActuator):
             response_timeout=1 / FRONTEND_UPDATE_RATE
         )
 
+        if response_struct.success:
+            self.trigger_actuated_event(position)
+
         return response_struct.success
