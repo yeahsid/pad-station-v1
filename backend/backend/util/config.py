@@ -89,10 +89,6 @@ class MotorControllerPeripherals(Enum):
     PRESSURE_TRANSDUCER_1_DEV_ID = 1
     PRESSURE_TRANSDUCER_1_SENS_ID = 0
 
-    PRESSURE_TRANSDUCER_2 = "Combustion Chamber Pressure Transducer"
-    PRESSURE_TRANSDUCER_2_DEV_ID = 2
-    PRESSURE_TRANSDUCER_2_SENS_ID = 0
-
     THERMOCOUPLE_1 = "Tank Temperature"
     THERMOCOUPLE_1_DEV_ID = 1
     THERMOCOUPLE_1_SENS_ID = 0
@@ -100,3 +96,8 @@ class MotorControllerPeripherals(Enum):
     PILOT_VALVE = "Pilot Valve"
     PILOT_VALVE_DEV_ID = 3
     PILOT_VALVE_ACT_ID = 0
+
+    ACTIVE_VENT = "Active Vent"
+    ACTIVE_VENT_DEV_ID = 1
+    ACTIVE_VENT_ACT_ID = 0
+    ACTIVE_VENT_SAFE_PWM = 50

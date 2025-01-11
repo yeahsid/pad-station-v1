@@ -17,6 +17,7 @@ from backend.actuators.hanbayValve import HanbayValve
 from backend.actuators.relay import Relay
 from backend.util.config import LabJackPeripherals, MotorControllerParams, MotorControllerPeripherals
 from backend.actuators.dcMotorMC import DcMotor
+from backend.actuators.servoMC import ServoMotor
 
 import logging
 import os
@@ -253,8 +254,9 @@ async def open_active_vent():
     Returns:
         dict: Status message.
     """
-    av: ActiveVent = pad_station_controller.actuators[LabJackPeripherals.ACTIVE_VENT.value]
-    await av.move_to_open()
+    av: ServoMotor = motor_controller.actuators[MotorControllerPeripherals.ACTIVE_VENT.value]
+    await av.actuate_servo(100)  # NOTE: I have no clue what it'll be, make this betterer
+
     return {"status": "Active vent opened"}
 
 @app.post("/active-vent/close")
@@ -265,8 +267,9 @@ async def close_active_vent():
     Returns:
         dict: Status message.
     """
-    av: ActiveVent = pad_station_controller.actuators[LabJackPeripherals.ACTIVE_VENT.value]
-    await av.move_to_close()
+    av: ServoMotor = motor_controller.actuators[MotorControllerPeripherals.ACTIVE_VENT.value]
+    await av.actuate_servo(0)  # NOTE: I have no clue what it'll be, make this betterer
+
     return {"status": "Active vent closed"}
 
 @app.post("/fill-valve/open")
@@ -362,6 +365,8 @@ async def start_streaming():
         dict: Status message.
     """
     await pad_logging_controller.start_streaming()
+    await mc_logging_controller.start_streaming()
+
     return {"status": "Streaming started"}
 
 @app.post("/streaming/stop")
@@ -373,4 +378,6 @@ async def stop_streaming():
         dict: Status message.
     """
     await pad_logging_controller.stop_streaming()
+    await mc_logging_controller.stop_streaming()
+
     return {"status": "Streaming stopped"}

@@ -8,6 +8,7 @@ from backend.sensors.thermocoupleMC import ThermocoupleMC
 from backend.control.abstractSystemController import AbstractSystemController
 from backend.control.newStreamingLoggingController import StreamingLoggingController
 from backend.actuators.dcMotorMC import DcMotor
+from backend.actuators.servoMC import ServoMotor
 from backend.util.constants import BinaryPosition
 
 import asyncio
@@ -60,6 +61,12 @@ class MotorController(AbstractSystemController):
                 MotorControllerPeripherals.PILOT_VALVE_DEV_ID.value,
                 MotorControllerPeripherals.PILOT_VALVE_ACT_ID.value,
                 BinaryPosition.CLOSE
+            ),
+            MotorControllerPeripherals.ACTIVE_VENT.value: ServoMotor(
+                MotorControllerPeripherals.ACTIVE_VENT.value,
+                MotorControllerPeripherals.ACTIVE_VENT_DEV_ID.value,
+                MotorControllerPeripherals.ACTIVE_VENT_ACT_ID.value,
+                MotorControllerPeripherals.ACTIVE_VENT_SAFE_PWM.value
             )
         }
         
