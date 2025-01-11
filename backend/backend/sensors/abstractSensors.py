@@ -78,6 +78,13 @@ class AbstractAnalogSensor:
         """Abstract method to retrieve raw sensor data."""
         pass
 
+    def read_stored_value(self) -> float:
+        with self.lock:
+            if self.is_streaming:
+                return self.streaming_value
+            else:
+                raise ValueError("Attempted to read stored value of non-streaming sensor")
+
     async def read(self) -> float:
         """
         Read the current sensor value, either streaming or raw.

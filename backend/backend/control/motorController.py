@@ -36,14 +36,14 @@ class MotorController(AbstractSystemController):
             MotorControllerPeripherals.PRESSURE_TRANSDUCER_1.value: PressureTransducerMC(
                 MotorControllerPeripherals.PRESSURE_TRANSDUCER_1.value,
                 None,
-                self.iris,
+                True,
                 MotorControllerPeripherals.PRESSURE_TRANSDUCER_1_DEV_ID.value,
                 MotorControllerPeripherals.PRESSURE_TRANSDUCER_1_SENS_ID.value
             ),
             MotorControllerPeripherals.THERMOCOUPLE_1.value: ThermocoupleMC(
                 MotorControllerPeripherals.THERMOCOUPLE_1.value,
                 None,
-                self.iris,
+                True,
                 MotorControllerPeripherals.THERMOCOUPLE_1_DEV_ID.value,
                 MotorControllerPeripherals.THERMOCOUPLE_1_SENS_ID.value
             )
@@ -66,6 +66,7 @@ class MotorController(AbstractSystemController):
 
         sensors = {
             MotorControllerPeripherals.PILOT_VALVE_SENS.value: DcMotorStateSensor(
+                MotorControllerPeripherals.PILOT_VALVE_SENS.value,
                 pv_open_ls,
                 pv_closed_ls
             )
@@ -114,7 +115,7 @@ class MotorController(AbstractSystemController):
             await asyncio.sleep(1 / MotorControllerParams.SENSOR_POLL_RATE)
 
     def read_stream(self):
-        data = [sensor.read() for sensor in self.analog_sensors.values() if sensor.is_streaming]
+        data = [sensor.read_stored_value() for sensor in self.analog_sensors.values() if sensor.is_streaming]
         timestamp = datetime.now()
 
         array = np.array([[timestamp, *data]])
@@ -133,43 +134,8 @@ class MotorController(AbstractSystemController):
         compiled_data = {}
         for sensor in self.analog_sensors.values():
             compiled_data[sensor.name] = await sensor.read()
+        
+        for sensor in self.digital_sensors.values():
+            compiled_data[sensor.name] = (await sensor.read()).name  # name of the enum state it's in
 
         return compiled_data
-
-# class MotorController:
-#     def __init__(self, serial_interface: IrisSerial):
-#         self.logger = logging.getLogger(__name__)
-        
-#         self.iris = iris.Iris.create_instance(MotorControllerParams.SELF_DEV_ID.value, serial_interface)
-#         self.sensors = self._initialize_sensors()
-    
-#     @classmethod
-#     async def get_connection(cls):
-#         serial_interface = await IrisSerial.get_connection(MotorControllerParams.SERIAL_COM_PORT.value, MotorControllerParams.SERIAL_BAUD_RATE.value)
-
-#         return cls(serial_interface)
-
-#     def _initialize_sensors(self):
-#         sensors = {
-#             MotorControllerPeripherals.PRESSURE_TRANSDUCER_1.value: PressureTransducerMC(
-#                 MotorControllerPeripherals.PRESSURE_TRANSDUCER_1.value,
-#                 self.iris,
-#                 MotorControllerPeripherals.PRESSURE_TRANSDUCER_1_DEV_ID.value,
-#                 MotorControllerPeripherals.PRESSURE_TRANSDUCER_1_PT_ID.value
-#             ),
-#             # MotorControllerPeripherals.PRESSURE_TRANSDUCER_2.value: PressureTransducerMC(
-#             #     MotorControllerPeripherals.PRESSURE_TRANSDUCER_2.value,
-#             #     self.iris,
-#             #     MotorControllerPeripherals.PRESSURE_TRANSDUCER_2_DEV_ID.value,
-#             #     MotorControllerPeripherals.PRESSURE_TRANSDUCER_2_PT_ID.value
-#             # )
-#         }
-
-#         return sensors
-
-#     async def gather_and_compile_data_frontend(self):
-#         compiled_data = {}
-#         for sensor in self.sensors.values():
-#             compiled_data[sensor.name] = await sensor.get_reading()
-
-#         return compiled_data

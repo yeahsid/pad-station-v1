@@ -24,7 +24,7 @@ class AbstractAnalogSensorMC(ABC, AbstractAnalogSensor):
         super().__init__(name, unit, streaming_enabled)
     
 class AbstractDigitalSensorMC(ABC, AbstractDigitalSensor):
-    def __init__(self, name: str, target_dev_id: int, target_sens_id: int):
+    def __init__(self, name: str, target_dev_id: int=None, target_sens_id: int=None):
         self.iris = Iris()
         self.target_dev_id = target_dev_id
         self.target_sens_id = target_sens_id
