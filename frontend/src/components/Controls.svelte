@@ -54,8 +54,8 @@
 				<button class="button bg-blue-500 mr-2" on:click={openPilotValve}>Open</button>
 				<button class="button bg-red-500" on:click={closePilotValve}>Close</button>
 			</div>
-			<div class="indicator {getIndicatorClass(indicators['Pilot Valve'], 'DCmotorState')}">
-				{indicators['Pilot Valve']}
+			<div class="indicator {getIndicatorClass(indicators['Pilot Valve State Sensor'], 'DCmotorState')}">
+				{indicators['Pilot Valve State Sensor']}
 			</div>
 		</div>
 		<div class="flex">

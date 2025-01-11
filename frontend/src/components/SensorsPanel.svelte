@@ -4,8 +4,12 @@
 
 <div class="sensors-panel">
 	<div class="sensor">
-		<h4>Supply PT (Bar)</h4>
+		<h4>Tank PT (Bar)</h4>
 		<p class="sensor-value">{indicators['Tank Pressure Transducer']}</p>
+	</div>
+	<div class="sensor">
+		<h4>Supply PT (Bar)</h4>
+		<p class="sensor-value">{indicators['Supply Pressure Transducer']}</p>
 	</div>
 	<div class="sensor">
 		<h4>Fill PT (Bar)</h4>
@@ -25,6 +29,10 @@
 	</div>
 	<div class="sensor">
 		<h4>Thermocouple (C)</h4>
+		<p class="sensor-value">{indicators['Thermocouple']}</p>
+	</div>
+	<div class="sensor">
+		<h4>Tank Temp (C)</h4>
 		<p class="sensor-value">{indicators['Tank Temperature']}</p>
 	</div>
 </div>
@@ -38,10 +46,10 @@
 
 	.sensor {
 		background-color: #f0f0f0;
-		padding: 10px;
+		padding: 5px;
 		border-radius: 5px;
 		text-align: center;
-		width: 150px;
+		width: 120px;
 	}
 
 	.sensor h4 {
@@ -50,7 +58,7 @@
 	}
 
 	.sensor-value {
-		font-size: 16px;
+		font-size: 14px;
 		font-weight: bold;
 		text-align: bottom; /* Align the numbers to the right */
 	}
