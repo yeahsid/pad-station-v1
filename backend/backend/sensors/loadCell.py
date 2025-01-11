@@ -1,13 +1,13 @@
 from dataclasses import dataclass
 import logging
-from backend.sensors.abstractSensors import AbstractAnalogSensor, extract_number_from_ain
+from backend.sensors.abstractLabjackSensors import AbstractAnalogSensorLJ, extract_number_from_ain
 from backend.util.config import LOAD_CELL_CALIBRATION
 import numpy as np
 
 logger = logging.getLogger(__name__)
 
 @dataclass
-class LoadCell(AbstractAnalogSensor):
+class LoadCell(AbstractAnalogSensorLJ):
     """
     Represents a Load Cell sensor for measuring force.
 

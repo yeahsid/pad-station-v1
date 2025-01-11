@@ -19,6 +19,7 @@ class Relay(AbstractActuator):
     pin: int
 
     def __post_init__(self):
+        self.labjack = LabJack()
         super().__init__(self.name)  # Initialize AbstractActuator
 
     async def setup(self):

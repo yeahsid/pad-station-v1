@@ -1,12 +1,9 @@
 from dataclasses import dataclass
-import logging
 import numpy as np
-from backend.sensors.abstractSensors import AbstractAnalogSensor, extract_number_from_ain
-
-logger = logging.getLogger(__name__)
+from backend.sensors.abstractLabjackSensors import AbstractAnalogSensorLJ, extract_number_from_ain
 
 @dataclass
-class Thermocouple(AbstractAnalogSensor):
+class Thermocouple(AbstractAnalogSensorLJ):
     """
     Represents a Thermocouple sensor for measuring temperature.
 

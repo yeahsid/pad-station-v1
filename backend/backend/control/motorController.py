@@ -1,15 +1,16 @@
 from backend.papiris import iris
 from backend.papiris.hardware import IrisSerial
 
-from backend.util.config import MotorControllerParams, MotorControllerPeripherals
+from backend.util.config import MotorControllerParams, MotorControllerPeripherals, LabJackPeripherals
 from backend.sensors.abstractSensors import AbstractAnalogSensor
 from backend.sensors.pressureTransducerMC import PressureTransducerMC
 from backend.sensors.thermocoupleMC import ThermocoupleMC
 from backend.control.abstractSystemController import AbstractSystemController
 from backend.control.newStreamingLoggingController import StreamingLoggingController
-from backend.actuators.dcMotorMC import DcMotor
+from backend.actuators.pilotValveMc import PilotValve
 from backend.actuators.servoMC import ServoMotor
 from backend.util.constants import BinaryPosition
+from backend.control.padStationController import PadStationController
 
 import asyncio
 import logging
@@ -17,16 +18,17 @@ from datetime import datetime
 import numpy as np
 
 class MotorController(AbstractSystemController):
-    def __init__(self, serial_interface: IrisSerial):        
+    def __init__(self, serial_interface: IrisSerial, pad_station: PadStationController):        
         self.iris = iris.Iris.create_instance(MotorControllerParams.SELF_DEV_ID.value, serial_interface)
+        self.pad_station = pad_station
 
         super().__init__()
     
     @classmethod
-    async def get_connection(cls):
+    async def get_connection(cls, pad_station: PadStationController):
         serial_interface = await IrisSerial.get_connection(MotorControllerParams.SERIAL_COM_PORT.value, MotorControllerParams.SERIAL_BAUD_RATE.value)
 
-        return cls(serial_interface)
+        return cls(serial_interface, pad_station)
 
     def _initialize_analog_sensors(self):
         # pt and tc
@@ -56,7 +58,8 @@ class MotorController(AbstractSystemController):
     def _initialize_actuators(self):
         # pv and active vent
         actuators = {
-            MotorControllerPeripherals.PILOT_VALVE.value: DcMotor(
+            MotorControllerPeripherals.PILOT_VALVE.value: PilotValve(
+                self.pad_station.actuators[LabJackPeripherals.IGNITOR_RELAY.value],
                 MotorControllerPeripherals.PILOT_VALVE.value,
                 MotorControllerPeripherals.PILOT_VALVE_DEV_ID.value,
                 MotorControllerPeripherals.PILOT_VALVE_ACT_ID.value,

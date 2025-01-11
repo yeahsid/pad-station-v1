@@ -31,6 +31,7 @@ class HanbayValve(AbstractActuator):
     valve_inputs: dict = field(init=False)
 
     def __post_init__(self):
+        self.labjack = LabJack()
         super().__init__(self.name)    # Initialize AbstractActuator
         # Select encoding based on valve type
         if self.is_high_high_open:

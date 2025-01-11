@@ -131,23 +131,6 @@ class PadStationController(AbstractSystemController):
                 is_high_high_open=True,
                 safe_position=BinaryPosition.OPEN,
                 output_state_sensor=self.digital_sensors[LabJackPeripherals.DUMP_VALVE.value]
-            ),
-            LabJackPeripherals.PILOT_VALVE.value: PilotValve(
-                LabJackPeripherals.PILOT_VALVE.value,
-                LabJackPeripherals.PILOT_VALVE_MOTOR_ENABLE_PIN.value,
-                LabJackPeripherals.PILOT_VALVE_MOTOR_IN_PINS.value,
-                LabJackPeripherals.PILOT_VALVE_LIMIT_SWITCH_TOP_PIN.value,
-                LabJackPeripherals.PILOT_VALVE_LIMIT_SWITCH_BOTTOM_PIN.value,
-                safe_position=BinaryPosition.CLOSE,
-                limit_switch_sensor=self.digital_sensors[LabJackPeripherals.PILOT_VALVE.value],
-                ignitor_relay=relays[LabJackPeripherals.IGNITOR_RELAY.value]
-            ),
-            LabJackPeripherals.ACTIVE_VENT.value: ActiveVent(
-                LabJackPeripherals.ACTIVE_VENT.value,
-                LabJackPeripherals.ACTIVE_VENT_SERVO_PWM.value,
-                default_position=ACTIVE_VENT_CLOSED_POSITION,
-                safe_position=ACTIVE_VENT_CLOSED_POSITION,
-                power_relay=relays[LabJackPeripherals.ACTIVE_VENT_RELAY.value]
             )
         }
         return {**relays, **valves}

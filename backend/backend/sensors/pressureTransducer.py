@@ -1,13 +1,11 @@
-from dataclasses import dataclass
-import asyncio
 import logging
-from backend.sensors.abstractSensors import AbstractAnalogSensor
+from backend.sensors.abstractLabjackSensors import AbstractAnalogSensorLJ
 from backend.util.config import PRESSURE_TRANSDUCER_CALIBRATION, PRESSURE_TRANSDUCER_READ_VS, LabJackPeripherals
 from backend.sensors.abstractSensors import extract_number_from_ain
 import numpy as np
 import time
 
-class PressureTransducer(AbstractAnalogSensor):
+class PressureTransducer(AbstractAnalogSensorLJ):
     """
     Represents a Pressure Transducer sensor for measuring pressure.
 

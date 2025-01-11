@@ -21,3 +21,28 @@ class AbstractAnalogSensorLJ(ABC, AbstractAnalogSensor):
 
         super().__init__(name, unit, streaming_enabled)
     
+class AbstractDigitalSensorLJ(ABC):
+    def __init__(self, name: str):
+        self.labjack = LabJack()
+
+        super().__init__(name)
+
+def extract_number_from_ain(ain_string):
+    """
+    Extract the first integer found in a string representing an AIN pin.
+
+    Args:
+        ain_string (str): The AIN pin string (e.g., 'AIN13').
+
+    Returns:
+        int: The extracted number.
+
+    Raises:
+        ValueError: If no number is found in the string.
+    """
+    match = re.search(r'\d+', ain_string)
+    if match:
+        return int(match.group())
+    else:
+        raise ValueError("No number found in the string")
+    

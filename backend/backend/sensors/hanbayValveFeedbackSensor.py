@@ -1,9 +1,9 @@
-from backend.sensors.abstractSensors import AbstractDigitalSensor
+from backend.sensors.abstractLabjackSensors import AbstractDigitalSensorLJ
 from dataclasses import dataclass
 from backend.util.constants import HanbayValveState, HanbayValveEncodings
 
 @dataclass
-class HanbayValveFeedbackSensor(AbstractDigitalSensor):
+class HanbayValveFeedbackSensor(AbstractDigitalSensorLJ):
     """
     Represents a digital feedback sensor for Hanbay valves.
 

@@ -20,6 +20,7 @@ class Servo(AbstractActuator):
     safe_position: int
 
     def __post_init__(self):
+        self.labjack = LabJack()
         super().__init__(self.name)  # Initialize AbstractActuator
 
     logger = logging.getLogger(__name__)

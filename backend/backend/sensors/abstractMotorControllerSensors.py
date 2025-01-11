@@ -1,5 +1,5 @@
 from backend.papiris.iris import Iris
-from backend.sensors.abstractSensors import AbstractAnalogSensor
+from backend.sensors.abstractSensors import AbstractAnalogSensor, AbstractDigitalSensor
 
 from abc import ABC
 
@@ -23,3 +23,10 @@ class AbstractAnalogSensorMC(ABC, AbstractAnalogSensor):
 
         super().__init__(name, unit, streaming_enabled)
     
+class AbstractDigitalSensorMC(ABC, AbstractDigitalSensor):
+    def __init__(self, name: str, target_dev_id: int, target_sens_id: int):
+        self.iris = Iris()
+        self.target_dev_id = target_dev_id
+        self.target_sens_id = target_sens_id
+
+        super().__init__(name)
