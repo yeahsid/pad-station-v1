@@ -110,7 +110,7 @@ class AbstractAnalogSensor:
             self.is_streaming = False
             self.streaming_value = None
 
-class AbstractDigitalSensor(ABC):
+class AbstractDigitalSensor:
     logger = logging.getLogger(__name__)
 
     def __init__(self, name: str):

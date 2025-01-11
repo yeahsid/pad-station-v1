@@ -115,11 +115,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-try:
-    pad_station_controller = PadStationController()
-    pad_logging_controller = StreamingLoggingController(pad_station_controller)
-except:
-    pass
+
+pad_station_controller = PadStationController()
+pad_logging_controller = StreamingLoggingController(pad_station_controller)
 
 motor_controller: MotorController  # defined later via the lifespan manager when we have an event loop running
 mc_logging_controller: StreamingLoggingController

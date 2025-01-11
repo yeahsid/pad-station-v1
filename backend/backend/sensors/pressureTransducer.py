@@ -1,7 +1,6 @@
 import logging
-from backend.sensors.abstractLabjackSensors import AbstractAnalogSensorLJ
+from backend.sensors.abstractLabjackSensors import AbstractAnalogSensorLJ, extract_number_from_ain
 from backend.util.config import PRESSURE_TRANSDUCER_CALIBRATION, PRESSURE_TRANSDUCER_READ_VS, LabJackPeripherals
-from backend.sensors.abstractSensors import extract_number_from_ain
 import numpy as np
 import time
 
