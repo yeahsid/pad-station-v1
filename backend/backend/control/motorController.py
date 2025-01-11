@@ -5,15 +5,15 @@ from backend.util.config import MotorControllerParams, MotorControllerPeripheral
 from backend.sensors.abstractSensors import AbstractAnalogSensor
 from backend.sensors.pressureTransducerMC import PressureTransducerMC
 from backend.sensors.thermocoupleMC import ThermocoupleMC
+from backend.sensors.limitSwitchMC import LimitSwitch
+from backend.sensors.dcMotorStateSensor import DcMotorStateSensor
 from backend.control.abstractSystemController import AbstractSystemController
-from backend.control.newStreamingLoggingController import StreamingLoggingController
 from backend.actuators.pilotValveMc import PilotValve
 from backend.actuators.servoMC import ServoMotor
 from backend.util.constants import BinaryPosition
 from backend.control.padStationController import PadStationController
 
 import asyncio
-import logging
 from datetime import datetime
 import numpy as np
 
@@ -53,7 +53,25 @@ class MotorController(AbstractSystemController):
 
     def _initialize_digital_sensors(self):
         # limit switches will be in here
-        pass
+        pv_open_ls = LimitSwitch(
+            MotorControllerPeripherals.PILOT_VALVE_OLS.value,
+            MotorControllerPeripherals.PILOT_VALVE_DEV_ID.value,
+            MotorControllerPeripherals.PILOT_VALVE_OLS_SENS_ID.value
+        )
+        pv_closed_ls = LimitSwitch(
+            MotorControllerPeripherals.PILOT_VALVE_CLS.value,
+            MotorControllerPeripherals.PILOT_VALVE_DEV_ID.value,
+            MotorControllerPeripherals.PILOT_VALVE_CLS_SENS_ID.value
+        )
+
+        sensors = {
+            MotorControllerPeripherals.PILOT_VALVE_SENS.value: DcMotorStateSensor(
+                pv_open_ls,
+                pv_closed_ls
+            )
+        }
+        
+        return sensors
 
     def _initialize_actuators(self):
         # pv and active vent

@@ -7,15 +7,14 @@ the API endpoints for controlling actuators and handling WebSocket connections.
 
 from fastapi import FastAPI, WebSocket, BackgroundTasks, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-# from backend.control.padStationController import PadStationController
+from backend.control.padStationController import PadStationController
 from backend.control.motorController import MotorController
 from backend.control.newStreamingLoggingController import StreamingLoggingController
 from backend.util.constants import BinaryPosition
-from backend.actuators.pilotValve import PilotValve
-from backend.actuators.activeVent import ActiveVent
+from backend.actuators.pilotValveMc import PilotValve
 from backend.actuators.hanbayValve import HanbayValve
 from backend.actuators.relay import Relay
-from backend.util.config import LabJackPeripherals, MotorControllerParams, MotorControllerPeripherals
+from backend.util.config import LabJackPeripherals, MotorControllerPeripherals
 from backend.actuators.dcMotorMC import DcMotor
 from backend.actuators.servoMC import ServoMotor
 
@@ -81,7 +80,7 @@ async def lifespan_handler(app: FastAPI):
     global motor_controller
     global mc_logging_controller
     
-    motor_controller = await MotorController.get_connection()  # at some point document why this needs to be async
+    motor_controller = await MotorController.get_connection(pad_station_controller)  # at some point document why this needs to be async
     mc_logging_controller = StreamingLoggingController(motor_controller)
 
     yield
@@ -152,12 +151,12 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         while True:
             # Create a separate task for gathering and compiling data
-            # data_task_lj = asyncio.create_task(pad_station_controller.gather_and_compile_data_frontend())
+            data_task_lj = asyncio.create_task(pad_station_controller.gather_and_compile_data_frontend())
             data_task_mc = asyncio.create_task(motor_controller.gather_and_compile_data_frontend())
-            # data_lj = await data_task_lj
+            data_lj = await data_task_lj
             data_mc = await data_task_mc
 
-            await websocket.send_json(data_mc)
+            await websocket.send_json(data_mc.update(data_lj))  # combine and send data
     except WebSocketDisconnect:
         logger.warning("Data WebSocket connection closed.")
 
@@ -189,9 +188,9 @@ async def open_pilot_valve():
     #pv: PilotValve = pad_station_controller.actuators[LabJackPeripherals.PILOT_VALVE.value]
     #await pv.actuate_valve(BinaryPosition.OPEN)
 
-    motor: DcMotor = motor_controller.actuators[MotorControllerPeripherals.PILOT_VALVE.value]
-
-    await motor.spin_motor(BinaryPosition.OPEN)
+    pv: PilotValve = motor_controller.actuators[MotorControllerPeripherals.PILOT_VALVE.value]
+    
+    await pv.spin_motor(BinaryPosition.OPEN)
     return {"status": "Pilot valve opened"}
 
 @app.post("/pilot-valve/close")
@@ -202,9 +201,9 @@ async def close_pilot_valve():
     Returns:
         dict: Status message.
     """
-    motor: DcMotor = motor_controller.actuators[MotorControllerPeripherals.PILOT_VALVE.value]
-
-    await motor.spin_motor(BinaryPosition.CLOSE)
+    pv: PilotValve = motor_controller.actuators[MotorControllerPeripherals.PILOT_VALVE.value]
+    
+    await pv.spin_motor(BinaryPosition.CLOSE)
     return {"status": "Pilot valve closed"}
 
 @app.post("/ignition/arm")
@@ -215,11 +214,11 @@ async def toggle_ignition_arm():
     Returns:
         dict: Status message and current armed state.
     """
-    pv: PilotValve = pad_station_controller.actuators[LabJackPeripherals.PILOT_VALVE.value]
+    pv: PilotValve = motor_controller.actuators[MotorControllerPeripherals.PILOT_VALVE.value]
     if not pv.armed:
-        await pv.arm()
+        pv.arm()
     else:
-        await pv.disarm()
+        pv.disarm()
     return {"status": f"Ignition {'armed' if pv.armed else 'disarmed'}", "armed": pv.armed}
 
 @app.post("/ignition/start")
@@ -230,7 +229,7 @@ async def start_ignition_sequence():
     Returns:
         dict: Status message.
     """
-    pv: PilotValve = pad_station_controller.actuators[LabJackPeripherals.PILOT_VALVE.value]
+    pv: PilotValve = motor_controller.actuators[MotorControllerPeripherals.PILOT_VALVE.value]
     await pv.ignition_sequence()
     return {"status": "Ignition sequence started"}
 
@@ -242,7 +241,7 @@ async def abort_ignition_sequence():
     Returns:
         dict: Status message.
     """
-    pv: PilotValve = pad_station_controller.actuators[LabJackPeripherals.PILOT_VALVE.value]
+    pv: PilotValve = motor_controller.actuators[MotorControllerPeripherals.PILOT_VALVE.value]
     await pv.abort_ignition_sequence()
     return {"status": "Ignition sequence aborted"}
 

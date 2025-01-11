@@ -1,17 +1,11 @@
-from backend.actuators.abstractActuator import AbstractActuator
-from backend.actuators.pilotValve import PilotValve
-from backend.actuators.activeVent import ActiveVent
 from backend.actuators.hanbayValve import HanbayValve
 from backend.actuators.relay import Relay
-from backend.sensors.abstractSensors import AbstractAnalogSensor, AbstractDigitalSensor
 from backend.sensors.hanbayValveFeedbackSensor import HanbayValveFeedbackSensor
-from backend.sensors.dcMotorLimitSwitchSensor import DcMotorLimitSwitchSensor
 from backend.sensors.pressureTransducer import PressureTransducer
 from backend.sensors.loadCell import LoadCell
 from backend.sensors.thermocouple import Thermocouple
 from backend.control.labjack import LabJack
 from backend.control.abstractSystemController import AbstractSystemController
-from backend.control.newStreamingLoggingController import StreamingLoggingController
 from backend.util.config import *
 from backend.util.constants import BinaryPosition
 import asyncio
@@ -52,11 +46,6 @@ class PadStationController(AbstractSystemController):
             LabJackPeripherals.DUMP_VALVE.value: HanbayValveFeedbackSensor(
                 LabJackPeripherals.DUMP_VALVE.value, 
                 LabJackPeripherals.DUMP_VALVE_OUTPUT_PINS.value
-            ),
-            LabJackPeripherals.PILOT_VALVE.value: DcMotorLimitSwitchSensor(
-                LabJackPeripherals.PILOT_VALVE.value, 
-                LabJackPeripherals.PILOT_VALVE_LIMIT_SWITCH_TOP_PIN.value, 
-                LabJackPeripherals.PILOT_VALVE_LIMIT_SWITCH_BOTTOM_PIN.value
             )
         }
     
@@ -175,13 +164,6 @@ class PadStationController(AbstractSystemController):
             dict: Compiled sensor data.
         """
 
-        try:
-            await asyncio.wait_for(self.actuated_event.wait(), timeout=1 / FRONTEND_UPDATE_RATE)
-        except asyncio.TimeoutError:
-            pass
-        finally:
-            self.actuated_event.clear()
-        
         # Compile data from sensors and actuators
         compiled_data = {}
         for sensor in self.analog_sensors.values():

@@ -97,6 +97,12 @@ class MotorControllerPeripherals(Enum):
     PILOT_VALVE_DEV_ID = 3
     PILOT_VALVE_ACT_ID = 0
 
+    PILOT_VALVE_OLS = "Pilot Valve Open Limit Switch"
+    PILOT_VALVE_OLS_SENS_ID = 0
+    PILOT_VALVE_CLS = "Pilot Valve Closed Limit Switch"
+    PILOT_VALVE_CLS_SENS_ID = 1
+    PILOT_VALVE_SENS = "Pilot Valve State Sensor"
+
     ACTIVE_VENT = "Active Vent"
     ACTIVE_VENT_DEV_ID = 1
     ACTIVE_VENT_ACT_ID = 0

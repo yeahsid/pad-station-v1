@@ -15,9 +15,8 @@ class DcMotorStateSensor(AbstractDigitalSensorMC):
         tare_reading (float): Tare value to zero the sensor.
     """
 
-    def __init__(self, name: str, target_dev_id: int, target_sens_id: int, ls_open: LimitSwitch, ls_closed: LimitSwitch):
+    def __init__(self, ls_open: LimitSwitch, ls_closed: LimitSwitch):
         """Initialize the PressureTransducer sensor with Modbus address."""
-        super().__init__(name, target_dev_id, target_sens_id)
 
         self.open_limit_switch = ls_open
         self.closed_limit_switch = ls_closed
