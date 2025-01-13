@@ -12,6 +12,7 @@ from backend.actuators.pilotValveMc import PilotValve
 from backend.actuators.servoMC import ServoMotor
 from backend.util.constants import BinaryPosition
 from backend.control.padStationController import PadStationController
+from backend.sensors.capFill import CapFill
 
 from backend.papiris.iris import SET_LOGGING_RequestStruct, SET_LOGGING_ResponseStruct, SET_TIME_MessageStruct, IrisPacketPriority
 from backend.papiris.iris import IrisPacket
@@ -53,6 +54,13 @@ class MotorController(AbstractSystemController):
                 True,
                 MotorControllerPeripherals.THERMOCOUPLE_1_DEV_ID.value,
                 MotorControllerPeripherals.THERMOCOUPLE_1_SENS_ID.value
+            ),
+            MotorControllerPeripherals.CAP_FILL.value: CapFill(
+                MotorControllerPeripherals.CAP_FILL.value,
+                None,
+                True,
+                "I straight up don't care",
+                "Yep"
             )
         }
 

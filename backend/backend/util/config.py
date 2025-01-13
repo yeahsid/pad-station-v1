@@ -107,3 +107,5 @@ class MotorControllerPeripherals(Enum):
     ACTIVE_VENT_DEV_ID = 1
     ACTIVE_VENT_ACT_ID = 0
     ACTIVE_VENT_SAFE_PWM = 50
+
+    CAP_FILL = "Capacitive Fill"

@@ -35,6 +35,10 @@
 		<h4>Tank Temp (C)</h4>
 		<p class="sensor-value">{indicators['Tank Temperature']}</p>
 	</div>
+	<div class="sensor">
+		<h4>Cap Fill (%)</h4>
+		<p class="sensor-value">{indicators['Capacitive Fill']}</p>
+	</div>
 </div>
 
 <style>
@@ -49,7 +53,7 @@
 		padding: 5px;
 		border-radius: 5px;
 		text-align: center;
-		width: 120px;
+		width: 110px;
 	}
 
 	.sensor h4 {
