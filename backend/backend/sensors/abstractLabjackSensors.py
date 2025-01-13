@@ -1,5 +1,5 @@
 from backend.control.labjack import LabJack
-from backend.sensors.abstractSensors import AbstractAnalogSensor
+from backend.sensors.abstractSensors import AbstractAnalogSensor, AbstractDigitalSensor
 
 from abc import ABC
 
@@ -21,7 +21,7 @@ class AbstractAnalogSensorLJ(ABC, AbstractAnalogSensor):
 
         super().__init__(name, unit, streaming_enabled)
     
-class AbstractDigitalSensorLJ(ABC):
+class AbstractDigitalSensorLJ(ABC, AbstractDigitalSensor):
     def __init__(self, name: str):
         self.labjack = LabJack()
 
