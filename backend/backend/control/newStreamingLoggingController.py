@@ -28,7 +28,7 @@ class StreamingLoggingController:
             actuator.register_event_handler(self.handle_actuator_event)
 
     async def start_streaming(self):
-        scan_rate = self.sys_controller.start_sensor_streaming()
+        scan_rate = await self.sys_controller.start_sensor_streaming()
 
         if not self.sys_controller.streaming_sensors:  # no streaming sensors available
             return
@@ -91,7 +91,7 @@ class StreamingLoggingController:
             time.sleep(1 / self.scan_rate)
 
     async def stop_streaming(self):
-        self.sys_controller.end_sensor_streaming()
+        await self.sys_controller.end_sensor_streaming()
         self.streaming = False
 
         if self.stream_csv_file:

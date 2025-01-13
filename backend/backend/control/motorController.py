@@ -13,13 +13,20 @@ from backend.actuators.servoMC import ServoMotor
 from backend.util.constants import BinaryPosition
 from backend.control.padStationController import PadStationController
 
+from backend.papiris.iris import SET_LOGGING_RequestStruct, SET_LOGGING_ResponseStruct, SET_TIME_MessageStruct, IrisPacketPriority
+from backend.papiris.iris import IrisPacket
+
 import asyncio
 from datetime import datetime
 import numpy as np
 
+SELF_DEV_ID = 0x0
+TOP_BOARD_DEV_ID = 0x1
+BOTTOM_BOARD_DEV_ID = 0x3
+
 class MotorController(AbstractSystemController):
     def __init__(self, serial_interface: IrisSerial, pad_station: PadStationController):        
-        self.iris = iris.Iris.create_instance(MotorControllerParams.SELF_DEV_ID.value, serial_interface)
+        self.iris: iris.Iris = iris.Iris.create_instance(MotorControllerParams.SELF_DEV_ID.value, serial_interface)
         self.pad_station = pad_station
 
         super().__init__()
@@ -94,7 +101,7 @@ class MotorController(AbstractSystemController):
         
         return actuators
 
-    def start_sensor_streaming(self):
+    async def start_sensor_streaming(self):
         streaming_sensors = []
 
         for sensor in self.analog_sensors.values():
@@ -102,10 +109,44 @@ class MotorController(AbstractSystemController):
                 sensor.set_streaming()
                 streaming_sensors.append(sensor)
         
-        asyncio.create_task(self._sensor_polling_task(streaming_sensors))
+        await self._sensor_polling_task(streaming_sensors)
 
         return streaming_sensors, (1 / MotorControllerParams.SENSOR_POLL_RATE)
-        
+    
+    async def _start_motor_controller_streaming(self):
+        # Tare time
+        now = datetime.now()
+        set_time_struct = SET_TIME_MessageStruct()
+        set_time_struct.hour = now.hour
+        set_time_struct.minute = now.minute
+        set_time_struct.second = now.second
+        set_time_struct.milisecond = now.microsecond // 1000
+
+        await self.iris.send_message(IrisPacket.create_from_struct(
+            IrisPacketPriority.IRIS_PACKET_PRIORITY_MEDIUM,
+            set_time_struct,
+            SELF_DEV_ID,
+            0,
+            0
+        ))
+
+        # Start logging on top and bottom board
+        start_logging_struct = SET_LOGGING_RequestStruct()
+        start_logging_struct.logging_state = 0x1
+
+        response_struct: SET_LOGGING_ResponseStruct
+        for devid in (TOP_BOARD_DEV_ID, BOTTOM_BOARD_DEV_ID):
+            while True:  # loop until the fellas start logging
+                _, response_struct = await self.iris.send_request(
+                    start_logging_struct,
+                    priority=IrisPacketPriority.IRIS_PACKET_PRIORITY_MEDIUM,
+                    other_dev_id=devid,
+                    response_timeout=0.5
+                )
+
+                if response_struct.state == 0x1:
+                    break
+
     async def _sensor_polling_task(sensors: list[AbstractAnalogSensor]):
         while True:
             for sensor in sensors:
@@ -125,7 +166,24 @@ class MotorController(AbstractSystemController):
     def update_sensors_from_stream(self, data):
         pass
 
-    def end_sensor_streaming(self):
+    async def end_sensor_streaming(self):
+        # Stop logging on top and bottom board
+        start_logging_struct = SET_LOGGING_RequestStruct()
+        start_logging_struct.logging_state = 0x0
+
+        response_struct: SET_LOGGING_ResponseStruct
+        for devid in (TOP_BOARD_DEV_ID, BOTTOM_BOARD_DEV_ID):
+            while True:  # loop until the fellas start logging
+                _, response_struct = await self.iris.send_request(
+                    start_logging_struct,
+                    priority=IrisPacketPriority.IRIS_PACKET_PRIORITY_MEDIUM,
+                    other_dev_id=devid,
+                    response_timeout=0.5
+                )
+
+                if response_struct.state == 0x1:
+                    break
+
         for sensor in self.analog_sensors.values():
             if sensor.is_streaming:
                 sensor.deactivate_streaming()

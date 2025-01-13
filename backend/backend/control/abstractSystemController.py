@@ -50,7 +50,7 @@ class AbstractSystemController(ABC):
         pass
     
     @abstractmethod
-    def start_sensor_streaming(self) -> tuple[list[AbstractAnalogSensor], int]:
+    async def start_sensor_streaming(self) -> tuple[list[AbstractAnalogSensor], int]:
         """
         Starts sensor streaming and returns the sensors actively streaming.
 
@@ -86,5 +86,5 @@ class AbstractSystemController(ABC):
         pass
     
     @abstractmethod
-    def end_sensor_streaming(self):
+    async def end_sensor_streaming(self):
         pass
