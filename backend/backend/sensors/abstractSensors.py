@@ -23,6 +23,8 @@ class AbstractAnalogSensor:
         self.is_streaming = False
         self.lock = threading.Lock()  # Lock for thread safety during streaming
 
+        self.streaming_value = 0
+
         try:
             try:
                 # Check for an existing event loop

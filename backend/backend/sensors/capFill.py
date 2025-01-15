@@ -23,13 +23,13 @@ class CapFill(AbstractAnalogSensorMC):
         super().__init__(*args, **kwargs)
         self._value = -1
 
-        self.iris.message_id_to_respond_function[CAP_FILL_READING_MessageStruct.get_id()] = self._message_hook
+        self.iris.message_id_to_respond_function[CAP_FILL_READING_MessageStruct().get_id()] = self._message_hook
 
     async def setup(self):
         """Setup method for PressureTransducerMC. No setup required."""
         pass  # No setup required for pressure transducer
     
-    async def _message_hook(self, packet: IrisPacket, struct: CAP_FILL_READING_MessageStruct):
+    async def _message_hook(self, iris, packet: IrisPacket, struct: CAP_FILL_READING_MessageStruct):
         self._value = struct.reading
 
     async def get_raw_value(self) -> float:

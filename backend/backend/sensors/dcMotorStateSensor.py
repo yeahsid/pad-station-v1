@@ -35,9 +35,9 @@ class DcMotorStateSensor(AbstractDigitalSensorMC):
             float: The pressure reading.
         """
 
-        if self.open_limit_switch.read() == BinaryPosition.CLOSE:
+        if await self.open_limit_switch.read() == BinaryPosition.CLOSE:
             return DCMotorState.OPEN
-        elif self.closed_limit_switch.read() == BinaryPosition.CLOSE:
+        elif await self.closed_limit_switch.read() == BinaryPosition.CLOSE:
             return DCMotorState.CLOSE
         else:
             return DCMotorState.INTERMEDIATE

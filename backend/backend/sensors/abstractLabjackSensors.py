@@ -2,7 +2,7 @@ from backend.control.labjack import LabJack
 from backend.sensors.abstractSensors import AbstractAnalogSensor, AbstractDigitalSensor
 
 from abc import ABC
-
+import re
 
 class AbstractAnalogSensorLJ(ABC, AbstractAnalogSensor):
     """

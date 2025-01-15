@@ -80,7 +80,7 @@ async def lifespan_handler(app: FastAPI):
     global motor_controller
     global mc_logging_controller
     
-    motor_controller = await MotorController.get_connection(pad_station_controller)  # at some point document why this needs to be async
+    motor_controller = await MotorController.get_connection(None)  # at some point document why this needs to be async
     mc_logging_controller = StreamingLoggingController(motor_controller)
 
     yield
@@ -109,15 +109,15 @@ app = FastAPI(lifespan=lifespan_handler)
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8080", "http://padstation-prod.goblin-decibel.ts.net:8080/", "*"],
+    allow_origins=["http://localhost:8080", "http://padstation-prod.goblin-decibel.ts.net:8080/", "http://118.138.77.58:55129", "*",],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 
-pad_station_controller = PadStationController()
-pad_logging_controller = StreamingLoggingController(pad_station_controller)
+# pad_station_controller = PadStationController()
+# pad_logging_controller = StreamingLoggingController(pad_station_controller)
 
 motor_controller: MotorController  # defined later via the lifespan manager when we have an event loop running
 mc_logging_controller: StreamingLoggingController
@@ -131,10 +131,10 @@ async def root():
     Returns:
         dict: Message indicating connection status.
     """
-    if pad_station_controller.labjack:
-        return {"message": "LabJack connected successfully."}
-    else:
-        return {"message": "Failed to connect to LabJack."}
+    # if pad_station_controller.labjack:
+    #     return {"message": "LabJack connected successfully."}
+    # else:
+    #     return {"message": "Failed to connect to LabJack."}
     
 
 @app.websocket("/ws/data")
@@ -149,12 +149,12 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         while True:
             # Create a separate task for gathering and compiling data
-            data_task_lj = asyncio.create_task(pad_station_controller.gather_and_compile_data_frontend())
+            #data_task_lj = asyncio.create_task(pad_station_controller.gather_and_compile_data_frontend())
             data_task_mc = asyncio.create_task(motor_controller.gather_and_compile_data_frontend())
-            data_lj = await data_task_lj
+            #data_lj = await data_task_lj
             data_mc = await data_task_mc
 
-            await websocket.send_json(data_mc.update(data_lj))  # combine and send data
+            await websocket.send_json(data_mc)  # combine and send data
     except WebSocketDisconnect:
         logger.warning("Data WebSocket connection closed.")
 
@@ -361,7 +361,7 @@ async def start_streaming():
     Returns:
         dict: Status message.
     """
-    await pad_logging_controller.start_streaming()
+    # await pad_logging_controller.start_streaming()
     await mc_logging_controller.start_streaming()
 
     return {"status": "Streaming started"}
@@ -374,7 +374,7 @@ async def stop_streaming():
     Returns:
         dict: Status message.
     """
-    await pad_logging_controller.stop_streaming()
+    # await pad_logging_controller.stop_streaming()
     await mc_logging_controller.stop_streaming()
 
     return {"status": "Streaming stopped"}

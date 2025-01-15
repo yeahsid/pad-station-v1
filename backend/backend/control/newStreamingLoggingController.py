@@ -4,7 +4,7 @@ import asyncio
 from pathlib import Path
 import csv
 import logging
-import datetime
+from datetime import datetime
 import numpy as np
 from concurrent.futures import ThreadPoolExecutor
 import time
@@ -33,6 +33,7 @@ class StreamingLoggingController:
         if not self.sys_controller.streaming_sensors:  # no streaming sensors available
             return
 
+        self.is_streaming = True
         self.scan_rate = scan_rate
 
         # Prepare CSV headers and converter functions for each sensor
@@ -88,11 +89,10 @@ class StreamingLoggingController:
             latest_data = converted_data[-1]
             self.sys_controller.update_sensors_from_stream(latest_data)
 
-            time.sleep(1 / self.scan_rate)
+            time.sleep(0.2)
 
     async def stop_streaming(self):
-        await self.sys_controller.end_sensor_streaming()
-        self.streaming = False
+        self.is_streaming = False
 
         if self.stream_csv_file:
             self.stream_csv_file.close()
@@ -102,3 +102,5 @@ class StreamingLoggingController:
         self.logger.info("Streaming stopped")
         self.logger.info(f"Sensor stream log saved to: {self.stream_csv_file.name}")
         self.logger.info(f"Event log saved to: {self.event_csv_file.name}")
+
+        await self.sys_controller.end_sensor_streaming()

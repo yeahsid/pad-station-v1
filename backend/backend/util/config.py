@@ -79,18 +79,18 @@ class MotorControllerParams(Enum):
     SERIAL_BAUD_RATE = 9600
 
     SELF_DEV_ID = 0x0
-    TOP_BOARD_DEV_ID = 0x1
-    BOTTOM_BOARD_DEV_ID = 0x2
+    TOP_BOARD_DEV_ID = 0x2
+    BOTTOM_BOARD_DEV_ID = 0x3
 
     SENSOR_POLL_RATE = 3
 
 class MotorControllerPeripherals(Enum):
     PRESSURE_TRANSDUCER_1 = "Tank Pressure Transducer"
-    PRESSURE_TRANSDUCER_1_DEV_ID = 1
+    PRESSURE_TRANSDUCER_1_DEV_ID = 2
     PRESSURE_TRANSDUCER_1_SENS_ID = 0
 
     THERMOCOUPLE_1 = "Tank Temperature"
-    THERMOCOUPLE_1_DEV_ID = 1
+    THERMOCOUPLE_1_DEV_ID = 3
     THERMOCOUPLE_1_SENS_ID = 0
 
     PILOT_VALVE = "Pilot Valve"
@@ -105,7 +105,7 @@ class MotorControllerPeripherals(Enum):
 
     ACTIVE_VENT = "Active Vent"
     ACTIVE_VENT_DEV_ID = 1
-    ACTIVE_VENT_ACT_ID = 0
+    ACTIVE_VENT_ACT_ID = 1
     ACTIVE_VENT_SAFE_PWM = 50
 
     CAP_FILL = "Capacitive Fill"

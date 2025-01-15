@@ -14,21 +14,24 @@ from backend.util.constants import BinaryPosition
 from backend.control.padStationController import PadStationController
 from backend.sensors.capFill import CapFill
 
-from backend.papiris.iris import SET_LOGGING_RequestStruct, SET_LOGGING_ResponseStruct, SET_TIME_MessageStruct, IrisPacketPriority
+from backend.papiris.iris import SET_LOGGING_RequestStruct, SET_LOGGING_ResponseStruct, SET_TIME_MessageStruct, IrisPacketPriority, IRIS_ERR_TIMEOUT
 from backend.papiris.iris import IrisPacket
 
 import asyncio
 from datetime import datetime
 import numpy as np
+from concurrent.futures import ThreadPoolExecutor
 
 SELF_DEV_ID = 0x0
-TOP_BOARD_DEV_ID = 0x1
+TOP_BOARD_DEV_ID = 0x2
 BOTTOM_BOARD_DEV_ID = 0x3
+CAP_FILL_DEV_ID = 0x4
 
 class MotorController(AbstractSystemController):
     def __init__(self, serial_interface: IrisSerial, pad_station: PadStationController):        
         self.iris: iris.Iris = iris.Iris.create_instance(MotorControllerParams.SELF_DEV_ID.value, serial_interface)
         self.pad_station = pad_station
+        #self.executor = ThreadPoolExecutor(max_workers=1)
 
         super().__init__()
     
@@ -92,13 +95,13 @@ class MotorController(AbstractSystemController):
     def _initialize_actuators(self):
         # pv and active vent
         actuators = {
-            MotorControllerPeripherals.PILOT_VALVE.value: PilotValve(
-                self.pad_station.actuators[LabJackPeripherals.IGNITOR_RELAY.value],
-                MotorControllerPeripherals.PILOT_VALVE.value,
-                MotorControllerPeripherals.PILOT_VALVE_DEV_ID.value,
-                MotorControllerPeripherals.PILOT_VALVE_ACT_ID.value,
-                BinaryPosition.CLOSE
-            ),
+            # MotorControllerPeripherals.PILOT_VALVE.value: PilotValve(
+            #     self.pad_station.actuators[LabJackPeripherals.IGNITOR_RELAY.value],
+            #     MotorControllerPeripherals.PILOT_VALVE.value,
+            #     MotorControllerPeripherals.PILOT_VALVE_DEV_ID.value,
+            #     MotorControllerPeripherals.PILOT_VALVE_ACT_ID.value,
+            #     BinaryPosition.CLOSE
+            # ),
             MotorControllerPeripherals.ACTIVE_VENT.value: ServoMotor(
                 MotorControllerPeripherals.ACTIVE_VENT.value,
                 MotorControllerPeripherals.ACTIVE_VENT_DEV_ID.value,
@@ -110,16 +113,18 @@ class MotorController(AbstractSystemController):
         return actuators
 
     async def start_sensor_streaming(self):
-        streaming_sensors = []
+        await self._start_motor_controller_streaming()
+
+        self.streaming_sensors = []
 
         for sensor in self.analog_sensors.values():
             if sensor.streaming_enabled:
                 sensor.set_streaming()
-                streaming_sensors.append(sensor)
-        
-        await self._sensor_polling_task(streaming_sensors)
+                self.streaming_sensors.append(sensor)
 
-        return streaming_sensors, (1 / MotorControllerParams.SENSOR_POLL_RATE)
+        asyncio.create_task(self._sensor_polling_task(self.streaming_sensors))
+
+        return 1 / MotorControllerParams.SENSOR_POLL_RATE.value
     
     async def _start_motor_controller_streaming(self):
         # Tare time
@@ -134,7 +139,7 @@ class MotorController(AbstractSystemController):
             IrisPacketPriority.IRIS_PACKET_PRIORITY_MEDIUM,
             set_time_struct,
             SELF_DEV_ID,
-            0,
+            3,  # mega scuffed, fix later, not used
             0
         ))
 
@@ -143,25 +148,28 @@ class MotorController(AbstractSystemController):
         start_logging_struct.logging_state = 0x1
 
         response_struct: SET_LOGGING_ResponseStruct
-        for devid in (TOP_BOARD_DEV_ID, BOTTOM_BOARD_DEV_ID):
+        for devid in (TOP_BOARD_DEV_ID, BOTTOM_BOARD_DEV_ID, CAP_FILL_DEV_ID):
             while True:  # loop until the fellas start logging
-                _, response_struct = await self.iris.send_request(
-                    start_logging_struct,
-                    priority=IrisPacketPriority.IRIS_PACKET_PRIORITY_MEDIUM,
-                    other_dev_id=devid,
-                    response_timeout=0.5
-                )
+                try:
+                    _, response_struct = await self.iris.send_request(
+                        start_logging_struct,
+                        priority=IrisPacketPriority.IRIS_PACKET_PRIORITY_MEDIUM,
+                        other_dev_id=devid,
+                        response_timeout=0.5
+                    )
+                except IRIS_ERR_TIMEOUT:
+                    print(f"Set logging request to id '{devid}' timed out")
+                else:
+                    if response_struct.state == 0x1:
+                        break
 
-                if response_struct.state == 0x1:
-                    break
-
-    async def _sensor_polling_task(sensors: list[AbstractAnalogSensor]):
+    async def _sensor_polling_task(self, sensors: list[AbstractAnalogSensor]):
         while True:
             for sensor in sensors:
                 value = sensor.convert_single(await sensor.get_raw_value())
                 sensor.set_streaming(value)
             
-            await asyncio.sleep(1 / MotorControllerParams.SENSOR_POLL_RATE)
+            await asyncio.sleep(1 / MotorControllerParams.SENSOR_POLL_RATE.value)
 
     def read_stream(self):
         data = [sensor.read_stored_value() for sensor in self.analog_sensors.values() if sensor.is_streaming]
@@ -180,7 +188,7 @@ class MotorController(AbstractSystemController):
         start_logging_struct.logging_state = 0x0
 
         response_struct: SET_LOGGING_ResponseStruct
-        for devid in (TOP_BOARD_DEV_ID, BOTTOM_BOARD_DEV_ID):
+        for devid in (TOP_BOARD_DEV_ID, BOTTOM_BOARD_DEV_ID, CAP_FILL_DEV_ID):
             while True:  # loop until the fellas start logging
                 _, response_struct = await self.iris.send_request(
                     start_logging_struct,

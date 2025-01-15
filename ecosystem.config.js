@@ -2,20 +2,20 @@ const path = require('path');
 
 module.exports = {
   apps: [
-    {
-      name: 'backend',
-      script: 'uvicorn',
-      args: 'backend.main:app --host 0.0.0.0 --port 8000',
-      interpreter: path.join(__dirname, 'backend', '.venv', 'bin', 'python'),
-      cwd: path.join(__dirname, 'backend'),
-      watch: false,
-      env: {
-        PYTHON_ENV: 'development'
-      },
-      log_file: path.join(__dirname, 'logs', 'backend.log'),
-      error_file: path.join(__dirname, 'logs', 'backend-error.log'),
-      out_file: path.join(__dirname, 'logs', 'backend-out.log')
-    },
+    // {
+    //   name: 'backend',
+    //   script: 'uvicorn',
+    //   args: 'backend.main:app --host 0.0.0.0 --port 8000',
+    //   interpreter: path.join(__dirname, 'backend', '.venv', 'bin', 'python'),
+    //   cwd: path.join(__dirname, 'backend'),
+    //   watch: false,
+    //   env: {
+    //     PYTHON_ENV: 'development'
+    //   },
+    //   log_file: path.join(__dirname, 'logs', 'backend.log'),
+    //   error_file: path.join(__dirname, 'logs', 'backend-error.log'),
+    //   out_file: path.join(__dirname, 'logs', 'backend-out.log')
+    // },
     {
       name: 'frontend',
       script: 'npm',
